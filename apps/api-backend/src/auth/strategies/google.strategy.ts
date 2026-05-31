@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, Profile, StrategyOptions } from 'passport-google-oauth20';
+import { Profile, Strategy, StrategyOptions } from 'passport-google-oauth20';
 
 import type { GoogleAuthPayload } from '../auth.types';
 
@@ -21,7 +21,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID,
       clientSecret,
       callbackURL,
-      scope: ['openid', 'email', 'profile'],
+      scope: ['openid', 'email', 'profile',
+        'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/gmail.metadata'],
     } as StrategyOptions);
   }
 

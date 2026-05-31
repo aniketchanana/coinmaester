@@ -8,8 +8,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check-types": "turbo run check-types",
-    "db:up": "docker compose up -d",
-    "db:down": "docker compose down",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
     "db:generate": "pnpm --filter @repo/database db:generate",
     "db:migrate": "pnpm --filter @repo/database db:migrate",
     "db:studio": "pnpm --filter @repo/database db:studio"
