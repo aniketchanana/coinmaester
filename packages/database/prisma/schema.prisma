@@ -13,7 +13,6 @@ model User {
   googleId  String   @unique // Google `sub` / account id
   email     String   @unique
   name      String?
-  image     String? // profile picture URL
 
   emailVerified DateTime?
 
