@@ -24,4 +24,16 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  emailSync EmailSync?
+}
+
+/// Tracks Gmail sync cursor (historyId) and last processed message time.
+model EmailSync {
+  userId       String   @id
+  lastSyncTime DateTime
+  historyId    String?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_sync")
 }

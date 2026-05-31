@@ -47,7 +47,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google', true) {
         : null,
       accessToken,
       refreshToken: refreshToken || undefined,
-      scope: 'openid email profile',
+      scope: params.scope ?? 'openid email profile',
       expiresIn: params.expires_in
     };
   }
