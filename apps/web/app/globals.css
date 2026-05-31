@@ -1,0 +1,3 @@
+/* Scan web app routes and components */
+@source "../**/*.{ts,tsx}";
+@source "../../components/**/*.{ts,tsx}";
