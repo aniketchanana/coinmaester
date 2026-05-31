@@ -5,7 +5,7 @@ import { Profile, Strategy, StrategyOptions } from 'passport-google-oauth20';
 import type { GoogleAuthPayload } from '../auth.types';
 
 @Injectable()
-export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+export class GoogleStrategy extends PassportStrategy(Strategy, 'google', true) {
   constructor() {
     const clientID = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -29,6 +29,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   validate(
     accessToken: string,
     refreshToken: string,
+    params: { expires_in?: number; scope?: string; },
     profile: Profile,
   ): GoogleAuthPayload {
     const email = profile.emails?.[0]?.value;
@@ -47,6 +48,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       accessToken,
       refreshToken: refreshToken || undefined,
       scope: 'openid email profile',
+      expiresIn: params.expires_in
     };
   }
 }
