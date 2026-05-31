@@ -1,26 +1,26 @@
 import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 
 import { AuthService } from './auth.service';
 import type { GoogleAuthPayload } from './auth.types';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 type GoogleAuthRequest = Request & { user: GoogleAuthPayload };
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   googleAuth() {
     // Passport redirects to Google.
   }
 
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(
     @Req() request: GoogleAuthRequest,
     @Res() response: Response,
