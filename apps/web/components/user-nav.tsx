@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/avatar';
 import { Button } from '@repo/ui/button';
@@ -21,6 +21,8 @@ type UserNavProps = {
 };
 
 export function UserNav({ name = 'User', email, image }: UserNavProps) {
+  const router = useRouter();
+
   const initials =
     name
       .split(' ')
@@ -28,6 +30,12 @@ export function UserNav({ name = 'User', email, image }: UserNavProps) {
       .join('')
       .slice(0, 2)
       .toUpperCase() || 'U';
+
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+    router.refresh();
+  }
 
   return (
     <DropdownMenu>
@@ -51,11 +59,12 @@ export function UserNav({ name = 'User', email, image }: UserNavProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/login" className="flex w-full items-center gap-2">
-            <LogOut className="h-4 w-4" />
-            Log out
-          </Link>
+        <DropdownMenuItem
+          className="flex w-full cursor-pointer items-center gap-2"
+          onClick={handleLogout}
+        >
+          <LogOut className="h-4 w-4" />
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

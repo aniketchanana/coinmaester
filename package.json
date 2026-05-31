@@ -12,8 +12,7 @@
     "db:down": "docker compose down",
     "db:generate": "pnpm --filter @repo/database db:generate",
     "db:migrate": "pnpm --filter @repo/database db:migrate",
-    "db:studio": "pnpm --filter @repo/database db:studio",
-    "postinstall": "pnpm db:generate"
+    "db:studio": "pnpm --filter @repo/database db:studio"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 import { Button } from '@repo/ui/button';
 import {
   Card,
@@ -8,6 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@repo/ui/card';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 export default function LoginPage() {
   return (
@@ -20,7 +20,7 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent>
         <Button asChild className="w-full" size="lg">
-          <Link href="/dashboard">Continue with Google</Link>
+          <a href={`${API_URL}/auth/google`}>Continue with Google</a>
         </Button>
       </CardContent>
     </Card>

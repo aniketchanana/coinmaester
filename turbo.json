@@ -2,14 +2,17 @@
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
   "globalEnv": [
+    "NODE_ENV",
     "PORT",
     "DATABASE_URL",
     "REDIS_URL",
     "AUTH_SECRET",
+    "JWT_EXPIRES_IN",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_CLIENT_SECRET",
-    "NEXTAUTH_URL",
-    "API_URL",
+    "GOOGLE_CALLBACK_URL",
+    "WEB_URL",
+    "NEXT_PUBLIC_API_URL",
     "INTERNAL_API_KEY"
   ],
   "tasks": {
