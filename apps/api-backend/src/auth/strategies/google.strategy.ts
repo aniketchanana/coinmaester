@@ -22,8 +22,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientSecret,
       callbackURL,
       scope: ['openid', 'email', 'profile',
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.metadata'],
+        'https://www.googleapis.com/auth/gmail.readonly'],
     } as StrategyOptions);
   }
 
