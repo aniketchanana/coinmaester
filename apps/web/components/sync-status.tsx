@@ -40,7 +40,9 @@ export function SyncStatus({ label = 'Gmail sync' }: SyncStatusProps) {
     mutationFn: triggerSync,
     onSuccess: (response) => {
       if (response.status === 201) {
-        toast('We are syncing your data. This might take a few moments.');
+        toast.success(
+          'We are syncing your data. This might take a few moments.',
+        );
         void queryClient.invalidateQueries({ queryKey: syncKeys.latest });
       }
     },
@@ -68,11 +70,7 @@ export function SyncStatus({ label = 'Gmail sync' }: SyncStatusProps) {
       disabled={isDisabled}
       onClick={() => syncMutation.mutate()}
     >
-      {isQueueing ? (
-        <Loader2 className="animate-spin" />
-      ) : (
-        <RefreshCcw />
-      )}
+      {isQueueing ? <Loader2 className="animate-spin" /> : <RefreshCcw />}
       Sync
     </Button>
   );
