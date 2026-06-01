@@ -29,7 +29,7 @@
       "dependsOn": ["^check-types"]
     },
     "dev": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["@repo/database#build", "@repo/constant#build"],
       "cache": false,
       "persistent": true
     }

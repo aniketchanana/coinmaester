@@ -11,12 +11,16 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@repo/constant": "workspace:*",
     "@repo/ui": "workspace:*",
+    "@tanstack/react-query": "^5.100.14",
+    "axios": "^1.16.1",
     "lucide-react": "^0.511.0",
     "next": "16.2.0",
     "next-themes": "^0.4.6",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

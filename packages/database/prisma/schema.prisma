@@ -7,6 +7,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum EmailSyncStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
 /// App user authenticated via Google OAuth.
 model User {
   id        String   @id @default(cuid())
@@ -25,17 +32,32 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  emailSync EmailSync?
+  emailSyncs EmailSync[]
 
   @@map("users")
 }
 
-/// Tracks Gmail sync cursor (historyId) and last processed message time.
+/// On-demand Gmail sync job queue.
 model EmailSync {
-  userId       String   @id
-  lastSyncTime DateTime
-  historyId    String?
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String          @id @default(cuid())
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  status    EmailSyncStatus @default(PENDING)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("email_sync")
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("emailSync")
+}
+
+/// Ingested Gmail messages.
+model GmailMessage {
+  id             String @id @default(cuid())
+  conversationId String
+  header         String @db.Text
+  messageId      String @unique
+  emailBody      String @default("") @db.Text
+
+  @@map("gmailMessages")
 }

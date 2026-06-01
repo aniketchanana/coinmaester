@@ -1,0 +1,27 @@
+{
+  "name": "@repo/constant",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./job-status": {
+      "types": "./src/job-status.ts",
+      "development": "./src/job-status.ts",
+      "default": "./dist/job-status.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "5.9.2"
+  }
+}
