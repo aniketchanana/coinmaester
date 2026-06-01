@@ -1,4 +1,5 @@
-import { Badge } from '@repo/ui/badge';
+import { Button } from '@repo/ui/button';
+import { RefreshCcw } from 'lucide-react';
 
 type SyncStatusProps = {
   lastSyncedAt?: string | null;
@@ -24,9 +25,10 @@ export function SyncStatus({
           Last synced: {formatted}
         </p>
       </div>
-      <Badge variant="secondary" className="shrink-0">
-        Not connected
-      </Badge>
+      <Button className="shrink-0 cursor-pointer">
+        <RefreshCcw />
+        Sync
+      </Button>
     </div>
   );
 }

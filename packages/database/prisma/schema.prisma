@@ -26,6 +26,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   emailSync EmailSync?
+
+  @@map("users")
 }
 
 /// Tracks Gmail sync cursor (historyId) and last processed message time.
