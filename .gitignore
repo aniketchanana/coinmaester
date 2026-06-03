@@ -35,6 +35,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Ingested email bodies (local filesystem)
+ingested-emails/
+
 # Misc
 .DS_Store
 *.pem

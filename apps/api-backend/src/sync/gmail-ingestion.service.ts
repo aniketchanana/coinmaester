@@ -4,17 +4,17 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JOB_STATUS } from '@repo/constant';
-import type { EmailSyncStatus } from '@repo/database';
+import { Prisma, type EmailSyncStatus } from '@repo/database';
 import type { AxiosInstance, AxiosResponse } from 'axios';
 import { isAxiosError } from 'axios';
 
 import { AuthService } from '../auth/auth.service';
 import { createHttpClient } from '../common/http-client';
 import { PrismaService } from '../database/prisma.service';
+import { EmailFileStorageService } from '../storage/email-file-storage.service';
 
 const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1';
 const LIST_PAGE_SIZE = 100;
-const CREATE_MANY_BATCH_SIZE = 1000;
 const INITIAL_SYNC_LOOKBACK_MS = 24 * 60 * 60 * 1000;
 const SUBSEQUENT_SYNC_BUFFER_MS = 5 * 60 * 1000;
 
@@ -23,8 +23,16 @@ interface GmailHeader {
   value: string;
 }
 
+interface GmailApiBody {
+  data?: string;
+  size?: number;
+}
+
 interface GmailApiPayload {
+  mimeType?: string;
   headers?: GmailHeader[];
+  body?: GmailApiBody;
+  parts?: GmailApiPayload[];
 }
 
 interface GmailApiMessage {
@@ -48,6 +56,7 @@ interface IngestedMessage {
   header: string;
   messageId: string;
   receivedAtMs: number;
+  body: string;
 }
 
 /** Fetches inbox messages from the Gmail API for on-demand sync jobs. */
@@ -59,6 +68,7 @@ export class GmailIngestionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
+    private readonly emailFileStorage: EmailFileStorageService,
   ) {
     this.gmailClient = createHttpClient({ baseURL: GMAIL_API_BASE });
   }
@@ -68,6 +78,7 @@ export class GmailIngestionService {
       where: { id: emailSyncId },
       select: { id: true, userId: true, createdAt: true, status: true },
     });
+
 
     if (!job || job.status !== JOB_STATUS.IN_PROGRESS) {
       return;
@@ -141,35 +152,66 @@ export class GmailIngestionService {
     emailSyncId: string,
     messages: IngestedMessage[],
   ): Promise<void> {
-    const rows = messages.map((message) => ({
-      conversationId: message.conversationId,
-      header: message.header,
-      messageId: message.messageId,
-      emailBody: '',
-    }));
+    let inserted = 0;
 
-    await this.prisma.transaction(async (tx) => {
-      for (let offset = 0; offset < rows.length; offset += CREATE_MANY_BATCH_SIZE) {
-        const batch = rows.slice(offset, offset + CREATE_MANY_BATCH_SIZE);
-        if (batch.length === 0) {
-          continue;
-        }
-
-        await tx.gmailMessage.createMany({
-          data: batch,
-          skipDuplicates: true,
-        });
+    for (const message of messages) {
+      const persisted = await this.persistMessage(message);
+      if (persisted) {
+        inserted += 1;
       }
+    }
 
-      await tx.emailSync.update({
-        where: { id: emailSyncId },
-        data: { status: JOB_STATUS.COMPLETED as EmailSyncStatus },
-      });
+    await this.prisma.client.emailSync.update({
+      where: { id: emailSyncId },
+      data: { status: JOB_STATUS.COMPLETED as EmailSyncStatus },
     });
 
     this.logger.log(
-      `Gmail ingestion completed for job ${emailSyncId}: ${messages.length} message(s)`,
+      `Gmail ingestion completed for job ${emailSyncId}: ${inserted} new, ${messages.length - inserted} skipped`,
     );
+  }
+
+  private async persistMessage(message: IngestedMessage): Promise<boolean> {
+    const existing = await this.prisma.client.gmailMessage.findUnique({
+      where: { messageId: message.messageId },
+      select: { id: true },
+    });
+    if (existing) {
+      return false;
+    }
+
+    try {
+      const row = await this.prisma.client.gmailMessage.create({
+        data: {
+          conversationId: message.conversationId,
+          header: message.header,
+          messageId: message.messageId,
+          emailBody: '',
+          internalDate: new Date(message.receivedAtMs),
+        },
+      });
+
+      if (message.body.length > 0) {
+        const emailBodyPath = await this.emailFileStorage.writeBody(
+          row.id,
+          message.body,
+        );
+        await this.prisma.client.gmailMessage.update({
+          where: { id: row.id },
+          data: { emailBody: emailBodyPath },
+        });
+      }
+
+      return true;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        return false;
+      }
+      throw error;
+    }
   }
 
   private async listInboxMessageIdsInBounds(
@@ -230,6 +272,7 @@ export class GmailIngestionService {
       conversationId,
       header: this.formatHeader(raw),
       receivedAtMs: this.parseInternalDateMs(raw.internalDate),
+      body: raw.payload ? this.extractEmailBody(raw.payload) : '',
     };
   }
 
@@ -240,10 +283,58 @@ export class GmailIngestionService {
     const data = await this.getGmailResource(
       accessToken,
       `/users/me/messages/${messageId}`,
-      { format: 'metadata', metadataHeaders: ['From', 'Subject', 'Date'] },
+      { format: 'full' },
     );
 
     return this.parseGmailApiMessage(data);
+  }
+
+  private extractEmailBody(payload: GmailApiPayload): string {
+    const plain = this.findBodyByMimeType(payload, 'text/plain');
+    if (plain) {
+      return plain;
+    }
+
+    const html = this.findBodyByMimeType(payload, 'text/html');
+    return html ?? '';
+  }
+
+  private findBodyByMimeType(
+    payload: GmailApiPayload,
+    mimeType: string,
+  ): string | undefined {
+    if (payload.mimeType?.toLowerCase() === mimeType.toLowerCase()) {
+      const decoded = this.decodeGmailBody(payload.body?.data);
+      if (decoded) {
+        return decoded;
+      }
+    }
+
+    for (const part of payload.parts ?? []) {
+      const found = this.findBodyByMimeType(part, mimeType);
+      if (found) {
+        return found;
+      }
+    }
+
+    return undefined;
+  }
+
+  private decodeGmailBody(data: string | undefined): string | undefined {
+    if (!data) {
+      return undefined;
+    }
+
+    const normalized = data.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = normalized.length % 4;
+    const padded =
+      padding === 0 ? normalized : normalized + '='.repeat(4 - padding);
+
+    try {
+      return Buffer.from(padded, 'base64').toString('utf8');
+    } catch {
+      return undefined;
+    }
   }
 
   private async getGmailResource(

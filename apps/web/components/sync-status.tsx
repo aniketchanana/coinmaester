@@ -8,11 +8,13 @@ import {
   TooltipTrigger,
 } from '@repo/ui/tooltip';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
   fetchLatestSyncStatus,
+  isSyncFailed,
   isSyncInProgress,
   syncKeys,
   triggerSync,
@@ -28,13 +30,25 @@ type SyncStatusProps = {
 
 export function SyncStatus({ label = 'Gmail sync' }: SyncStatusProps) {
   const queryClient = useQueryClient();
+  const [pollUntilSettled, setPollUntilSettled] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: syncKeys.latest,
     queryFn: fetchLatestSyncStatus,
-    refetchInterval: POLL_INTERVAL_MS,
-    refetchOnMount: true,
+    refetchInterval: (query) => {
+      const status = query.state.data?.lastSyncStatus;
+      if (isSyncInProgress(status) || pollUntilSettled) {
+        return POLL_INTERVAL_MS;
+      }
+      return false;
+    },
   });
+
+  useEffect(() => {
+    if (!isSyncInProgress(data?.lastSyncStatus)) {
+      setPollUntilSettled(false);
+    }
+  }, [data?.lastSyncStatus]);
 
   const syncMutation = useMutation({
     mutationFn: triggerSync,
@@ -43,6 +57,7 @@ export function SyncStatus({ label = 'Gmail sync' }: SyncStatusProps) {
         toast.success(
           'We are syncing your data. This might take a few moments.',
         );
+        setPollUntilSettled(true);
         void queryClient.invalidateQueries({ queryKey: syncKeys.latest });
       }
     },
@@ -52,8 +67,9 @@ export function SyncStatus({ label = 'Gmail sync' }: SyncStatusProps) {
   });
 
   const syncInProgress = isSyncInProgress(data?.lastSyncStatus);
+  const lastSyncFailed = isSyncFailed(data?.lastSyncStatus);
   const isQueueing = syncMutation.isPending;
-  const isDisabled = syncInProgress || isQueueing;
+  const isDisabled = isLoading ? true : syncInProgress || isQueueing;
 
   const formatted = data?.lastSyncedTime
     ? new Intl.DateTimeFormat('en-US', {
@@ -64,13 +80,19 @@ export function SyncStatus({ label = 'Gmail sync' }: SyncStatusProps) {
       ? 'Loading…'
       : 'Not synced yet';
 
+  const statusLine = lastSyncFailed
+    ? data?.lastSyncedTime
+      ? `Last sync failed. Last successful sync: ${formatted}`
+      : 'Last sync failed.'
+    : `Last synced: ${formatted}`;
+
   const syncButton = (
     <Button
       className="shrink-0 cursor-pointer"
       disabled={isDisabled}
       onClick={() => syncMutation.mutate()}
     >
-      {isQueueing ? <Loader2 className="animate-spin" /> : <RefreshCcw />}
+      {<RefreshCcw className={`${isDisabled ? 'animate-spin' : ''}`} />}
       Sync
     </Button>
   );
@@ -79,9 +101,7 @@ export function SyncStatus({ label = 'Gmail sync' }: SyncStatusProps) {
     <div className="flex items-center justify-between gap-4 rounded-xl border bg-card p-5 shadow-sm">
       <div className="space-y-1">
         <p className="text-sm font-medium leading-none">{label}</p>
-        <p className="text-sm text-muted-foreground">
-          Last synced: {formatted}
-        </p>
+        <p className={'text-sm text-muted-foreground'}>{statusLine}</p>
       </div>
 
       {syncInProgress && !isQueueing ? (

@@ -29,3 +29,7 @@ export function triggerSync() {
 export function isSyncInProgress(status: JobStatus | null | undefined): boolean {
   return status === JOB_STATUS.PENDING || status === JOB_STATUS.IN_PROGRESS;
 }
+
+export function isSyncFailed(status: JobStatus | null | undefined): boolean {
+  return status === JOB_STATUS.FAILED;
+}

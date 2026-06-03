@@ -53,11 +53,16 @@ model EmailSync {
 
 /// Ingested Gmail messages.
 model GmailMessage {
-  id             String @id @default(cuid())
+  id             String   @id @default(cuid())
   conversationId String
-  header         String @db.Text
-  messageId      String @unique
-  emailBody      String @default("") @db.Text
+  header         String   @db.Text
+  messageId      String   @unique
+  emailBody      String   @default("") @db.Text
+  /// Gmail API `internalDate` (message received time).
+  internalDate   DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
+  @@index([internalDate(sort: Desc)])
   @@map("gmailMessages")
 }

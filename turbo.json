@@ -14,7 +14,8 @@
     "WEB_URL",
     "NEXT_PUBLIC_API_URL",
     "INTERNAL_API_KEY",
-    "TOKEN_ENCRYPTION_KEY"
+    "TOKEN_ENCRYPTION_KEY",
+    "EMAIL_STORAGE_DIR"
   ],
   "tasks": {
     "build": {
