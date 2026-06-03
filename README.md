@@ -22,6 +22,7 @@ The `ingested-emails/` directory is gitignored. Bodies persist across API and da
 
 - Build gmail ingestion flow [x]
 - Local filesystem storage for email bodies [x]
+- Add a durable persistence queue which will put put email to queue for python worker to pick one by one
 - Add a python worker which will pick up the gmail message and run the AI based processing on it
 - dockerize and publish the application so that it is simpler for anyone to run locally
 - Replace the cron job which you are using to poll emailSync table instead use pg-boss as a queue
