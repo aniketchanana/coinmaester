@@ -2,3 +2,4 @@
 - Add local stack for store object storage and saving email body
 - Add a python worker which will pick up the gmail message and run the AI based processing on it
 - dockerize and publish the application so that it is simpler for anyone to run locally
+- Replace the cron job which you are using to poll emailSync table instead use pg-boss as a queue
