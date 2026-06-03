@@ -12,6 +12,7 @@
     }
   },
   "scripts": {
+    "dev": "tsc --watch",
     "build": "prisma generate && tsc --build",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
