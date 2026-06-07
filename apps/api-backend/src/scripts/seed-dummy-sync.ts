@@ -1,13 +1,10 @@
-import path from 'node:path';
+import '../load-env';
 
-import dotenv from 'dotenv';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from '../app.module';
 import { PrismaService } from '../database/prisma.service';
 import { GmailIngestionService } from '../sync/gmail-ingestion.service';
-
-dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 function printUsage(): void {
   console.log(`Usage: pnpm seed:dummy-sync [userId]
