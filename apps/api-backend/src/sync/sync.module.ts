@@ -8,16 +8,10 @@ import { GmailIngestionService } from './gmail-ingestion.service';
 import { SyncCleanupCron } from './sync-cleanup.cron';
 import { SyncController } from './sync.controller';
 import { SyncService } from './sync.service';
-import { SyncWorkerCron } from './sync-worker.cron';
 
 @Module({
   imports: [DatabaseModule, AuthModule, StorageModule, MessagingModule],
   controllers: [SyncController],
-  providers: [
-    SyncService,
-    GmailIngestionService,
-    SyncWorkerCron,
-    SyncCleanupCron,
-  ],
+  providers: [SyncService, GmailIngestionService, SyncCleanupCron],
 })
 export class SyncModule {}
