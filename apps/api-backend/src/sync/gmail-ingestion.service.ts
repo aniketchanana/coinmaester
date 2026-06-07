@@ -11,6 +11,7 @@ import { isAxiosError } from 'axios';
 import { AuthService } from '../auth/auth.service';
 import { createHttpClient } from '../common/http-client';
 import { PrismaService } from '../database/prisma.service';
+import { RabbitMqPublisherService } from '../messaging/rabbitmq-publisher.service';
 import { EmailFileStorageService } from '../storage/email-file-storage.service';
 
 const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1';
@@ -69,8 +70,73 @@ export class GmailIngestionService {
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
     private readonly emailFileStorage: EmailFileStorageService,
+    private readonly rabbitMqPublisher: RabbitMqPublisherService,
   ) {
     this.gmailClient = createHttpClient({ baseURL: GMAIL_API_BASE });
+  }
+
+  /** Seeds a completed sync job and one dummy inbox message (no Gmail API). */
+  async seedDummySyncAndMessage(userId: string): Promise<{
+    emailSyncId: string;
+    gmailMessageId: string;
+    messageId: string;
+  }> {
+    const user = await this.prisma.client.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new Error(`User not found: ${userId}`);
+    }
+
+    const emailSync = await this.prisma.client.emailSync.create({
+      data: {
+        userId,
+        status: JOB_STATUS.COMPLETED as SyncStatus,
+      },
+    });
+
+    const now = Date.now();
+    const dummyMessage: IngestedMessage = {
+      conversationId: `dummy-thread-${now}`,
+      messageId: `dummy-gmail-${now}-${Math.random().toString(36).slice(2, 9)}`,
+      header: `From: Test Merchant <noreply@test.com> | Subject: Your purchase of $42.99 | Date: ${new Date(now).toUTCString()}`,
+      receivedAtMs: now,
+      body: [
+        'Thank you for your purchase.',
+        '',
+        'Amount: $42.99',
+        'Merchant: Test Coffee Shop',
+        `Date: ${new Date(now).toISOString()}`,
+      ].join('\n'),
+    };
+
+    const inserted = await this.persistMessage(dummyMessage);
+    if (!inserted) {
+      throw new Error(
+        'Failed to insert dummy Gmail message (duplicate messageId?)',
+      );
+    }
+
+    const row = await this.prisma.client.gmailMessage.findUnique({
+      where: { messageId: dummyMessage.messageId },
+      select: { id: true },
+    });
+
+    if (!row) {
+      throw new Error('Dummy Gmail message was not found after insert');
+    }
+
+    this.logger.log(
+      `Seeded dummy sync ${emailSync.id} and Gmail message ${row.id}`,
+    );
+
+    return {
+      emailSyncId: emailSync.id,
+      gmailMessageId: row.id,
+      messageId: dummyMessage.messageId,
+    };
   }
 
   async processJob(emailSyncId: string): Promise<void> {
@@ -200,6 +266,15 @@ export class GmailIngestionService {
           where: { id: row.id },
           data: { emailBody: emailBodyPath },
         });
+      }
+
+      try {
+        await this.rabbitMqPublisher.publishGmailMessage(row.id);
+      } catch (error) {
+        this.logger.error(
+          `Failed to publish Gmail message ${row.id} to RabbitMQ`,
+          error instanceof Error ? error.stack : String(error),
+        );
       }
 
       return true;

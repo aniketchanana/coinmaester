@@ -1,0 +1,8 @@
+{
+  "name": "@repo/proto",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "generate": "uv run --project ../../apps/python-worker python -m grpc_tools.protoc -I. --python_out=../../apps/python-worker/generated --grpc_python_out=../../apps/python-worker/generated gmail_message.proto"
+  }
+}

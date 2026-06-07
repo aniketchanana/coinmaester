@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package gmail;
+
+service GmailMessageProcessing {
+  rpc ClaimForProcessing(ClaimRequest) returns (ClaimResponse);
+  rpc CompleteProcessing(CompleteRequest) returns (CompleteResponse);
+}
+
+message ClaimRequest {
+  string gmail_message_id = 1;
+}
+
+message ClaimResponse {
+  string id = 1;
+  string header = 2;
+  string status = 3;
+}
+
+message CompleteRequest {
+  string gmail_message_id = 1;
+}
+
+message CompleteResponse {
+  string id = 1;
+  string status = 2;
+}

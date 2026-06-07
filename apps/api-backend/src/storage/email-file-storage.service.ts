@@ -3,7 +3,8 @@ import path from 'node:path';
 
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
-const EMAIL_DIR_NAME = 'synced-emails';
+const configured = process.env.EMAIL_STORAGE_DIR?.trim();
+const EMAIL_DIR_NAME = configured;
 const REPO_ROOT = path.resolve(__dirname, '../../../..');
 
 @Injectable()
@@ -11,7 +12,6 @@ export class EmailFileStorageService implements OnModuleInit {
   private readonly storageRoot: string;
 
   constructor() {
-    const configured = process.env.EMAIL_STORAGE_DIR?.trim();
     if (configured) {
       if (path.isAbsolute(configured)) {
         this.storageRoot = configured;
@@ -19,7 +19,7 @@ export class EmailFileStorageService implements OnModuleInit {
         this.storageRoot = path.resolve(REPO_ROOT, configured);
       }
     } else {
-      this.storageRoot = path.resolve(REPO_ROOT, EMAIL_DIR_NAME);
+      this.storageRoot = path.resolve(REPO_ROOT, EMAIL_DIR_NAME as string);
     }
   }
 
