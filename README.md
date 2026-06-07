@@ -2,7 +2,7 @@
 
 ## Local development
 
-1. `pnpm docker:up` — Postgres and Redis
+1. `pnpm docker:up` — Postgres and RabbitMQ
 2. Copy `.env.example` to `.env` and configure Google OAuth
 3. `pnpm db:migrate` then `pnpm dev`
 
