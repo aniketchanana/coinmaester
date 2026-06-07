@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EmailSyncStatus } from '@repo/database';
+import { SyncStatus } from '@repo/database';
 
 import { PrismaService } from '../database/prisma.service';
 import type {
@@ -15,7 +15,7 @@ export class SyncService {
     const job = await this.prisma.client.emailSync.create({
       data: {
         userId,
-        status: EmailSyncStatus.PENDING,
+        status: SyncStatus.PENDING,
       },
       select: { id: true, status: true },
     });
@@ -36,7 +36,7 @@ export class SyncService {
       this.prisma.client.emailSync.findFirst({
         where: {
           userId,
-          status: EmailSyncStatus.COMPLETED,
+          status: SyncStatus.COMPLETED,
         },
         orderBy: { createdAt: 'desc' },
         select: { createdAt: true },
@@ -44,7 +44,7 @@ export class SyncService {
     ]);
 
     return {
-      lastSyncStatus: (latestJob?.status as EmailSyncStatus | undefined) ?? null,
+      lastSyncStatus: (latestJob?.status as SyncStatus | undefined) ?? null,
       lastSyncedTime: latestCompleted?.createdAt.toISOString() ?? null,
     };
   }

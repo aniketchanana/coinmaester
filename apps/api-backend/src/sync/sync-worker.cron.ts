@@ -60,14 +60,14 @@ export class SyncWorkerCron {
       WITH claimed AS (
         SELECT id
         FROM "emailSync"
-        WHERE status = ${JOB_STATUS.PENDING}::"EmailSyncStatus"
+        WHERE status = ${JOB_STATUS.PENDING}::"SyncStatus"
         ORDER BY "createdAt" ASC
         LIMIT ${JOBS_PER_TICK}
         FOR UPDATE SKIP LOCKED
       )
       UPDATE "emailSync" AS es
       SET
-        status = ${JOB_STATUS.IN_PROGRESS}::"EmailSyncStatus",
+        status = ${JOB_STATUS.IN_PROGRESS}::"SyncStatus",
         "updatedAt" = NOW()
       FROM claimed
       WHERE es.id = claimed.id

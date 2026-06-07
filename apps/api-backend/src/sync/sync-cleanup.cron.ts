@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { JOB_STATUS } from '@repo/constant';
-import type { EmailSyncStatus } from '@repo/database';
+import type { SyncStatus } from '@repo/database';
 
 import { PrismaService } from '../database/prisma.service';
 
@@ -19,10 +19,10 @@ export class SyncCleanupCron {
 
     const result = await this.prisma.client.emailSync.updateMany({
       where: {
-        status: JOB_STATUS.IN_PROGRESS as EmailSyncStatus,
+        status: JOB_STATUS.IN_PROGRESS as SyncStatus,
         updatedAt: { lt: staleBefore },
       },
-      data: { status: JOB_STATUS.FAILED as EmailSyncStatus },
+      data: { status: JOB_STATUS.FAILED as SyncStatus },
     });
 
     if (result.count > 0) {

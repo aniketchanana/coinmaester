@@ -7,7 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
-enum EmailSyncStatus {
+enum SyncStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
@@ -42,7 +42,7 @@ model EmailSync {
   id        String          @id @default(cuid())
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
-  status    EmailSyncStatus @default(PENDING)
+  status    SyncStatus @default(PENDING)
   userId    String
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -60,6 +60,7 @@ model GmailMessage {
   emailBody      String   @default("") @db.Text
   /// Gmail API `internalDate` (message received time).
   internalDate   DateTime
+  status         SyncStatus @default(PENDING)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

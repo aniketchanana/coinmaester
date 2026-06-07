@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JOB_STATUS } from '@repo/constant';
-import { Prisma, type EmailSyncStatus } from '@repo/database';
+import { Prisma, type SyncStatus } from '@repo/database';
 import type { AxiosInstance, AxiosResponse } from 'axios';
 import { isAxiosError } from 'axios';
 
@@ -112,7 +112,7 @@ export class GmailIngestionService {
 
       await this.prisma.client.emailSync.update({
         where: { id: emailSyncId },
-        data: { status: JOB_STATUS.FAILED as EmailSyncStatus },
+        data: { status: JOB_STATUS.FAILED as SyncStatus },
       });
     }
   }
@@ -126,7 +126,7 @@ export class GmailIngestionService {
     const lastCompleted = await this.prisma.client.emailSync.findFirst({
       where: {
         userId,
-        status: JOB_STATUS.COMPLETED as EmailSyncStatus,
+        status: JOB_STATUS.COMPLETED as SyncStatus,
         createdAt: { lt: before },
       },
       orderBy: { createdAt: 'desc' },
@@ -163,7 +163,7 @@ export class GmailIngestionService {
 
     await this.prisma.client.emailSync.update({
       where: { id: emailSyncId },
-      data: { status: JOB_STATUS.COMPLETED as EmailSyncStatus },
+      data: { status: JOB_STATUS.COMPLETED as SyncStatus },
     });
 
     this.logger.log(
