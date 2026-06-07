@@ -33,6 +33,11 @@
       "dependsOn": ["@repo/database#build", "@repo/constant#build"],
       "cache": false,
       "persistent": true
+    },
+    "python-worker#dev": {
+      "dependsOn": [],
+      "cache": false,
+      "persistent": true
     }
   }
 }

@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { JOB_STATUS } from '@repo/constant';
-import type { EmailSyncStatus } from '@repo/database';
-
 import { GmailIngestionService } from './gmail-ingestion.service';
 import { PrismaService } from '../database/prisma.service';
 
@@ -31,7 +29,15 @@ export class SyncWorkerCron {
     this.isProcessing = true;
 
     try {
-      const jobIds = await this.claimPendingJobs();
+      let jobIds: string[];
+
+      try {
+        jobIds = await this.claimPendingJobs();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.warn(`Unable to claim pending sync jobs: ${message}`);
+        return;
+      }
 
       for (const jobId of jobIds) {
         try {
@@ -48,28 +54,26 @@ export class SyncWorkerCron {
   }
 
   private async claimPendingJobs(): Promise<string[]> {
-    return this.prisma.client.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<PendingJobRow[]>`
+    // Single-statement claim avoids interactive $transaction, which can hit P2028
+    // when the pool is busy during long-running Gmail ingestion work.
+    const rows = await this.prisma.client.$queryRaw<PendingJobRow[]>`
+      WITH claimed AS (
         SELECT id
         FROM "emailSync"
         WHERE status = ${JOB_STATUS.PENDING}::"EmailSyncStatus"
         ORDER BY "createdAt" ASC
         LIMIT ${JOBS_PER_TICK}
         FOR UPDATE SKIP LOCKED
-      `;
+      )
+      UPDATE "emailSync" AS es
+      SET
+        status = ${JOB_STATUS.IN_PROGRESS}::"EmailSyncStatus",
+        "updatedAt" = NOW()
+      FROM claimed
+      WHERE es.id = claimed.id
+      RETURNING es.id
+    `;
 
-      const jobIds = rows.map((row) => row.id);
-
-      if (jobIds.length === 0) {
-        return [];
-      }
-
-      await tx.emailSync.updateMany({
-        where: { id: { in: jobIds } },
-        data: { status: JOB_STATUS.IN_PROGRESS as EmailSyncStatus },
-      });
-
-      return jobIds;
-    });
+    return rows.map((row) => row.id);
   }
 }

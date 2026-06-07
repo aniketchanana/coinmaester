@@ -127,6 +127,8 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
+  apps/python-worker: {}
+
   apps/web:
     dependencies:
       '@repo/constant':
