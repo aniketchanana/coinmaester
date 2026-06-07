@@ -98,6 +98,9 @@ class GmailMessageConsumer:
             )
             result = self._get_processor().process(claim)
 
+            print('------result-----')
+            print(result.transaction)
+            print('------')
             self._grpc_client.complete_processing(
                 gmail_message_id,
                 transaction=result.transaction,

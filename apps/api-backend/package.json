@@ -9,7 +9,7 @@
     "build": "nest build",
     "start": "nest start",
     "predev": "pnpm --filter @repo/database build && pnpm --filter @repo/constant build",
-    "dev": "nest start --watch",
+    "dev": "nest start",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --max-warnings 0",

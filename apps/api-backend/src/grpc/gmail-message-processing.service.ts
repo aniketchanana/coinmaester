@@ -1,7 +1,7 @@
 import { status } from '@grpc/grpc-js';
 import { Injectable } from '@nestjs/common';
-import { JOB_STATUS, TRANSACTION_TYPE } from '@repo/constant';
 import { RpcException } from '@nestjs/microservices';
+import { JOB_STATUS, TRANSACTION_TYPE } from '@repo/constant';
 import type { SyncStatus, TransactionType } from '@repo/database';
 import { Prisma } from '@repo/database';
 
@@ -13,6 +13,7 @@ interface ExtractedTransactionPayload {
   type: string;
   transactionDate: string;
   paymentMadeTo: string;
+  isTransactionEmail: boolean;
 }
 
 interface CompleteProcessingPayload {
@@ -23,7 +24,7 @@ interface CompleteProcessingPayload {
 
 @Injectable()
 export class GmailMessageProcessingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async claimForProcessing(gmailMessageId: string): Promise<{
     id: string;
@@ -117,17 +118,19 @@ export class GmailMessageProcessingService {
     const transactionDate = this.parseTransactionDate(transaction.transactionDate);
 
     const updated = await this.prisma.client.$transaction(async (tx) => {
-      await tx.transaction.create({
-        data: {
-          userId: message.userId,
-          gmailMessageId,
-          bankName: transaction.bankName.trim(),
-          transactionValue: new Prisma.Decimal(transaction.transactionValue),
-          type: transactionType,
-          transactionDate,
-          paymentMadeTo: transaction.paymentMadeTo.trim(),
-        },
-      });
+      if (transaction.transactionValue && transaction.isTransactionEmail) {
+        await tx.transaction.create({
+          data: {
+            userId: message.userId,
+            gmailMessageId,
+            bankName: transaction.bankName.trim(),
+            transactionValue: new Prisma.Decimal(transaction.transactionValue),
+            type: transactionType,
+            transactionDate,
+            paymentMadeTo: transaction.paymentMadeTo.trim(),
+          },
+        });
+      }
 
       return tx.gmailMessage.update({
         where: { id: gmailMessageId },

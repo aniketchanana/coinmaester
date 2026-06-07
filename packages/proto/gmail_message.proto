@@ -25,6 +25,7 @@ message ExtractedTransaction {
   string type = 3;
   string transaction_date = 4;
   string payment_made_to = 5;
+  bool is_transaction_email = 6;
 }
 
 message CompleteRequest {

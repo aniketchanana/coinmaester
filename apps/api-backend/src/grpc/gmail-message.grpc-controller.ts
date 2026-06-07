@@ -11,6 +11,7 @@ interface CompleteProcessingRequest {
     type: string;
     transactionDate: string;
     paymentMadeTo: string;
+    isTransactionEmail: boolean;
   };
   failureReason?: string;
 }

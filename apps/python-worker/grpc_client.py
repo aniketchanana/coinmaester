@@ -48,6 +48,7 @@ class GmailMessageGrpcClient:
                     type=transaction.type,
                     transaction_date=transaction.transaction_date,
                     payment_made_to=transaction.payment_made_to,
+                    is_transaction_email=transaction.is_transaction_email,
                 )
             )
 

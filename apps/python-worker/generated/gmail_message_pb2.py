@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13gmail_message.proto\x12\x05gmail\"(\n\x0c\x43laimRequest\x12\x18\n\x10gmail_message_id\x18\x01 \x01(\t\"`\n\rClaimResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06header\x18\x02 \x01(\t\x12\x0e\n\x06status\x18\x03 \x01(\t\x12\x12\n\nemail_body\x18\x04 \x01(\t\x12\x0f\n\x07user_id\x18\x05 \x01(\t\"\x85\x01\n\x14\x45xtractedTransaction\x12\x11\n\tbank_name\x18\x01 \x01(\t\x12\x19\n\x11transaction_value\x18\x02 \x01(\x01\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x18\n\x10transaction_date\x18\x04 \x01(\t\x12\x17\n\x0fpayment_made_to\x18\x05 \x01(\t\"u\n\x0f\x43ompleteRequest\x12\x18\n\x10gmail_message_id\x18\x01 \x01(\t\x12\x30\n\x0btransaction\x18\x02 \x01(\x0b\x32\x1b.gmail.ExtractedTransaction\x12\x16\n\x0e\x66\x61ilure_reason\x18\x03 \x01(\t\".\n\x10\x43ompleteResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06status\x18\x02 \x01(\t2\xa0\x01\n\x16GmailMessageProcessing\x12?\n\x12\x43laimForProcessing\x12\x13.gmail.ClaimRequest\x1a\x14.gmail.ClaimResponse\x12\x45\n\x12\x43ompleteProcessing\x12\x16.gmail.CompleteRequest\x1a\x17.gmail.CompleteResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13gmail_message.proto\x12\x05gmail\"(\n\x0c\x43laimRequest\x12\x18\n\x10gmail_message_id\x18\x01 \x01(\t\"`\n\rClaimResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06header\x18\x02 \x01(\t\x12\x0e\n\x06status\x18\x03 \x01(\t\x12\x12\n\nemail_body\x18\x04 \x01(\t\x12\x0f\n\x07user_id\x18\x05 \x01(\t\"\xa3\x01\n\x14\x45xtractedTransaction\x12\x11\n\tbank_name\x18\x01 \x01(\t\x12\x19\n\x11transaction_value\x18\x02 \x01(\x01\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x18\n\x10transaction_date\x18\x04 \x01(\t\x12\x17\n\x0fpayment_made_to\x18\x05 \x01(\t\x12\x1c\n\x14is_transaction_email\x18\x06 \x01(\x08\"u\n\x0f\x43ompleteRequest\x12\x18\n\x10gmail_message_id\x18\x01 \x01(\t\x12\x30\n\x0btransaction\x18\x02 \x01(\x0b\x32\x1b.gmail.ExtractedTransaction\x12\x16\n\x0e\x66\x61ilure_reason\x18\x03 \x01(\t\".\n\x10\x43ompleteResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06status\x18\x02 \x01(\t2\xa0\x01\n\x16GmailMessageProcessing\x12?\n\x12\x43laimForProcessing\x12\x13.gmail.ClaimRequest\x1a\x14.gmail.ClaimResponse\x12\x45\n\x12\x43ompleteProcessing\x12\x16.gmail.CompleteRequest\x1a\x17.gmail.CompleteResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -36,11 +36,11 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CLAIMRESPONSE']._serialized_start=72
   _globals['_CLAIMRESPONSE']._serialized_end=168
   _globals['_EXTRACTEDTRANSACTION']._serialized_start=171
-  _globals['_EXTRACTEDTRANSACTION']._serialized_end=304
-  _globals['_COMPLETEREQUEST']._serialized_start=306
-  _globals['_COMPLETEREQUEST']._serialized_end=423
-  _globals['_COMPLETERESPONSE']._serialized_start=425
-  _globals['_COMPLETERESPONSE']._serialized_end=471
-  _globals['_GMAILMESSAGEPROCESSING']._serialized_start=474
-  _globals['_GMAILMESSAGEPROCESSING']._serialized_end=634
+  _globals['_EXTRACTEDTRANSACTION']._serialized_end=334
+  _globals['_COMPLETEREQUEST']._serialized_start=336
+  _globals['_COMPLETEREQUEST']._serialized_end=453
+  _globals['_COMPLETERESPONSE']._serialized_start=455
+  _globals['_COMPLETERESPONSE']._serialized_end=501
+  _globals['_GMAILMESSAGEPROCESSING']._serialized_start=504
+  _globals['_GMAILMESSAGEPROCESSING']._serialized_end=664
 # @@protoc_insertion_point(module_scope)
