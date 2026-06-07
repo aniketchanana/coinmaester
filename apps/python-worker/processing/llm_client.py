@@ -13,6 +13,41 @@ from processing.prompts import SYSTEM_PROMPT, build_user_prompt, CLASSIFY_SYSTEM
 logger = logging.getLogger(__name__)
 
 
+def _to_extracted_transaction(parsed: LlmTransactionResponse) -> ExtractedTransaction:
+    if not parsed.is_transaction_email:
+        return ExtractedTransaction(
+            bank_name="",
+            transaction_value=0,
+            type="DEBIT",
+            transaction_date="",
+            payment_made_to="",
+            is_transaction_email=False,
+        )
+
+    missing_fields = [
+        field
+        for field, value in (
+            ("transaction_value", parsed.transaction_value),
+            ("type", parsed.type),
+        )
+        if value is None
+    ]
+    if missing_fields:
+        raise ValueError(
+            "LLM returned incomplete transaction fields: "
+            + ", ".join(missing_fields)
+        )
+
+    return ExtractedTransaction(
+        bank_name=parsed.bank_name or "",
+        transaction_value=parsed.transaction_value,
+        type=parsed.type,
+        transaction_date=parsed.transaction_date or "",
+        payment_made_to=parsed.payment_made_to or "",
+        is_transaction_email=True,
+    )
+
+
 class TransactionLlmClient:
     def __init__(self) -> None:
         self._client = anthropic.Anthropic(
@@ -35,74 +70,47 @@ class TransactionLlmClient:
         return response.content[0].text.strip()
 
     def extract_transaction(self, header: str, body: str) -> ExtractedTransaction:
-        last_error: Exception | None = None
-        for attempt, strict in enumerate((False, True)):
-            try:
-                classification = LlmClassificationResponse.model_validate_json(
-                    self.classify_is_transaction_email(header)
-                )
-                is_transaction_email = classification.is_transaction_email
+        classification = LlmClassificationResponse.model_validate_json(
+            self.classify_is_transaction_email(header)
+        )
 
-                if not is_transaction_email:
-                    return ExtractedTransaction(
-                        bank_name="",
-                        transaction_value=0,
-                        type="DEBIT",
-                        transaction_date="",
-                        payment_made_to="",
-                        is_transaction_email=False,
-                    )
-                response = self._client.messages.create(
-                    model=settings.anthropic_model,
-                    max_tokens=1024,
-                    system=SYSTEM_PROMPT,
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": build_user_prompt(header, body, strict=strict),
-                        }
-                    ],
-                )
-                text_blocks = [
-                    block.text
-                    for block in response.content
-                    if block.type == "text"
-                ]
-                raw_text = "\n".join(text_blocks).strip()
+        if not classification.is_transaction_email:
+            return ExtractedTransaction(
+                bank_name="",
+                transaction_value=0,
+                type="DEBIT",
+                transaction_date="",
+                payment_made_to="",
+                is_transaction_email=False,
+            )
 
+        response = self._client.messages.create(
+            model=settings.anthropic_model,
+            max_tokens=1024,
+            system=SYSTEM_PROMPT,
+            messages=[
+                {
+                    "role": "user",
+                    "content": build_user_prompt(header, body),
+                }
+            ],
+        )
 
-                if not raw_text:
-                    raise ValueError("LLM returned an empty response")
+        text_blocks = [
+            block.text
+            for block in response.content
+            if block.type == "text"
+        ]
+        raw_text = "\n".join(text_blocks).strip()
 
-                parsed_raw_text = LlmTransactionResponse.model_validate_json(raw_text)
+        if not raw_text:
+            raise ValueError("LLM returned an empty response")
 
-                if not parsed_raw_text.is_transaction_email:
-                    raise ValueError("LLM incorrect response")
+        parsed_raw_text = LlmTransactionResponse.model_validate_json(raw_text)
 
-                if (
-                    not parsed_raw_text.bank_name
-                    or parsed_raw_text.transaction_value is None
-                    or not parsed_raw_text.type
-                    or not parsed_raw_text.transaction_date
-                    or not parsed_raw_text.payment_made_to
-                ):
-                    raise ValueError("LLM returned incomplete transaction fields")
+        if not parsed_raw_text.is_transaction_email:
+            raise ValueError(
+                "Classification marked email as transaction but extraction did not"
+            )
 
-                return ExtractedTransaction(
-                    bank_name=parsed_raw_text.bank_name,
-                    transaction_value=parsed_raw_text.transaction_value,
-                    type=parsed_raw_text.type,
-                    transaction_date=parsed_raw_text.transaction_date,
-                    payment_made_to=parsed_raw_text.payment_made_to,
-                    is_transaction_email=True,
-                )
-            except Exception as error:
-                last_error = error
-                logger.warning(
-                    "LLM extraction attempt %s failed: %s",
-                    attempt + 1,
-                    error,
-                )
-
-        assert last_error is not None
-        raise last_error
+        return _to_extracted_transaction(parsed_raw_text)

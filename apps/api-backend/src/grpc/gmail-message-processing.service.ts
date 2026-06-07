@@ -123,11 +123,11 @@ export class GmailMessageProcessingService {
           data: {
             userId: message.userId,
             gmailMessageId,
-            bankName: transaction.bankName.trim(),
+            bankName: transaction.bankName?.trim() || '--',
             transactionValue: new Prisma.Decimal(transaction.transactionValue),
             type: transactionType,
             transactionDate,
-            paymentMadeTo: transaction.paymentMadeTo.trim(),
+            paymentMadeTo: transaction.paymentMadeTo?.trim() || '--',
           },
         });
       }
