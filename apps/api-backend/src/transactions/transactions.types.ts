@@ -1,6 +1,6 @@
 import type { TransactionType } from '@repo/constant';
 
-export interface TransactionRow {
+export interface TransactionDto {
   id: string;
   bankName: string;
   transactionValue: number;
@@ -11,11 +11,6 @@ export interface TransactionRow {
   updatedAt: string;
 }
 
-export interface TransactionsAggregate {
-  totalDebit: number;
-  totalCredit: number;
-}
-
 export interface TransactionsPagination {
   page: number;
   limit: number;
@@ -23,13 +18,18 @@ export interface TransactionsPagination {
   totalPages: number;
 }
 
+export interface TransactionsAggregate {
+  totalDebit: number;
+  totalCredit: number;
+}
+
 export interface ListTransactionsResponse {
-  data: TransactionRow[];
+  data: TransactionDto[];
   pagination: TransactionsPagination;
   aggregate: TransactionsAggregate;
 }
 
-export interface UpdateTransactionPayload {
+export interface UpdateTransactionBody {
   bankName?: string;
   transactionValue?: number;
   type?: TransactionType;

@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+
 import './load-env';
 
 import { join } from 'node:path';

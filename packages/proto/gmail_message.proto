@@ -15,10 +15,22 @@ message ClaimResponse {
   string id = 1;
   string header = 2;
   string status = 3;
+  string email_body = 4;
+  string user_id = 5;
+}
+
+message ExtractedTransaction {
+  string bank_name = 1;
+  double transaction_value = 2;
+  string type = 3;
+  string transaction_date = 4;
+  string payment_made_to = 5;
 }
 
 message CompleteRequest {
   string gmail_message_id = 1;
+  ExtractedTransaction transaction = 2;
+  string failure_reason = 3;
 }
 
 message CompleteResponse {

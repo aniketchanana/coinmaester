@@ -7,13 +7,15 @@
   "exports": {
     ".": {
       "types": "./src/index.ts",
-      "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
     "./job-status": {
       "types": "./src/job-status.ts",
-      "development": "./src/job-status.ts",
       "default": "./dist/job-status.js"
+    },
+    "./transaction-type": {
+      "types": "./src/transaction-type.ts",
+      "default": "./dist/transaction-type.js"
     }
   },
   "scripts": {

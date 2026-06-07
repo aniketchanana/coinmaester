@@ -14,6 +14,11 @@ enum SyncStatus {
   FAILED
 }
 
+enum TransactionType {
+  DEBIT
+  CREDIT
+}
+
 /// App user authenticated via Google OAuth.
 model User {
   id        String   @id @default(cuid())
@@ -32,7 +37,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  emailSyncs EmailSync[]
+  emailSyncs     EmailSync[]
+  gmailMessages  GmailMessage[]
+  transactions   Transaction[]
 
   @@map("users")
 }
@@ -53,17 +60,42 @@ model EmailSync {
 
 /// Ingested Gmail messages.
 model GmailMessage {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   conversationId String
-  header         String   @db.Text
-  messageId      String   @unique
-  emailBody      String   @default("") @db.Text
+  header         String        @db.Text
+  messageId      String        @unique
+  emailBody      String        @default("") @db.Text
   /// Gmail API `internalDate` (message received time).
   internalDate   DateTime
-  status         SyncStatus @default(PENDING)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  status         SyncStatus    @default(PENDING)
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction    Transaction?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([internalDate(sort: Desc)])
+  @@index([userId])
   @@map("gmailMessages")
+}
+
+/// Financial transaction extracted from a Gmail message.
+model Transaction {
+  id               String          @id @default(cuid())
+  userId           String
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gmailMessageId   String          @unique
+  gmailMessage     GmailMessage    @relation(fields: [gmailMessageId], references: [id], onDelete: Cascade)
+  bankName         String
+  transactionValue Decimal         @db.Decimal(14, 2)
+  type             TransactionType
+  transactionDate  DateTime
+  paymentMadeTo    String
+  isDeleted        Boolean         @default(false)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([userId, transactionDate(sort: Desc)])
+  @@index([userId, isDeleted])
+  @@map("transactions")
 }

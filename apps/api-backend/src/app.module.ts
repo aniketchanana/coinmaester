@@ -6,7 +6,9 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { MessagingModule } from './messaging/messaging.module';
+import { GmailMessagesModule } from './gmail-messages/gmail-messages.module';
 import { SyncModule } from './sync/sync.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { SyncModule } from './sync/sync.module';
     MessagingModule,
     AuthModule,
     SyncModule,
+    TransactionsModule,
+    GmailMessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

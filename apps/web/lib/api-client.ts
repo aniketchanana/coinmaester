@@ -67,3 +67,19 @@ export async function apiPost<T>(
 ): Promise<AxiosResponse<T>> {
   return apiClient.post<T>(url, data, config);
 }
+
+export async function apiPatch<T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig,
+): Promise<T> {
+  const response: AxiosResponse<T> = await apiClient.patch(url, data, config);
+  return response.data;
+}
+
+export async function apiDelete(
+  url: string,
+  config?: AxiosRequestConfig,
+): Promise<void> {
+  await apiClient.delete(url, config);
+}

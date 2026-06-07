@@ -101,18 +101,18 @@ export class GmailIngestionService {
     const dummyMessage: IngestedMessage = {
       conversationId: `dummy-thread-${now}`,
       messageId: `dummy-gmail-${now}-${Math.random().toString(36).slice(2, 9)}`,
-      header: `From: Test Merchant <noreply@test.com> | Subject: Your purchase of $42.99 | Date: ${new Date(now).toUTCString()}`,
+      header: `From: Test Merchant <noreply@test.com> | Subject: Your purchase of ₹1,499.00 | Date: ${new Date(now).toUTCString()}`,
       receivedAtMs: now,
       body: [
         'Thank you for your purchase.',
         '',
-        'Amount: $42.99',
+        'Amount: ₹1,499.00',
         'Merchant: Test Coffee Shop',
         `Date: ${new Date(now).toISOString()}`,
       ].join('\n'),
     };
 
-    const inserted = await this.persistMessage(dummyMessage);
+    const inserted = await this.persistMessage(dummyMessage, userId);
     if (!inserted) {
       throw new Error(
         'Failed to insert dummy Gmail message (duplicate messageId?)',
@@ -169,7 +169,7 @@ export class GmailIngestionService {
           message.receivedAtMs < bounds.before.getTime(),
       );
 
-      await this.persistMessages(emailSyncId, filtered);
+      await this.persistMessages(emailSyncId, userId, filtered);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(
@@ -216,12 +216,13 @@ export class GmailIngestionService {
 
   private async persistMessages(
     emailSyncId: string,
+    userId: string,
     messages: IngestedMessage[],
   ): Promise<void> {
     let inserted = 0;
 
     for (const message of messages) {
-      const persisted = await this.persistMessage(message);
+      const persisted = await this.persistMessage(message, userId);
       if (persisted) {
         inserted += 1;
       }
@@ -237,7 +238,10 @@ export class GmailIngestionService {
     );
   }
 
-  private async persistMessage(message: IngestedMessage): Promise<boolean> {
+  private async persistMessage(
+    message: IngestedMessage,
+    userId: string,
+  ): Promise<boolean> {
     const existing = await this.prisma.client.gmailMessage.findUnique({
       where: { messageId: message.messageId },
       select: { id: true },
@@ -254,6 +258,7 @@ export class GmailIngestionService {
           messageId: message.messageId,
           emailBody: '',
           internalDate: new Date(message.receivedAtMs),
+          userId,
         },
       });
 

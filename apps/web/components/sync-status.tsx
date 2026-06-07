@@ -24,11 +24,7 @@ const POLL_INTERVAL_MS = 10_000;
 const SYNC_IN_PROGRESS_TOOLTIP =
   'A sync is already in progress. Please wait for it to finish.';
 
-type SyncStatusProps = {
-  label?: string;
-};
-
-export function SyncStatus({ label = 'Gmail sync' }: SyncStatusProps) {
+export function SyncStatus() {
   const queryClient = useQueryClient();
   const [pollUntilSettled, setPollUntilSettled] = useState(false);
 
@@ -91,31 +87,31 @@ export function SyncStatus({ label = 'Gmail sync' }: SyncStatusProps) {
       className="shrink-0 cursor-pointer"
       disabled={isDisabled}
       onClick={() => syncMutation.mutate()}
+      size="sm"
     >
-      {<RefreshCcw className={`${isDisabled ? 'animate-spin' : ''}`} />}
+      <RefreshCcw className={isDisabled ? 'animate-spin' : undefined} />
       Sync
     </Button>
   );
 
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border bg-card p-5 shadow-sm">
-      <div className="space-y-1">
-        <p className="text-sm font-medium leading-none">{label}</p>
-        <p className={'text-sm text-muted-foreground'}>{statusLine}</p>
-      </div>
+  const buttonWithTooltip =
+    syncInProgress && !isQueueing ? (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex">{syncButton}</span>
+          </TooltipTrigger>
+          <TooltipContent>{SYNC_IN_PROGRESS_TOOLTIP}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ) : (
+      syncButton
+    );
 
-      {syncInProgress && !isQueueing ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="inline-flex">{syncButton}</span>
-            </TooltipTrigger>
-            <TooltipContent>{SYNC_IN_PROGRESS_TOOLTIP}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ) : (
-        syncButton
-      )}
+  return (
+    <div className="flex shrink-0 items-center gap-3">
+      <p className="text-sm text-muted-foreground">{statusLine}</p>
+      {buttonWithTooltip}
     </div>
   );
 }

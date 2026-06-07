@@ -1,3 +1,4 @@
+import { SyncStatus } from './sync-status';
 import { ThemeToggle } from './theme-toggle';
 import { UserNav } from './user-nav';
 
@@ -18,7 +19,8 @@ export function AppHeader({
         <span className="text-lg font-semibold tracking-tight">
           Finance App
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <SyncStatus />
           <ThemeToggle />
           <UserNav name={name} email={email} image={image} />
         </div>

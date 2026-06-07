@@ -22,6 +22,19 @@ class Settings(BaseSettings):
         alias="RABBITMQ_QUEUE",
     )
     grpc_host: str = Field(default="localhost:50051", alias="GRPC_HOST")
+    email_storage_dir: str = Field(
+        default="ingested-emails",
+        alias="EMAIL_STORAGE_DIR",
+    )
+    anthropic_api_key: str = Field(default="lmstudio", alias="ANTHROPIC_API_KEY")
+    anthropic_base_url: str = Field(
+        default="http://localhost:1234",
+        alias="ANTHROPIC_BASE_URL",
+    )
+    anthropic_model: str = Field(
+        default="qwen/qwen2.5-coder-14b",
+        alias="ANTHROPIC_MODEL",
+    )
 
 
 settings = Settings()

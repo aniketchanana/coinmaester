@@ -9,10 +9,11 @@
     "build": "nest build",
     "start": "nest start",
     "predev": "pnpm --filter @repo/database build && pnpm --filter @repo/constant build",
-    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "dev": "nest start --watch",
+    "dev:grpc": "lsof -ti:${GRPC_PORT:-50051} | xargs kill -9 2>/dev/null; nest start --watch --entryFile grpc-main",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "start:grpc": "nest start --entryFile grpc-main",
+    "start:grpc": "lsof -ti:${GRPC_PORT:-50051} | xargs kill -9 2>/dev/null; nest start --entryFile grpc-main",
     "start:grpc:prod": "node dist/grpc-main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --max-warnings 0",
     "check-types": "tsc --noEmit",
@@ -41,6 +42,7 @@
     "dotenv": "^16.5.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
