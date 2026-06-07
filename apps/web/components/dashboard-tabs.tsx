@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import * as React from 'react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/card';
+import { Card, CardContent } from '@repo/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui/tabs';
 
 import { TransactionsTable } from './transactions-table';
@@ -42,10 +42,7 @@ export function DashboardTabs() {
         </TabsList>
 
         <TabsContent value="transactions">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>Transactions</CardTitle>
-            </CardHeader>
+          <Card className="shadow-sm pt-2">
             <CardContent>
               <TransactionsTable />
             </CardContent>
@@ -53,10 +50,7 @@ export function DashboardTabs() {
         </TabsContent>
 
         <TabsContent value="email-sync">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>Email Sync Status</CardTitle>
-            </CardHeader>
+          <Card className="shadow-sm pt-2">
             <CardContent>
               {hasOpenedEmailTab ? <EmailSyncTable /> : null}
             </CardContent>
