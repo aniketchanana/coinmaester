@@ -3,38 +3,44 @@ import { GrpcMethod } from '@nestjs/microservices';
 
 import { GmailMessageProcessingService } from './gmail-message-processing.service';
 
-interface CompleteProcessingRequest {
-  gmailMessageId: string;
-  transaction?: {
-    bankName: string;
-    transactionValue: number;
-    type: string;
-    transactionDate: string;
-    paymentMadeTo: string;
-    isTransactionEmail: boolean;
-  };
-  failureReason?: string;
-}
+type GrpcTransactionPayload = Record<string, unknown>;
 
 @Controller()
 export class GmailMessageGrpcController {
   constructor(
     private readonly gmailMessageProcessingService: GmailMessageProcessingService,
-  ) {}
+  ) { }
 
   @GrpcMethod('GmailMessageProcessing', 'ClaimForProcessing')
-  claimForProcessing(data: { gmailMessageId: string }) {
+  claimForProcessing(data: Record<string, unknown>) {
+    const gmailMessageId = String(
+      data.gmailMessageId ?? data.gmail_message_id ?? '',
+    );
+
     return this.gmailMessageProcessingService.claimForProcessing(
-      data.gmailMessageId,
+      gmailMessageId,
     );
   }
 
   @GrpcMethod('GmailMessageProcessing', 'CompleteProcessing')
-  completeProcessing(data: CompleteProcessingRequest) {
+  completeProcessing(data: Record<string, unknown>) {
+    const gmailMessageId = String(
+      data.gmailMessageId ?? data.gmail_message_id ?? '',
+    );
+    const failureReasonRaw = data.failureReason ?? data.failure_reason;
+    const failureReason =
+      typeof failureReasonRaw === 'string' && failureReasonRaw.trim()
+        ? failureReasonRaw
+        : undefined;
+    const transaction = data.transaction as GrpcTransactionPayload | undefined;
+
+    console.log('---------');
+    console.log(data);
+    console.log('---------');
     return this.gmailMessageProcessingService.completeProcessing({
-      gmailMessageId: data.gmailMessageId,
-      transaction: data.transaction,
-      failureReason: data.failureReason,
+      gmailMessageId,
+      transaction,
+      failureReason,
     });
   }
 }

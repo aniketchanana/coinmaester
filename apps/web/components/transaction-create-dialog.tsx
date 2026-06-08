@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { TRANSACTION_TYPE } from '@repo/constant';
+import { TRANSACTION_NOTES_MAX_LENGTH, TRANSACTION_TYPE } from '@repo/constant';
 import { toast } from 'sonner';
 
 import { Button } from '@repo/ui/button';
@@ -17,76 +17,89 @@ import {
 } from '@repo/ui/dialog';
 import { Input } from '@repo/ui/input';
 import { Label } from '@repo/ui/label';
+import { Textarea } from '@repo/ui/textarea';
 
 import { TRANSACTION_TYPE_LABELS } from './transaction-type-badge';
-import { transactionKeys, updateTransaction } from '../lib/transactions';
-import type { TransactionRow } from '../types/transaction';
+import { createTransaction, transactionKeys } from '../lib/transactions';
 
-interface TransactionEditDialogProps {
-  transaction: TransactionRow | null;
+interface TransactionCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onDelete?: (transaction: TransactionRow) => void;
 }
 
-function toDateInputValue(isoDate: string): string {
-  return isoDate.slice(0, 10);
+function todayDateInputValue(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
-export function TransactionEditDialog({
-  transaction,
+export function TransactionCreateDialog({
   open,
   onOpenChange,
-  onDelete,
-}: TransactionEditDialogProps) {
+}: TransactionCreateDialogProps) {
   const queryClient = useQueryClient();
-  const [bankName, setBankName] = React.useState('');
+  const [bankName, setBankName] = React.useState('Manual');
   const [transactionValue, setTransactionValue] = React.useState('');
   const [type, setType] = React.useState<string>(TRANSACTION_TYPE.DEBIT);
-  const [transactionDate, setTransactionDate] = React.useState('');
+  const [transactionDate, setTransactionDate] = React.useState(todayDateInputValue);
   const [paymentMadeTo, setPaymentMadeTo] = React.useState('');
+  const [notes, setNotes] = React.useState('');
   const [isInvestment, setIsInvestment] = React.useState(false);
 
   React.useEffect(() => {
-    if (!transaction) {
+    if (!open) {
       return;
     }
 
-    setBankName(transaction.bankName);
-    setTransactionValue(String(transaction.transactionValue));
-    setType(transaction.type);
-    setTransactionDate(toDateInputValue(transaction.transactionDate));
-    setPaymentMadeTo(transaction.paymentMadeTo);
-    setIsInvestment(transaction.isInvestment);
-  }, [transaction]);
+    setBankName('Manual');
+    setTransactionValue('');
+    setType(TRANSACTION_TYPE.DEBIT);
+    setTransactionDate(todayDateInputValue());
+    setPaymentMadeTo('');
+    setNotes('');
+    setIsInvestment(false);
+  }, [open]);
 
   const mutation = useMutation({
     mutationFn: () => {
-      if (!transaction) {
-        throw new Error('No transaction selected');
-      }
-
       const parsedValue = Number(transactionValue);
-      if (Number.isNaN(parsedValue)) {
-        throw new Error('Amount must be a valid number');
+      if (Number.isNaN(parsedValue) || parsedValue <= 0) {
+        throw new Error('Amount must be a positive number');
       }
 
-      return updateTransaction(transaction.id, {
-        bankName,
+      if (!bankName.trim()) {
+        throw new Error('Bank name is required');
+      }
+
+      if (!paymentMadeTo.trim()) {
+        throw new Error('Payee is required');
+      }
+
+      if (!transactionDate) {
+        throw new Error('Transaction date is required');
+      }
+
+      if (notes.length > TRANSACTION_NOTES_MAX_LENGTH) {
+        throw new Error(
+          `Notes must be at most ${TRANSACTION_NOTES_MAX_LENGTH} characters`,
+        );
+      }
+
+      return createTransaction({
+        bankName: bankName.trim(),
         transactionValue: parsedValue,
         type: type as typeof TRANSACTION_TYPE.DEBIT | typeof TRANSACTION_TYPE.CREDIT,
         transactionDate,
-        paymentMadeTo,
+        paymentMadeTo: paymentMadeTo.trim(),
+        notes: notes.trim() || undefined,
         isInvestment,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
-      toast.success('Transaction updated');
+      toast.success('Transaction added');
       onOpenChange(false);
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update transaction');
+      toast.error(error.message || 'Failed to add transaction');
     },
   });
 
@@ -94,17 +107,17 @@ export function TransactionEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit transaction</DialogTitle>
+          <DialogTitle>Add transaction</DialogTitle>
           <DialogDescription>
-            Update the extracted transaction details if the AI parsing was incorrect.
+            Record a transaction manually without email processing.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
-            <Label htmlFor="bankName">Bank</Label>
+            <Label htmlFor="createBankName">Bank</Label>
             <Input
-              id="bankName"
+              id="createBankName"
               value={bankName}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                 setBankName(event.target.value)
@@ -113,11 +126,12 @@ export function TransactionEditDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="transactionValue">Amount (INR)</Label>
+            <Label htmlFor="createTransactionValue">Amount (INR)</Label>
             <Input
-              id="transactionValue"
+              id="createTransactionValue"
               type="number"
               step="0.01"
+              min="0.01"
               value={transactionValue}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                 setTransactionValue(event.target.value)
@@ -126,9 +140,9 @@ export function TransactionEditDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="createType">Type</Label>
             <select
-              id="type"
+              id="createType"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={type}
               onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
@@ -145,9 +159,9 @@ export function TransactionEditDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="transactionDate">Transaction date</Label>
+            <Label htmlFor="createTransactionDate">Transaction date</Label>
             <Input
-              id="transactionDate"
+              id="createTransactionDate"
               type="date"
               value={transactionDate}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
@@ -157,9 +171,10 @@ export function TransactionEditDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="paymentMadeTo">Payee</Label>
+            <Label htmlFor="createPaymentMadeTo">Payee</Label>
             <Input
-              id="paymentMadeTo"
+              id="createPaymentMadeTo"
+              placeholder="e.g. Grocery store, Rent, Salary"
               value={paymentMadeTo}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                 setPaymentMadeTo(event.target.value)
@@ -167,41 +182,38 @@ export function TransactionEditDialog({
             />
           </div>
 
+          <div className="grid gap-2">
+            <Label htmlFor="createNotes">Notes (optional)</Label>
+            <Textarea
+              id="createNotes"
+              value={notes}
+              maxLength={TRANSACTION_NOTES_MAX_LENGTH}
+              placeholder="Optional details about this transaction"
+              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setNotes(event.target.value)
+              }
+            />
+          </div>
+
           <div className="flex items-center gap-2">
             <Checkbox
-              id="isInvestment"
+              id="createIsInvestment"
               checked={isInvestment}
               onCheckedChange={(checked) =>
                 setIsInvestment(checked === true)
               }
             />
-            <Label htmlFor="isInvestment">Mark as investment</Label>
+            <Label htmlFor="createIsInvestment">Mark as investment</Label>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:justify-between">
-          {onDelete && transaction ? (
-            <Button
-              variant="destructive"
-              onClick={() => onDelete(transaction)}
-              disabled={mutation.isPending}
-            >
-              Delete
-            </Button>
-          ) : (
-            <span />
-          )}
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => mutation.mutate()}
-              disabled={mutation.isPending || !transaction}
-            >
-              {mutation.isPending ? 'Saving...' : 'Save changes'}
-            </Button>
-          </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            {mutation.isPending ? 'Adding...' : 'Add transaction'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -75,7 +75,7 @@ class GmailMessageConsumer:
             gmail_message_id = payload.gmail_message_id
         except ValueError as error:
             logger.error("Invalid queue message body: %s", body, exc_info=error)
-            channel.basic_nack(delivery_tag=delivery_tag, requeue=False)
+            channel.basic_ack(delivery_tag=delivery_tag)
             return
 
         self._executor.submit(
@@ -97,83 +97,143 @@ class GmailMessageConsumer:
                 email_body=claim_response.email_body,
             )
             result = self._get_processor().process(claim)
-            self._grpc_client.complete_processing(
+            self._complete_and_log(gmail_message_id, result)
+            self._ack(delivery_tag)
+        except grpc.RpcError as error:
+            logger.warning(
+                "gRPC error processing Gmail message %s: %s",
                 gmail_message_id,
-                transaction=result.transaction,
-                failure_reason=result.failure_reason,
+                error.details(),
             )
+            if claimed:
+                self._mark_failed(
+                    gmail_message_id,
+                    f"gRPC error during processing: {error.details()}",
+                )
+            self._ack(delivery_tag)
+        except Exception:
+            logger.exception(
+                "Unexpected error processing Gmail message %s",
+                gmail_message_id,
+            )
+            if claimed:
+                self._mark_failed(
+                    gmail_message_id,
+                    "Unexpected worker error during processing",
+                )
             self._ack(delivery_tag)
 
-            if result.failure_reason:
-                logger.warning(
-                    "Marked Gmail message %s as failed: %s",
-                    gmail_message_id,
-                    result.failure_reason,
-                )
-            else:
-                logger.info(
-                    "Processed Gmail message %s into transaction",
-                    gmail_message_id,
-                )
+    def _complete_and_log(
+        self,
+        gmail_message_id: str,
+        result,
+    ) -> None:
+        try:
+            self._grpc_client.complete_processing(
+                gmail_message_id,
+                transaction=self._to_grpc_transaction(result.transaction),
+                failure_reason=result.failure_reason,
+            )
         except grpc.RpcError as error:
-            if self._should_not_requeue_grpc_error(error):
+            if self._should_complete_as_skipped(error):
                 logger.warning(
-                    "Non-retriable gRPC error for Gmail message %s: %s",
+                    "Completion rejected for Gmail message %s (%s); "
+                    "completing with empty transaction",
                     gmail_message_id,
                     error.details(),
                 )
-                self._ack(delivery_tag)
+                self._complete_as_skipped(gmail_message_id)
                 return
 
-            logger.exception(
-                "Transient gRPC error processing Gmail message %s; requeueing",
+            logger.warning(
+                "gRPC error completing Gmail message %s: %s",
                 gmail_message_id,
+                error.details(),
             )
-            self._nack(delivery_tag, requeue=True)
-        except Exception:
-            if claimed:
-                try:
-                    self._grpc_client.complete_processing(
-                        gmail_message_id,
-                        failure_reason="Unexpected worker error during processing",
-                    )
-                    self._ack(delivery_tag)
-                    return
-                except Exception:
-                    logger.exception(
-                        "Failed to mark Gmail message %s as failed after worker error",
-                        gmail_message_id,
-                    )
+            self._mark_failed(
+                gmail_message_id,
+                f"gRPC error during completion: {error.details()}",
+            )
+            return
 
-            logger.exception(
-                "Failed to process Gmail message %s; requeueing",
+        if result.failure_reason:
+            logger.warning(
+                "Marked Gmail message %s as failed: %s",
+                gmail_message_id,
+                result.failure_reason,
+            )
+            return
+
+        transaction = result.transaction
+        if (
+            transaction is not None
+            and transaction.is_transaction_email
+            and transaction.transaction_value > 0
+        ):
+            logger.info(
+                "Completed Gmail message %s with transaction",
                 gmail_message_id,
             )
-            self._nack(delivery_tag, requeue=True)
+        else:
+            logger.info(
+                "Completed Gmail message %s (no transaction to persist)",
+                gmail_message_id,
+            )
 
     @staticmethod
-    def _should_not_requeue_grpc_error(error: grpc.RpcError) -> bool:
-        if error.code() == grpc.StatusCode.NOT_FOUND:
-            return True
-
-        # Claim/precondition failures are not fixed by immediate requeue.
-        if error.code() == grpc.StatusCode.FAILED_PRECONDITION:
-            return True
-
+    def _should_complete_as_skipped(error: grpc.RpcError) -> bool:
         if error.code() == grpc.StatusCode.INVALID_ARGUMENT:
             return True
 
-        return False
+        details = (error.details() or "").lower()
+        return "invalid transaction" in details
+
+    def _complete_as_skipped(self, gmail_message_id: str) -> None:
+        try:
+            self._grpc_client.complete_processing(gmail_message_id)
+            logger.info(
+                "Completed Gmail message %s (no transaction to persist)",
+                gmail_message_id,
+            )
+        except Exception:
+            logger.exception(
+                "Failed to complete Gmail message %s as skipped",
+                gmail_message_id,
+            )
+
+    @staticmethod
+    def _to_grpc_transaction(transaction):
+        if transaction is None:
+            return None
+
+        if (
+            not transaction.is_transaction_email
+            or transaction.transaction_value <= 0
+            or not transaction.type
+            or not str(transaction.transaction_date).strip()
+        ):
+            return None
+
+        return transaction
+
+    def _mark_failed(self, gmail_message_id: str, failure_reason: str) -> None:
+        try:
+            self._grpc_client.complete_processing(
+                gmail_message_id,
+                failure_reason=failure_reason,
+            )
+            logger.warning(
+                "Marked Gmail message %s as failed: %s",
+                gmail_message_id,
+                failure_reason,
+            )
+        except Exception:
+            logger.exception(
+                "Failed to mark Gmail message %s as failed",
+                gmail_message_id,
+            )
 
     def _ack(self, delivery_tag: int) -> None:
         self._connection.add_callback_threadsafe(
             lambda: self._channel.basic_ack(delivery_tag=delivery_tag)
-        )
-
-    def _nack(self, delivery_tag: int, *, requeue: bool) -> None:
-        self._connection.add_callback_threadsafe(
-            lambda: self._channel.basic_nack(
-                delivery_tag=delivery_tag,
-                requeue=requeue,
-            )
         )

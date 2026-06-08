@@ -29,8 +29,13 @@ import type {
   GmailMessageStatusFilter,
 } from '../types/gmail-message';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
+type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
+
 const POLL_INTERVAL_MS = 10_000;
+
+const SELECT_CLASSNAME =
+  'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
 
 const STATUS_OPTIONS: Array<{ value: GmailMessageStatusFilter; label: string }> =
   [
@@ -108,17 +113,23 @@ function showRetryToast(requeued: string[], skipped: string[]): void {
 export function EmailSyncTable() {
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState<PageSize>(100);
   const [statusFilter, setStatusFilter] =
     React.useState<GmailMessageStatusFilter>('ALL');
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
 
+  React.useEffect(() => {
+    setPage(1);
+    setSelectedIds(new Set());
+  }, [pageSize]);
+
   const queryParams = React.useMemo(
     () => ({
       page,
-      limit: PAGE_SIZE,
+      limit: pageSize,
       status: statusFilter,
     }),
-    [page, statusFilter],
+    [page, pageSize, statusFilter],
   );
 
   const { data, isLoading, isError, error } = useQuery({
@@ -195,7 +206,7 @@ export function EmailSyncTable() {
             id="statusFilter"
             value={statusFilter}
             onChange={handleStatusFilterChange}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={SELECT_CLASSNAME}
           >
             {STATUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -320,11 +331,35 @@ export function EmailSyncTable() {
       </Table>
 
       {pagination && pagination.total > 0 ? (
-        <div className="flex items-center justify-between border-t pt-4">
-          <p className="text-sm text-muted-foreground">
-            Page {pagination.page} of {pagination.totalPages} ({pagination.total}{' '}
-            items)
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              Page {pagination.page} of {pagination.totalPages} ({pagination.total}{' '}
+              items)
+            </p>
+            <div className="flex items-center gap-2">
+              <Label
+                htmlFor="pageSize"
+                className="whitespace-nowrap text-sm text-muted-foreground"
+              >
+                Rows per page
+              </Label>
+              <select
+                id="pageSize"
+                className={`${SELECT_CLASSNAME} w-auto`}
+                value={pageSize}
+                onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                  setPageSize(Number(event.target.value) as PageSize)
+                }
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <div className="flex gap-2">
             <Button
               variant="outline"

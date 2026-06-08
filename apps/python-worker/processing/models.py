@@ -14,6 +14,17 @@ class ExtractedTransaction(BaseModel):
     is_transaction_email: bool = Field(alias="isTransactionEmail")
 
 
+def empty_transaction() -> ExtractedTransaction:
+    return ExtractedTransaction(
+        bank_name="",
+        transaction_value=0,
+        type="DEBIT",
+        transaction_date="",
+        payment_made_to="",
+        is_transaction_email=False,
+    )
+
+
 class LlmClassificationResponse(BaseModel):
     """Validates the raw JSON returned by the classification LLM.
 

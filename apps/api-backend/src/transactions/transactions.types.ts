@@ -7,6 +7,8 @@ export interface TransactionDto {
   type: TransactionType;
   transactionDate: string;
   paymentMadeTo: string;
+  notes: string | null;
+  isInvestment: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +23,7 @@ export interface TransactionsPagination {
 export interface TransactionsAggregate {
   totalDebit: number;
   totalCredit: number;
+  totalInvestment: number;
 }
 
 export interface ListTransactionsResponse {
@@ -29,10 +32,22 @@ export interface ListTransactionsResponse {
   aggregate: TransactionsAggregate;
 }
 
+export interface CreateTransactionBody {
+  bankName: string;
+  transactionValue: number;
+  type: TransactionType;
+  transactionDate: string;
+  paymentMadeTo: string;
+  notes?: string;
+  isInvestment?: boolean;
+}
+
 export interface UpdateTransactionBody {
   bankName?: string;
   transactionValue?: number;
   type?: TransactionType;
   transactionDate?: string;
   paymentMadeTo?: string;
+  notes?: string;
+  isInvestment?: boolean;
 }

@@ -18,7 +18,7 @@ interface ExtractedTransactionPayload {
 
 interface CompleteProcessingPayload {
   gmailMessageId: string;
-  transaction?: ExtractedTransactionPayload;
+  transaction?: Record<string, unknown>;
   failureReason?: string;
 }
 
@@ -54,7 +54,6 @@ export class GmailMessageProcessingService {
       });
     }
 
-    // Allow reclaim when IN_PROGRESS so queue redelivery after a worker crash can resume.
     const updated = await this.prisma.client.gmailMessage.update({
       where: { id: gmailMessageId },
       data: { status: JOB_STATUS.IN_PROGRESS as SyncStatus },
@@ -108,34 +107,103 @@ export class GmailMessageProcessingService {
     }
 
     if (!transaction) {
-      throw new RpcException({
-        code: status.INVALID_ARGUMENT,
-        message: 'Transaction payload is required when no failure reason is provided',
-      });
+      return this.completeWithoutTransaction(gmailMessageId);
     }
 
-    const transactionType = this.parseTransactionType(transaction.type);
-    const transactionDate = this.parseTransactionDate(transaction.transactionDate);
+    const normalized = this.normalizeTransaction(transaction);
 
-    const updated = await this.prisma.client.$transaction(async (tx) => {
-      if (transaction.transactionValue && transaction.isTransactionEmail) {
+    if (!this.shouldPersistTransaction(normalized)) {
+      return this.completeWithoutTransaction(gmailMessageId);
+    }
+
+    const parsed = this.tryParsePersistableTransaction(normalized);
+    if (!parsed) {
+      return this.completeWithoutTransaction(gmailMessageId);
+    }
+
+    try {
+      const updated = await this.prisma.client.$transaction(async (tx) => {
+        const paymentMadeTo = normalized.paymentMadeTo?.trim() || '--';
+
         await tx.transaction.create({
           data: {
             userId: message.userId,
             gmailMessageId,
-            bankName: transaction.bankName?.trim() || '--',
-            transactionValue: new Prisma.Decimal(transaction.transactionValue),
-            type: transactionType,
-            transactionDate,
-            paymentMadeTo: transaction.paymentMadeTo?.trim() || '--',
+            bankName: normalized.bankName.trim() || '--',
+            transactionValue: new Prisma.Decimal(normalized.transactionValue),
+            type: parsed.type,
+            transactionDate: parsed.date,
+            paymentMadeTo,
+            isInvestment: false,
           },
         });
-      }
 
-      return tx.gmailMessage.update({
-        where: { id: gmailMessageId },
-        data: { status: JOB_STATUS.COMPLETED as SyncStatus },
+        return tx.gmailMessage.update({
+          where: { id: gmailMessageId },
+          data: { status: JOB_STATUS.COMPLETED as SyncStatus },
+        });
       });
+
+      return {
+        id: updated.id,
+        status: updated.status,
+      };
+    } catch {
+      return this.completeWithoutTransaction(gmailMessageId);
+    }
+  }
+
+  private shouldPersistTransaction(
+    transaction: ExtractedTransactionPayload,
+  ): boolean {
+    return transaction.isTransactionEmail && transaction.transactionValue > 0;
+  }
+
+  private normalizeTransaction(
+    transaction: Record<string, unknown>,
+  ): ExtractedTransactionPayload {
+    const readString = (primary: unknown, fallback: unknown): string => {
+      const value = primary ?? fallback;
+      return typeof value === 'string' ? value : '';
+    };
+
+    const readNumber = (primary: unknown, fallback: unknown): number => {
+      const value = primary ?? fallback;
+      return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+    };
+
+    const readBoolean = (primary: unknown, fallback: unknown): boolean =>
+      (primary ?? fallback) === true;
+
+    return {
+      bankName: readString(transaction.bankName, transaction.bank_name),
+      transactionValue: readNumber(
+        transaction.transactionValue,
+        transaction.transaction_value,
+      ),
+      type: readString(transaction.type, transaction.type),
+      transactionDate: readString(
+        transaction.transactionDate,
+        transaction.transaction_date,
+      ),
+      paymentMadeTo: readString(
+        transaction.paymentMadeTo,
+        transaction.payment_made_to,
+      ),
+      isTransactionEmail: readBoolean(
+        transaction.isTransactionEmail,
+        transaction.is_transaction_email,
+      ),
+    };
+  }
+
+  private async completeWithoutTransaction(gmailMessageId: string): Promise<{
+    id: string;
+    status: string;
+  }> {
+    const updated = await this.prisma.client.gmailMessage.update({
+      where: { id: gmailMessageId },
+      data: { status: JOB_STATUS.COMPLETED as SyncStatus },
     });
 
     return {
@@ -144,7 +212,26 @@ export class GmailMessageProcessingService {
     };
   }
 
-  private parseTransactionType(value: string): TransactionType {
+  private tryParsePersistableTransaction(
+    transaction: ExtractedTransactionPayload,
+  ): { type: TransactionType; date: Date } | null {
+    const type = this.tryParseTransactionType(transaction.type);
+    const date = this.tryParseTransactionDate(transaction.transactionDate);
+    console.log('-------')
+    console.log(type, date)
+    console.log('-------')
+    if (!type || !date) {
+      return null;
+    }
+
+    return { type, date };
+  }
+
+  private tryParseTransactionType(value: string): TransactionType | null {
+    if (!value.trim()) {
+      return null;
+    }
+
     const normalized = value.trim().toUpperCase();
 
     if (
@@ -154,20 +241,18 @@ export class GmailMessageProcessingService {
       return normalized as TransactionType;
     }
 
-    throw new RpcException({
-      code: status.INVALID_ARGUMENT,
-      message: `Invalid transaction type: ${value}`,
-    });
+    return null;
   }
 
-  private parseTransactionDate(value: string): Date {
+  private tryParseTransactionDate(value: string): Date | null {
+    if (!value.trim()) {
+      return null;
+    }
+
     const parsed = new Date(value);
 
     if (Number.isNaN(parsed.getTime())) {
-      throw new RpcException({
-        code: status.INVALID_ARGUMENT,
-        message: `Invalid transaction date: ${value}`,
-      });
+      return null;
     }
 
     return parsed;

@@ -79,18 +79,20 @@ model GmailMessage {
   @@map("gmailMessages")
 }
 
-/// Financial transaction extracted from a Gmail message.
+/// Financial transaction from Gmail extraction or manual entry.
 model Transaction {
   id               String          @id @default(cuid())
   userId           String
   user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gmailMessageId   String          @unique
-  gmailMessage     GmailMessage    @relation(fields: [gmailMessageId], references: [id], onDelete: Cascade)
+  gmailMessageId   String?         @unique
+  gmailMessage     GmailMessage?   @relation(fields: [gmailMessageId], references: [id], onDelete: Cascade)
   bankName         String
   transactionValue Decimal         @db.Decimal(14, 2)
   type             TransactionType
   transactionDate  DateTime
   paymentMadeTo    String
+  notes            String?         @db.VarChar(1000)
+  isInvestment     Boolean         @default(false)
   isDeleted        Boolean         @default(false)
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
