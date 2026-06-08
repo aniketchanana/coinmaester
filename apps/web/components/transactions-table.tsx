@@ -1,8 +1,8 @@
 'use client';
 
-import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Pencil, Plus, StickyNote, Trash2, TrendingUp } from 'lucide-react';
+import * as React from 'react';
 import { toast } from 'sonner';
 
 import { Badge } from '@repo/ui/badge';
@@ -15,6 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/ui/dialog';
+import { Input } from '@repo/ui/input';
+import { Label } from '@repo/ui/label';
+import { cn } from '@repo/ui/lib/utils';
 import {
   Table,
   TableBody,
@@ -22,9 +25,6 @@ import {
   TableHeader,
   TableRow,
 } from '@repo/ui/table';
-import { Input } from '@repo/ui/input';
-import { Label } from '@repo/ui/label';
-import { cn } from '@repo/ui/lib/utils';
 import {
   Tooltip,
   TooltipContent,
@@ -80,18 +80,41 @@ const TRANSACTION_TABLE_COLUMNS = {
 type TransactionTableColumn =
   (typeof TRANSACTION_TABLE_COLUMNS)[keyof typeof TRANSACTION_TABLE_COLUMNS];
 
-const DEFAULT_TRANSACTION_COLUMN_WIDTHS: Record<TransactionTableColumn, number> =
-  {
-    bank: 140,
-    amount: 120,
-    type: 130,
-    date: 130,
-    payee: 220,
-    actions: 160,
-  };
+const DEFAULT_TRANSACTION_COLUMN_WIDTHS: Record<
+  TransactionTableColumn,
+  number
+> = {
+  bank: 140,
+  amount: 120,
+  type: 130,
+  date: 130,
+  payee: 220,
+  actions: 160,
+};
 
 const TRANSACTION_TABLE_COLUMN_WIDTHS_STORAGE_KEY =
   'finance-app:transactions-table-column-widths';
+
+const TRANSACTIONS_TABLE_PAGE_SIZE_STORAGE_KEY =
+  'finance-app:transactions-table-page-size';
+
+function readStoredPageSize(): PageSize | null {
+  try {
+    const raw = localStorage.getItem(TRANSACTIONS_TABLE_PAGE_SIZE_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = Number(raw);
+    if (PAGE_SIZE_OPTIONS.includes(parsed as PageSize)) {
+      return parsed as PageSize;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
 
 const SELECT_CLASSNAME =
   'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
@@ -118,10 +141,37 @@ function formatDate(isoDate: string): string {
   }).format(new Date(isoDate));
 }
 
+function isTransactionToday(isoDate: string): boolean {
+  const date = new Date(isoDate);
+  const today = new Date();
+
+  return (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
+}
+
 export function TransactionsTable() {
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState<PageSize>(100);
+
+  React.useEffect(() => {
+    const storedPageSize = readStoredPageSize();
+    if (storedPageSize) {
+      setPageSize(storedPageSize);
+    }
+  }, []);
+
+  const handlePageSizeChange = React.useCallback((size: PageSize) => {
+    setPageSize(size);
+    try {
+      localStorage.setItem(TRANSACTIONS_TABLE_PAGE_SIZE_STORAGE_KEY, String(size));
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, []);
   const [filters, setFilters] =
     React.useState<TransactionFilters>(DEFAULT_FILTERS);
   const debouncedFilters = useDebouncedValue(filters, FILTER_DEBOUNCE_MS);
@@ -167,19 +217,15 @@ export function TransactionsTable() {
   });
 
   const investmentMutation = useMutation({
-    mutationFn: ({
-      id,
-      isInvestment,
-    }: {
-      id: string;
-      isInvestment: boolean;
-    }) => updateTransaction(id, { isInvestment }),
+    mutationFn: ({ id, isInvestment }: { id: string; isInvestment: boolean }) =>
+      updateTransaction(id, { isInvestment }),
     onMutate: async ({ id, isInvestment }) => {
       await queryClient.cancelQueries({ queryKey: transactionKeys.all });
 
-      const previousQueries = queryClient.getQueriesData<ListTransactionsResponse>(
-        { queryKey: transactionKeys.all },
-      );
+      const previousQueries =
+        queryClient.getQueriesData<ListTransactionsResponse>({
+          queryKey: transactionKeys.all,
+        });
 
       queryClient.setQueriesData<ListTransactionsResponse>(
         { queryKey: transactionKeys.all },
@@ -272,362 +318,390 @@ export function TransactionsTable() {
     sortOrder !== TRANSACTION_SORT_ORDER.DESC;
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add transaction
-        </Button>
-      </div>
-
-      <div className="space-y-4 rounded-lg border p-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="grid gap-2">
-            <Label htmlFor="payee">Payee</Label>
-            <Input
-              id="payee"
-              placeholder="Search by payee"
-              value={filters.payee}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                setFilters((current) => ({
-                  ...current,
-                  payee: event.target.value,
-                }))
-              }
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="type">Type</Label>
-            <select
-              id="type"
-              className={SELECT_CLASSNAME}
-              value={filters.type}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                setFilters((current) => ({
-                  ...current,
-                  type: event.target.value,
-                }))
-              }
-            >
-              <option value="">All</option>
-              <option value={TRANSACTION_FILTER_TYPE.DEBIT}>Debit</option>
-              <option value={TRANSACTION_FILTER_TYPE.CREDIT}>Credit</option>
-              <option value={TRANSACTION_FILTER_TYPE.INVESTMENT}>
-                Investment
-              </option>
-            </select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="dateRange">Date range</Label>
-            <DateRangePicker
-              id="dateRange"
-              value={{
-                startDate: filters.startDate,
-                endDate: filters.endDate,
-              }}
-              onChange={(dateRange) =>
-                setFilters((current) => ({
-                  ...current,
-                  startDate: dateRange.startDate,
-                  endDate: dateRange.endDate,
-                }))
-              }
-            />
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Button
-            variant="outline"
-            onClick={clearFilters}
-            disabled={!hasActiveFilters}
-          >
-            Clear
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+      <aside className="order-1 w-full shrink-0 lg:order-none lg:sticky lg:top-4 lg:w-56 xl:w-64">
+        <div className="space-y-4">
+          <Button className="w-full" onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add transaction
           </Button>
+
+          <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="payee">Payee</Label>
+                <Input
+                  id="payee"
+                  placeholder="Search by payee"
+                  value={filters.payee}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    setFilters((current) => ({
+                      ...current,
+                      payee: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="type">Type</Label>
+                <select
+                  id="type"
+                  className={SELECT_CLASSNAME}
+                  value={filters.type}
+                  onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                    setFilters((current) => ({
+                      ...current,
+                      type: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">All</option>
+                  <option value={TRANSACTION_FILTER_TYPE.DEBIT}>Debit</option>
+                  <option value={TRANSACTION_FILTER_TYPE.CREDIT}>Credit</option>
+                  <option value={TRANSACTION_FILTER_TYPE.INVESTMENT}>
+                    Investment
+                  </option>
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="dateRange">Date range</Label>
+                <DateRangePicker
+                  id="dateRange"
+                  value={{
+                    startDate: filters.startDate,
+                    endDate: filters.endDate,
+                  }}
+                  onChange={(dateRange) =>
+                    setFilters((current) => ({
+                      ...current,
+                      startDate: dateRange.startDate,
+                      endDate: dateRange.endDate,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+            >
+              Clear
+            </Button>
+          </div>
         </div>
+      </aside>
+
+      <div className="order-3 min-w-0 flex-1 space-y-4 lg:order-none">
+        <TooltipProvider>
+          <Table className="table-fixed">
+            <colgroup>
+              {Object.values(TRANSACTION_TABLE_COLUMNS).map((columnId) => (
+                <col key={columnId} style={{ width: columnWidths[columnId] }} />
+              ))}
+            </colgroup>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <ResizableTableHead
+                  onResizeStart={(clientX) =>
+                    startResize(TRANSACTION_TABLE_COLUMNS.bank, clientX)
+                  }
+                >
+                  Bank
+                </ResizableTableHead>
+                <ResizableSortableTableHead
+                  label="Amount"
+                  field={TRANSACTION_SORT_FIELD.TRANSACTION_VALUE}
+                  sortBy={sortBy}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  onResizeStart={(clientX) =>
+                    startResize(TRANSACTION_TABLE_COLUMNS.amount, clientX)
+                  }
+                />
+                <ResizableTableHead
+                  onResizeStart={(clientX) =>
+                    startResize(TRANSACTION_TABLE_COLUMNS.type, clientX)
+                  }
+                >
+                  Type
+                </ResizableTableHead>
+                <ResizableSortableTableHead
+                  label="Date"
+                  field={TRANSACTION_SORT_FIELD.TRANSACTION_DATE}
+                  sortBy={sortBy}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  onResizeStart={(clientX) =>
+                    startResize(TRANSACTION_TABLE_COLUMNS.date, clientX)
+                  }
+                />
+                <ResizableTableHead
+                  onResizeStart={(clientX) =>
+                    startResize(TRANSACTION_TABLE_COLUMNS.payee, clientX)
+                  }
+                >
+                  Payee
+                </ResizableTableHead>
+                <ResizableTableHead
+                  className="text-right"
+                  onResizeStart={(clientX) =>
+                    startResize(TRANSACTION_TABLE_COLUMNS.actions, clientX)
+                  }
+                >
+                  Actions
+                </ResizableTableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={6} className="h-32 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Loading transactions...
+                    </p>
+                  </TableCell>
+                </TableRow>
+              ) : isError ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={6} className="h-32 text-center">
+                    <p className="text-sm text-destructive">
+                      {(error as Error).message ||
+                        'Failed to load transactions'}
+                    </p>
+                  </TableCell>
+                </TableRow>
+              ) : rows.length === 0 ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={6} className="h-32 text-center">
+                    <p className="text-sm font-medium text-foreground">
+                      No transactions yet
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      They will show up here once your email sync is connected.
+                    </p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                rows.map((row) => {
+                  const isToday = isTransactionToday(row.transactionDate);
+
+                  return (
+                    <TableRow
+                      key={row.id}
+                      className={cn(
+                        isToday
+                          ? 'bg-amber-500/10 hover:bg-amber-500/15'
+                          : row.isInvestment && 'bg-emerald-500/5',
+                      )}
+                    >
+                      <TableCell className="truncate font-medium">
+                        {row.bankName}
+                      </TableCell>
+                      <TableCell className="truncate">
+                        {formatTransactionAmount(row.transactionValue)}
+                      </TableCell>
+                      <TableCell className="truncate">
+                        {row.isInvestment ? (
+                          <Badge
+                            variant="secondary"
+                            className="border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-700"
+                          >
+                            Investment
+                          </Badge>
+                        ) : (
+                          <TransactionTypeBadge type={row.type} />
+                        )}
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          'truncate',
+                          isToday
+                            ? 'font-medium text-amber-700 dark:text-amber-400'
+                            : 'text-muted-foreground',
+                        )}
+                      >
+                        {formatDate(row.transactionDate)}
+                      </TableCell>
+                      <TableCell className="truncate">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="block cursor-default truncate">
+                              {row.paymentMadeTo}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>{row.paymentMadeTo}</TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={investmentMutation.isPending}
+                                aria-pressed={row.isInvestment}
+                                aria-label={
+                                  row.isInvestment
+                                    ? 'Unmark as investment'
+                                    : 'Mark as investment'
+                                }
+                                className={cn(
+                                  'transition-colors',
+                                  row.isInvestment
+                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 hover:text-emerald-700'
+                                    : 'text-muted-foreground hover:text-foreground',
+                                )}
+                                onClick={() => {
+                                  investmentMutation.mutate({
+                                    id: row.id,
+                                    isInvestment: !row.isInvestment,
+                                  });
+                                }}
+                              >
+                                <TrendingUp
+                                  className={cn(
+                                    'h-4 w-4 transition-colors',
+                                    row.isInvestment
+                                      ? 'fill-emerald-600 text-emerald-600'
+                                      : 'text-current',
+                                  )}
+                                />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {row.isInvestment
+                                ? 'Unmark as investment'
+                                : 'Mark as investment'}
+                            </TooltipContent>
+                          </Tooltip>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Add or edit notes"
+                            onClick={() => setNotesTransaction(row)}
+                          >
+                            <StickyNote
+                              className={cn(
+                                'h-4 w-4',
+                                row.notes && 'fill-primary text-primary',
+                              )}
+                            />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Edit transaction ${row.id}`}
+                            onClick={() => setEditingTransaction(row)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Delete transaction ${row.id}`}
+                            onClick={() => setDeletingTransaction(row)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TooltipProvider>
+
+        {pagination && pagination.total > 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <p className="text-sm text-muted-foreground">
+                Page {pagination.page} of {pagination.totalPages} (
+                {pagination.total} items)
+              </p>
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor="pageSize"
+                  className="whitespace-nowrap text-sm text-muted-foreground"
+                >
+                  Rows per page
+                </Label>
+                <select
+                  id="pageSize"
+                  className={cn(SELECT_CLASSNAME, 'w-auto')}
+                  value={pageSize}
+                  onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                    handlePageSizeChange(
+                      Number(event.target.value) as PageSize,
+                    )
+                  }
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={pagination.page <= 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setPage((current) =>
+                    Math.min(pagination.totalPages, current + 1),
+                  )
+                }
+                disabled={pagination.page >= pagination.totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {aggregate ? (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-muted-foreground">Total debit</p>
-            <p className="text-2xl font-semibold">
-              {formatTransactionAmount(aggregate.totalDebit)}
-            </p>
-          </div>
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-muted-foreground">Total credit</p>
-            <p className="text-2xl font-semibold">
-              {formatTransactionAmount(aggregate.totalCredit)}
-            </p>
-          </div>
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-muted-foreground">Investments made</p>
-            <p className="text-2xl font-semibold">
-              {formatTransactionAmount(aggregate.totalInvestment)}
-            </p>
-          </div>
-        </div>
-      ) : null}
-
-      <TooltipProvider>
-      <Table className="table-fixed">
-        <colgroup>
-          {Object.values(TRANSACTION_TABLE_COLUMNS).map((columnId) => (
-            <col key={columnId} style={{ width: columnWidths[columnId] }} />
-          ))}
-        </colgroup>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <ResizableTableHead
-              onResizeStart={(clientX) =>
-                startResize(TRANSACTION_TABLE_COLUMNS.bank, clientX)
-              }
-            >
-              Bank
-            </ResizableTableHead>
-            <ResizableSortableTableHead
-              label="Amount"
-              field={TRANSACTION_SORT_FIELD.TRANSACTION_VALUE}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={handleSort}
-              onResizeStart={(clientX) =>
-                startResize(TRANSACTION_TABLE_COLUMNS.amount, clientX)
-              }
-            />
-            <ResizableTableHead
-              onResizeStart={(clientX) =>
-                startResize(TRANSACTION_TABLE_COLUMNS.type, clientX)
-              }
-            >
-              Type
-            </ResizableTableHead>
-            <ResizableSortableTableHead
-              label="Date"
-              field={TRANSACTION_SORT_FIELD.TRANSACTION_DATE}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={handleSort}
-              onResizeStart={(clientX) =>
-                startResize(TRANSACTION_TABLE_COLUMNS.date, clientX)
-              }
-            />
-            <ResizableTableHead
-              onResizeStart={(clientX) =>
-                startResize(TRANSACTION_TABLE_COLUMNS.payee, clientX)
-              }
-            >
-              Payee
-            </ResizableTableHead>
-            <ResizableTableHead
-              className="text-right"
-              onResizeStart={(clientX) =>
-                startResize(TRANSACTION_TABLE_COLUMNS.actions, clientX)
-              }
-            >
-              Actions
-            </ResizableTableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="h-32 text-center">
+        <aside className="order-2 w-full shrink-0 lg:order-none lg:sticky lg:top-4 lg:w-56 xl:w-64">
+          <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
+            <p className="text-sm font-medium">Summary</p>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Total debit</p>
+                <p className="text-xl font-semibold">
+                  {formatTransactionAmount(aggregate.totalDebit)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total credit</p>
+                <p className="text-xl font-semibold">
+                  {formatTransactionAmount(aggregate.totalCredit)}
+                </p>
+              </div>
+              <div>
                 <p className="text-sm text-muted-foreground">
-                  Loading transactions...
+                  Investments made
                 </p>
-              </TableCell>
-            </TableRow>
-          ) : isError ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="h-32 text-center">
-                <p className="text-sm text-destructive">
-                  {(error as Error).message || 'Failed to load transactions'}
+                <p className="text-xl font-semibold">
+                  {formatTransactionAmount(aggregate.totalInvestment)}
                 </p>
-              </TableCell>
-            </TableRow>
-          ) : rows.length === 0 ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="h-32 text-center">
-                <p className="text-sm font-medium text-foreground">
-                  No transactions yet
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  They will show up here once your email sync is connected.
-                </p>
-              </TableCell>
-            </TableRow>
-          ) : (
-            rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className={cn(row.isInvestment && 'bg-emerald-500/5')}
-              >
-                <TableCell className="truncate font-medium">
-                  {row.bankName}
-                </TableCell>
-                <TableCell className="truncate">
-                  {formatTransactionAmount(row.transactionValue)}
-                </TableCell>
-                <TableCell className="truncate">
-                  {row.isInvestment ? (
-                    <Badge
-                      variant="secondary"
-                      className="border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-700"
-                    >
-                      Investment
-                    </Badge>
-                  ) : (
-                    <TransactionTypeBadge type={row.type} />
-                  )}
-                </TableCell>
-                <TableCell className="truncate text-muted-foreground">
-                  {formatDate(row.transactionDate)}
-                </TableCell>
-                <TableCell className="truncate">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="block cursor-default truncate">
-                        {row.paymentMadeTo}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>{row.paymentMadeTo}</TooltipContent>
-                  </Tooltip>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={investmentMutation.isPending}
-                          aria-pressed={row.isInvestment}
-                          aria-label={
-                            row.isInvestment
-                              ? 'Unmark as investment'
-                              : 'Mark as investment'
-                          }
-                          className={cn(
-                            'transition-colors',
-                            row.isInvestment
-                              ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 hover:text-emerald-700'
-                              : 'text-muted-foreground hover:text-foreground',
-                          )}
-                          onClick={() => {
-                            investmentMutation.mutate({
-                              id: row.id,
-                              isInvestment: !row.isInvestment,
-                            });
-                          }}
-                        >
-                          <TrendingUp
-                            className={cn(
-                              'h-4 w-4 transition-colors',
-                              row.isInvestment
-                                ? 'fill-emerald-600 text-emerald-600'
-                                : 'text-current',
-                            )}
-                          />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {row.isInvestment
-                          ? 'Unmark as investment'
-                          : 'Mark as investment'}
-                      </TooltipContent>
-                    </Tooltip>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Add or edit notes"
-                      onClick={() => setNotesTransaction(row)}
-                    >
-                      <StickyNote
-                        className={cn(
-                          'h-4 w-4',
-                          row.notes && 'fill-primary text-primary',
-                        )}
-                      />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Edit transaction ${row.id}`}
-                      onClick={() => setEditingTransaction(row)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Delete transaction ${row.id}`}
-                      onClick={() => setDeletingTransaction(row)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-      </TooltipProvider>
-
-      {pagination && pagination.total > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Page {pagination.page} of {pagination.totalPages} ({pagination.total}{' '}
-              items)
-            </p>
-            <div className="flex items-center gap-2">
-              <Label
-                htmlFor="pageSize"
-                className="whitespace-nowrap text-sm text-muted-foreground"
-              >
-                Rows per page
-              </Label>
-              <select
-                id="pageSize"
-                className={cn(SELECT_CLASSNAME, 'w-auto')}
-                value={pageSize}
-                onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                  setPageSize(Number(event.target.value) as PageSize)
-                }
-              >
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
+              </div>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              disabled={pagination.page <= 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setPage((current) =>
-                  Math.min(pagination.totalPages, current + 1),
-                )
-              }
-              disabled={pagination.page >= pagination.totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        </aside>
       ) : null}
 
       <TransactionCreateDialog

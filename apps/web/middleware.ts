@@ -7,17 +7,22 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get(ACCESS_TOKEN_COOKIE);
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/dashboard') && !token) {
+  const isProtectedRoute =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/transactions') ||
+    pathname.startsWith('/email-sync');
+
+  if (isProtectedRoute && !token) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   if (pathname === '/login' && token) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/transactions', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/transactions/:path*', '/email-sync/:path*', '/login'],
 };

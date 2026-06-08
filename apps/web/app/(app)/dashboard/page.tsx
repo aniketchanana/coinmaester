@@ -1,5 +1,5 @@
-import { DashboardTabs } from '../../../components/dashboard-tabs';
+import { redirect } from 'next/navigation';
 
 export default function DashboardPage() {
-  return <DashboardTabs />;
+  redirect('/transactions');
 }

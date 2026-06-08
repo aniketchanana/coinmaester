@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL('/login?error=missing_token', request.url));
   }
 
-  const response = NextResponse.redirect(new URL('/dashboard', request.url));
+  const response = NextResponse.redirect(new URL('/transactions', request.url));
 
   response.cookies.set(ACCESS_TOKEN_COOKIE, token, {
     httpOnly: true,
