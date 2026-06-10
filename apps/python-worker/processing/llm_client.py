@@ -73,6 +73,9 @@ class TransactionLlmClient:
             classification = LlmClassificationResponse.model_validate_json(
                 self.classify_is_transaction_email(header)
             )
+            print('---------')
+            print(classification)
+            print('---------')
         except (ValidationError, ValueError) as error:
             logger.warning("Failed to parse classification response: %s", error)
             return empty_transaction()
@@ -92,6 +95,9 @@ class TransactionLlmClient:
                 }
             ],
         )
+        print('---------')
+        print(response)
+        print('---------')
 
         text_blocks = [
             block.text

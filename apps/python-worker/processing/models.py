@@ -34,6 +34,7 @@ class LlmClassificationResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     is_transaction_email: bool = Field(alias="isTransactionEmail")
+    reason: str = Field(default=None, alias="reason")
 
 
 class LlmTransactionResponse(BaseModel):
