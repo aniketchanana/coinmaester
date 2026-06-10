@@ -12,6 +12,7 @@
     "GOOGLE_CALLBACK_URL",
     "WEB_URL",
     "NEXT_PUBLIC_API_URL",
+    "API_INTERNAL_URL",
     "INTERNAL_API_KEY",
     "TOKEN_ENCRYPTION_KEY",
     "COOKIE_DOMAIN",
@@ -20,7 +21,10 @@
     "RABBITMQ_QUEUE",
     "GRPC_PORT",
     "GRPC_HOST",
-    "GRPC_BIND_HOST"
+    "GRPC_BIND_HOST",
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_BASE_URL",
+    "ANTHROPIC_MODEL"
   ],
   "tasks": {
     "build": {

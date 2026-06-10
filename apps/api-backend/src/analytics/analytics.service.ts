@@ -43,7 +43,7 @@ interface BreakdownRow {
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getAnalytics(
     userId: string,
@@ -230,11 +230,14 @@ export class AnalyticsService {
     const totalInvestment = this.decimalToNumber(row.total_investment);
     const dayCount = Math.max(1, this.inclusiveDayCount(start, end));
 
+    const netCashflow = totalCredit - totalDebit;
+
     return {
       totalDebit,
       totalCredit,
       totalInvestment,
-      netCashflow: totalCredit - totalDebit,
+      netCashflow,
+      estimatedBankBalance: netCashflow - totalInvestment,
       transactionCount: Number(row.transaction_count),
       avgDailySpend: totalDebit / dayCount,
     };

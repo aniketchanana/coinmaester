@@ -10,6 +10,11 @@ services:
       POSTGRES_DB: finance_app
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U finance -d finance_app']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -22,7 +27,92 @@ services:
       RABBITMQ_DEFAULT_PASS: finance
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-backend:
+    profiles: [prod]
+    build:
+      context: .
+      dockerfile: apps/api-backend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    env_file: .env
+    environment:
+      PORT: 3001
+      WEB_URL: http://localhost:3000
+      DATABASE_URL: postgresql://finance:finance@postgres:5432/finance_app?schema=public
+      RABBITMQ_URL: amqp://finance:finance@rabbitmq:5672
+      GRPC_BIND_HOST: 0.0.0.0
+      EMAIL_STORAGE_DIR: ingested-emails
+      GOOGLE_CALLBACK_URL: http://localhost:3000/api/auth/google/callback
+    volumes:
+      - email_data:/app/ingested-emails
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:3001/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    profiles: [prod]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        API_INTERNAL_URL: http://api-backend:3001
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_INTERNAL_URL: http://api-backend:3001
+      NEXT_PUBLIC_API_URL: /api
+    depends_on:
+      api-backend:
+        condition: service_healthy
+
+  python-worker:
+    profiles: [prod]
+    build:
+      context: .
+      dockerfile: apps/python-worker/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      RABBITMQ_URL: amqp://finance:finance@rabbitmq:5672
+      GRPC_HOST: api-backend:50051
+      ANTHROPIC_BASE_URL: http://host.docker.internal:1234
+      EMAIL_STORAGE_DIR: ingested-emails
+    volumes:
+      - email_data:/app/ingested-emails
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    depends_on:
+      api-backend:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   postgres_data:
   rabbitmq_data:
+  email_data:

@@ -10,6 +10,7 @@
     "check-types": "turbo run check-types",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
+    "docker:prod": "bash scripts/docker-prod.sh",
     "db:generate": "pnpm --filter @repo/database db:generate",
     "db:migrate": "pnpm --filter @repo/database db:migrate",
     "db:studio": "pnpm --filter @repo/database db:studio",

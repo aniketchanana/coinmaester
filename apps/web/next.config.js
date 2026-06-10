@@ -7,8 +7,19 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   transpilePackages: ['@repo/ui', '@repo/constant'],
   poweredByHeader: false,
+  async rewrites() {
+    const apiInternal =
+      process.env.API_INTERNAL_URL ?? 'http://localhost:3001';
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${apiInternal}/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {

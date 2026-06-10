@@ -11,6 +11,7 @@ export interface AnalyticsSummary {
   totalCredit: number;
   totalInvestment: number;
   netCashflow: number;
+  estimatedBankBalance: number;
   transactionCount: number;
   avgDailySpend: number;
 }
