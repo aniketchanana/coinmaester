@@ -19,6 +19,13 @@ import { Input } from '@repo/ui/input';
 import { Label } from '@repo/ui/label';
 import { cn } from '@repo/ui/lib/utils';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@repo/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -116,8 +123,7 @@ function readStoredPageSize(): PageSize | null {
   return null;
 }
 
-const SELECT_CLASSNAME =
-  'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+const TYPE_FILTER_ALL = 'ALL';
 
 interface TransactionFilters {
   startDate: string;
@@ -318,8 +324,8 @@ export function TransactionsTable() {
     sortOrder !== TRANSACTION_SORT_ORDER.DESC;
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-      <aside className="order-1 w-full shrink-0 lg:order-none lg:sticky lg:top-4 lg:w-56 xl:w-64">
+    <div className="flex flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-start">
+      <aside className="order-1 w-full shrink-0 lg:order-none lg:max-h-full lg:w-56 lg:overflow-y-auto xl:w-64">
         <div className="space-y-4">
           <Button className="w-full" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -344,24 +350,31 @@ export function TransactionsTable() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="type">Type</Label>
-                <select
-                  id="type"
-                  className={SELECT_CLASSNAME}
-                  value={filters.type}
-                  onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                <Select
+                  value={filters.type || TYPE_FILTER_ALL}
+                  onValueChange={(value) =>
                     setFilters((current) => ({
                       ...current,
-                      type: event.target.value,
+                      type: value === TYPE_FILTER_ALL ? '' : value,
                     }))
                   }
                 >
-                  <option value="">All</option>
-                  <option value={TRANSACTION_FILTER_TYPE.DEBIT}>Debit</option>
-                  <option value={TRANSACTION_FILTER_TYPE.CREDIT}>Credit</option>
-                  <option value={TRANSACTION_FILTER_TYPE.INVESTMENT}>
-                    Investment
-                  </option>
-                </select>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={TYPE_FILTER_ALL}>All</SelectItem>
+                    <SelectItem value={TRANSACTION_FILTER_TYPE.DEBIT}>
+                      Debit
+                    </SelectItem>
+                    <SelectItem value={TRANSACTION_FILTER_TYPE.CREDIT}>
+                      Credit
+                    </SelectItem>
+                    <SelectItem value={TRANSACTION_FILTER_TYPE.INVESTMENT}>
+                      Investment
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="dateRange">Date range</Label>
@@ -393,15 +406,18 @@ export function TransactionsTable() {
         </div>
       </aside>
 
-      <div className="order-3 min-w-0 flex-1 space-y-4 lg:order-none">
+      <div className="order-3 min-w-0 flex-1 space-y-4 lg:order-none lg:flex lg:h-full lg:min-h-0 lg:flex-col">
         <TooltipProvider>
-          <Table className="table-fixed">
+          <Table
+            className="table-fixed"
+            containerClassName="lg:min-h-0 lg:flex-1"
+          >
             <colgroup>
               {Object.values(TRANSACTION_TABLE_COLUMNS).map((columnId) => (
                 <col key={columnId} style={{ width: columnWidths[columnId] }} />
               ))}
             </colgroup>
-            <TableHeader>
+            <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-[hsl(var(--card))] [&_th]:shadow-[inset_0_-1px_0_0_hsl(var(--border))]">
               <TableRow className="hover:bg-transparent">
                 <ResizableTableHead
                   onResizeStart={(clientX) =>
@@ -617,7 +633,7 @@ export function TransactionsTable() {
         </TooltipProvider>
 
         {pagination && pagination.total > 0 ? (
-          <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-4">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t pt-4">
             <div className="flex flex-wrap items-center gap-4">
               <p className="text-sm text-muted-foreground">
                 Page {pagination.page} of {pagination.totalPages} (
@@ -630,22 +646,23 @@ export function TransactionsTable() {
                 >
                   Rows per page
                 </Label>
-                <select
-                  id="pageSize"
-                  className={cn(SELECT_CLASSNAME, 'w-auto')}
-                  value={pageSize}
-                  onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                    handlePageSizeChange(
-                      Number(event.target.value) as PageSize,
-                    )
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={(value) =>
+                    handlePageSizeChange(Number(value) as PageSize)
                   }
                 >
-                  {PAGE_SIZE_OPTIONS.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="pageSize" className="h-9 w-[4.5rem]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAGE_SIZE_OPTIONS.map((size) => (
+                      <SelectItem key={size} value={String(size)}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="flex gap-2">
@@ -675,7 +692,7 @@ export function TransactionsTable() {
       </div>
 
       {aggregate ? (
-        <aside className="order-2 w-full shrink-0 lg:order-none lg:sticky lg:top-4 lg:w-56 xl:w-64">
+        <aside className="order-2 w-full shrink-0 lg:order-none lg:max-h-full lg:w-56 lg:overflow-y-auto xl:w-64">
           <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
             <p className="text-sm font-medium">Summary</p>
             <div className="space-y-4">

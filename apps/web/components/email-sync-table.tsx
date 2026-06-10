@@ -11,6 +11,13 @@ import { Button } from '@repo/ui/button';
 import { Checkbox } from '@repo/ui/checkbox';
 import { Label } from '@repo/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@repo/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -34,9 +41,6 @@ type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
 
 const POLL_INTERVAL_MS = 10_000;
 
-const SELECT_CLASSNAME =
-  'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
-
 const STATUS_OPTIONS: Array<{ value: GmailMessageStatusFilter; label: string }> =
   [
     { value: 'ALL', label: 'All statuses' },
@@ -58,6 +62,10 @@ function formatDate(isoDate: string): string {
 
 function isActiveStatus(status: JobStatus): boolean {
   return status === JOB_STATUS.PENDING || status === JOB_STATUS.IN_PROGRESS;
+}
+
+function canRerun(status: JobStatus): boolean {
+  return status === JOB_STATUS.COMPLETED || status === JOB_STATUS.FAILED;
 }
 
 function statusBadgeVariant(
@@ -154,14 +162,36 @@ export function EmailSyncTable() {
     },
   });
 
-  const rows = data?.data ?? [];
+  const rows = React.useMemo(() => data?.data ?? [], [data]);
   const pagination = data?.pagination;
-  const rowIdsOnPage = rows.map((row) => row.id);
+  const rerunnableRowIds = rows
+    .filter((row) => canRerun(row.status))
+    .map((row) => row.id);
+
+  // Polling can flip a selected row back to an active status (e.g. a re-run
+  // triggered elsewhere); drop such rows so the bulk action never includes them.
+  React.useEffect(() => {
+    setSelectedIds((current) => {
+      const blockedIds = rows
+        .filter((row) => !canRerun(row.status) && current.has(row.id))
+        .map((row) => row.id);
+
+      if (blockedIds.length === 0) {
+        return current;
+      }
+
+      const next = new Set(current);
+      for (const id of blockedIds) {
+        next.delete(id);
+      }
+      return next;
+    });
+  }, [rows]);
   const allRowsSelected =
-    rowIdsOnPage.length > 0 &&
-    rowIdsOnPage.every((id) => selectedIds.has(id));
+    rerunnableRowIds.length > 0 &&
+    rerunnableRowIds.every((id) => selectedIds.has(id));
   const someRowsSelected =
-    rowIdsOnPage.some((id) => selectedIds.has(id)) && !allRowsSelected;
+    rerunnableRowIds.some((id) => selectedIds.has(id)) && !allRowsSelected;
 
   const toggleRowSelection = (row: GmailMessageRow, checked: boolean) => {
     setSelectedIds((current) => {
@@ -178,7 +208,7 @@ export function EmailSyncTable() {
   const toggleSelectAllRows = (checked: boolean) => {
     setSelectedIds((current) => {
       const next = new Set(current);
-      for (const id of rowIdsOnPage) {
+      for (const id of rerunnableRowIds) {
         if (checked) {
           next.add(id);
         } else {
@@ -189,31 +219,29 @@ export function EmailSyncTable() {
     });
   };
 
-  const handleStatusFilterChange = (
-    event: React.ChangeEvent<HTMLSelectElement>,
-  ) => {
-    setStatusFilter(event.target.value as GmailMessageStatusFilter);
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value as GmailMessageStatusFilter);
     setPage(1);
     setSelectedIds(new Set());
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <div className="flex shrink-0 flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="grid w-full max-w-xs gap-2">
           <Label htmlFor="statusFilter">Status</Label>
-          <select
-            id="statusFilter"
-            value={statusFilter}
-            onChange={handleStatusFilterChange}
-            className={SELECT_CLASSNAME}
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+            <SelectTrigger id="statusFilter">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {selectedIds.size > 0 ? (
@@ -229,8 +257,8 @@ export function EmailSyncTable() {
         ) : null}
       </div>
 
-      <Table>
-        <TableHeader>
+      <Table containerClassName="lg:min-h-0 lg:flex-1">
+        <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-card [&_th]:shadow-[inset_0_-1px_0_0_hsl(var(--border))]">
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-[40px]">
               <Checkbox
@@ -241,8 +269,8 @@ export function EmailSyncTable() {
                       ? 'indeterminate'
                       : false
                 }
-                disabled={rowIdsOnPage.length === 0}
-                aria-label="Select all emails on this page"
+                disabled={rerunnableRowIds.length === 0}
+                aria-label="Select all re-runnable emails on this page"
                 onCheckedChange={(checked) =>
                   toggleSelectAllRows(checked === true)
                 }
@@ -286,13 +314,15 @@ export function EmailSyncTable() {
             </TableRow>
           ) : (
             rows.map((row) => {
-              const isSelected = selectedIds.has(row.id);
+              const rerunnable = canRerun(row.status);
+              const isSelected = rerunnable && selectedIds.has(row.id);
 
               return (
                 <TableRow key={row.id}>
                   <TableCell>
                     <Checkbox
                       checked={isSelected}
+                      disabled={!rerunnable}
                       aria-label={`Select email ${row.id}`}
                       onCheckedChange={(checked) =>
                         toggleRowSelection(row, checked === true)
@@ -317,7 +347,7 @@ export function EmailSyncTable() {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={retryMutation.isPending}
+                      disabled={!rerunnable || retryMutation.isPending}
                       onClick={() => retryMutation.mutate([row.id])}
                     >
                       Re-run
@@ -331,7 +361,7 @@ export function EmailSyncTable() {
       </Table>
 
       {pagination && pagination.total > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-4">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t pt-4">
           <div className="flex flex-wrap items-center gap-4">
             <p className="text-sm text-muted-foreground">
               Page {pagination.page} of {pagination.totalPages} ({pagination.total}{' '}
@@ -344,20 +374,23 @@ export function EmailSyncTable() {
               >
                 Rows per page
               </Label>
-              <select
-                id="pageSize"
-                className={`${SELECT_CLASSNAME} w-auto`}
-                value={pageSize}
-                onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                  setPageSize(Number(event.target.value) as PageSize)
+              <Select
+                value={String(pageSize)}
+                onValueChange={(value) =>
+                  setPageSize(Number(value) as PageSize)
                 }
               >
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="pageSize" className="h-9 w-[4.5rem]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="flex gap-2">

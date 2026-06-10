@@ -17,6 +17,13 @@ import {
 } from '@repo/ui/dialog';
 import { Input } from '@repo/ui/input';
 import { Label } from '@repo/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@repo/ui/select';
 import { Textarea } from '@repo/ui/textarea';
 
 import { TRANSACTION_TYPE_LABELS } from './transaction-type-badge';
@@ -141,21 +148,19 @@ export function TransactionCreateDialog({
 
           <div className="grid gap-2">
             <Label htmlFor="createType">Type</Label>
-            <select
-              id="createType"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={type}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                setType(event.target.value)
-              }
-            >
-              <option value={TRANSACTION_TYPE.DEBIT}>
-                {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.DEBIT]}
-              </option>
-              <option value={TRANSACTION_TYPE.CREDIT}>
-                {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.CREDIT]}
-              </option>
-            </select>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger id="createType">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TRANSACTION_TYPE.DEBIT}>
+                  {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.DEBIT]}
+                </SelectItem>
+                <SelectItem value={TRANSACTION_TYPE.CREDIT}>
+                  {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.CREDIT]}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">
