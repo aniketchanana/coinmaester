@@ -14,11 +14,13 @@
     "NEXT_PUBLIC_API_URL",
     "INTERNAL_API_KEY",
     "TOKEN_ENCRYPTION_KEY",
+    "COOKIE_DOMAIN",
     "EMAIL_STORAGE_DIR",
     "RABBITMQ_URL",
     "RABBITMQ_QUEUE",
     "GRPC_PORT",
-    "GRPC_HOST"
+    "GRPC_HOST",
+    "GRPC_BIND_HOST"
   ],
   "tasks": {
     "build": {

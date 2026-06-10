@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 
+import { clearAccessTokenCookie, setAccessTokenCookie } from './auth-cookie';
 import { AuthService } from './auth.service';
 import type { GoogleAuthPayload } from './auth.types';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -28,7 +29,10 @@ export class AuthController {
     const webUrl = process.env.WEB_URL ?? 'http://localhost:3000';
     const { accessToken } = await this.authService.loginWithGoogle(request.user);
 
-    response.redirect(`${webUrl}/auth/callback?token=${encodeURIComponent(accessToken)}`);
+    // Set the JWT as an httpOnly cookie here instead of passing it through
+    // the redirect URL, where it would leak into logs and browser history.
+    setAccessTokenCookie(response, accessToken);
+    response.redirect(`${webUrl}/transactions`);
   }
 
   @Get('me')
@@ -39,7 +43,7 @@ export class AuthController {
 
   @Post('logout')
   logout(@Res({ passthrough: true }) response: Response) {
-    response.clearCookie('access_token', { path: '/' });
+    clearAccessTokenCookie(response);
     return { ok: true };
   }
 }

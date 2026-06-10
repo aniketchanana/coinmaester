@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@repo/ui/dropdown-menu';
 
+import { apiPost } from '../lib/api-client';
+
 type UserNavProps = {
   name?: string;
   email?: string;
@@ -32,7 +34,9 @@ export function UserNav({ name = 'User', email, image }: UserNavProps) {
       .toUpperCase() || 'U';
 
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    // The cookie is issued by the API, so the API must clear it
+    // (matching domain/path attributes).
+    await apiPost('/auth/logout');
     router.push('/login');
     router.refresh();
   }

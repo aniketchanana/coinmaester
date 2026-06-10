@@ -35,4 +35,4 @@ async function createTransaction(formData: FormData) { 'use server'; ... }
 
 ## Auth Flow
 
-OAuth redirect → `WEB_URL/auth/callback?token=...` → set httpOnly cookie → axios sends credentials on subsequent requests.
+Google OAuth → api-backend callback sets httpOnly `access_token` cookie (never pass the JWT in a URL) → redirect to `WEB_URL/transactions` → axios sends credentials on subsequent requests. Logout goes through the API (`POST /auth/logout`) so the cookie is cleared with matching attributes (`COOKIE_DOMAIN` in production).

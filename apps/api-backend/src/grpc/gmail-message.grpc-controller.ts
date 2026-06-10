@@ -1,10 +1,13 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
+import { SkipThrottle } from '@nestjs/throttler';
 
 import { GmailMessageProcessingService } from './gmail-message-processing.service';
 
 type GrpcTransactionPayload = Record<string, unknown>;
 
+// HTTP rate limiting does not apply to the internal gRPC transport.
+@SkipThrottle()
 @Controller()
 export class GmailMessageGrpcController {
   constructor(
@@ -34,9 +37,6 @@ export class GmailMessageGrpcController {
         : undefined;
     const transaction = data.transaction as GrpcTransactionPayload | undefined;
 
-    console.log('---------');
-    console.log(data);
-    console.log('---------');
     return this.gmailMessageProcessingService.completeProcessing({
       gmailMessageId,
       transaction,

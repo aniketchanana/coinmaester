@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { Transport, type MicroserviceOptions } from '@nestjs/microservices';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 import { AppModule } from './app.module';
 
@@ -14,6 +15,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableShutdownHooks();
+  app.use(helmet());
   app.use(cookieParser());
 
   app.enableCors({
@@ -21,6 +23,10 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // The gRPC service has no authentication, so it must never be exposed
+  // publicly. Default to loopback; override via GRPC_BIND_HOST only for
+  // private networks (e.g. 0.0.0.0 inside a container network).
+  const grpcBindHost = process.env.GRPC_BIND_HOST ?? '127.0.0.1';
   const grpcPort = process.env.GRPC_PORT ?? '50051';
   const protoPath = join(
     __dirname,
@@ -32,7 +38,7 @@ async function bootstrap() {
     options: {
       package: 'gmail',
       protoPath,
-      url: `0.0.0.0:${grpcPort}`,
+      url: `${grpcBindHost}:${grpcPort}`,
       loader: {
         keepCase: false,
       },
@@ -40,7 +46,7 @@ async function bootstrap() {
   });
 
   await app.startAllMicroservices();
-  console.log(`gRPC server running on 0.0.0.0:${grpcPort}`);
+  console.log(`gRPC server running on ${grpcBindHost}:${grpcPort}`);
 
   const port = Number(process.env.PORT ?? 3001);
   await app.listen(port);

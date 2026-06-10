@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,6 +15,10 @@ import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      { name: 'short', ttl: 1_000, limit: 20 },
+      { name: 'long', ttl: 60_000, limit: 300 },
+    ]),
     DatabaseModule,
     ScheduleModule.forRoot(),
     MessagingModule,
@@ -23,6 +29,9 @@ import { TransactionsModule } from './transactions/transactions.module';
     GrpcModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}
