@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "./themes.css";
 @import "./scrollbars.css";
+@import "./cursors.css";
 
 /* Scan shared UI components so utilities like bg-secondary are generated */
 @source "./**/*.{ts,tsx}";

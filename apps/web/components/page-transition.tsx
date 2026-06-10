@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 
 import { cn } from '@repo/ui/lib/utils';
 
-const ROUTE_ORDER = ['/transactions', '/email-sync'] as const;
+const ROUTE_ORDER = ['/transactions', '/analytics', '/email-sync'] as const;
 
 function getPageEnterClass(previousPath: string | null, currentPath: string) {
   if (!previousPath || previousPath === currentPath) {

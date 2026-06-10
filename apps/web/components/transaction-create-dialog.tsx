@@ -30,6 +30,7 @@ import { AnimatedFormSection } from './animated-form-section';
 import { SensitiveAmountInput } from './sensitive-amount-input';
 import { SensitiveTextInput } from './sensitive-text-input';
 import { TRANSACTION_TYPE_LABELS } from './transaction-type-badge';
+import { analyticsKeys } from '../lib/analytics';
 import { createTransaction, transactionKeys } from '../lib/transactions';
 
 interface TransactionCreateDialogProps {
@@ -105,6 +106,7 @@ export function TransactionCreateDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all });
       toast.success('Transaction added');
       onOpenChange(false);
     },

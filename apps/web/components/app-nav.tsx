@@ -8,6 +8,7 @@ import { cn } from '@repo/ui/lib/utils';
 
 const NAV_ITEMS = [
   { href: '/transactions', label: 'Transactions' },
+  { href: '/analytics', label: 'Analytics' },
   { href: '/email-sync', label: 'Email Sync Status' },
 ] as const;
 

@@ -44,6 +44,7 @@ import { useDebouncedValue } from '../hooks/use-debounced-value';
 import { useResizableColumns } from '../hooks/use-resizable-columns';
 import { FormattedAmount } from './formatted-amount';
 import { MaskedPayee } from './masked-payee';
+import { analyticsKeys } from '../lib/analytics';
 import {
   deleteTransaction,
   fetchTransactions,
@@ -220,6 +221,7 @@ export function TransactionsTable() {
     mutationFn: (id: string) => deleteTransaction(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all });
       toast.success('Transaction deleted');
       setDeletingTransaction(null);
       setEditingTransaction(null);
@@ -260,6 +262,7 @@ export function TransactionsTable() {
     },
     onSuccess: (_updated, { isInvestment }) => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all });
       toast.success(
         isInvestment ? 'Marked as investment' : 'Unmarked as investment',
       );
