@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { AppHeader } from '../../components/app-header';
+import { PageTransition } from '../../components/page-transition';
 import { getCurrentUser } from '../../lib/auth';
 
 export default async function AppLayout({
@@ -17,7 +18,9 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen bg-muted/30">
       <AppHeader name={user.name ?? undefined} email={user.email} />
-      <main className="w-full px-3 py-3">{children}</main>
+      <main className="w-full px-3 py-3">
+        <PageTransition>{children}</PageTransition>
+      </main>
     </div>
   );
 }

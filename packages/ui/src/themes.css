@@ -27,6 +27,10 @@
   --shadow-surface: 8px 8px 16px hsl(220 15% 70%), -8px -8px 16px hsl(0 0% 100%);
   --shadow-surface-sm: 4px 4px 8px hsl(220 15% 70%), -4px -4px 8px hsl(0 0% 100%);
   --shadow-pressed: inset 4px 4px 8px hsl(220 15% 70%), inset -4px -4px 8px hsl(0 0% 100%);
+  --scrollbar-size: 7px;
+  --scrollbar-thumb: hsl(var(--muted-foreground) / 0.38);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.55);
+  --scrollbar-radius: 9999px;
 }
 
 .dark[data-style='neumorphic'] {
@@ -52,6 +56,8 @@
   --shadow-surface: 6px 6px 12px hsl(220 20% 6%), -6px -6px 12px hsl(220 10% 20%);
   --shadow-surface-sm: 3px 3px 6px hsl(220 20% 6%), -3px -3px 6px hsl(220 10% 20%);
   --shadow-pressed: inset 3px 3px 6px hsl(220 20% 6%), inset -3px -3px 6px hsl(220 10% 20%);
+  --scrollbar-thumb: hsl(var(--muted-foreground) / 0.42);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.68);
 }
 
 /* Glassmorphic — translucent layers over vivid gradients */
@@ -78,11 +84,17 @@
   --radius: 1rem;
   --card-alpha: 0.55;
   --popover-alpha: 0.92;
+  --table-header-alpha: 0.94;
+  --table-row-alpha: 0.42;
   --surface-blur: 16px;
   --border-width-surface: 1px;
   --shadow-surface: 0 8px 32px hsl(250 60% 50% / 0.18);
   --shadow-surface-sm: 0 4px 16px hsl(250 60% 50% / 0.12);
   --shadow-pressed: 0 2px 8px hsl(250 60% 50% / 0.1);
+  --scrollbar-size: 5px;
+  --scrollbar-thumb: hsl(var(--primary) / 0.32);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.52);
+  --scrollbar-radius: 9999px;
 }
 
 .dark[data-style='glass'] {
@@ -107,9 +119,13 @@
   --ring: 250 75% 68%;
   --card-alpha: 0.45;
   --popover-alpha: 0.92;
+  --table-header-alpha: 0.9;
+  --table-row-alpha: 0.35;
   --shadow-surface: 0 8px 32px hsl(250 60% 20% / 0.4);
   --shadow-surface-sm: 0 4px 16px hsl(250 60% 20% / 0.3);
   --shadow-pressed: 0 2px 8px hsl(250 60% 20% / 0.25);
+  --scrollbar-thumb: hsl(var(--primary) / 0.38);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.62);
 }
 
 [data-style='glass'] body {
@@ -161,6 +177,11 @@
   --shadow-surface: 4px 4px 0 hsl(0 0% 5%);
   --shadow-surface-sm: 2px 2px 0 hsl(0 0% 5%);
   --shadow-pressed: 1px 1px 0 hsl(0 0% 5%);
+  --scrollbar-size: 8px;
+  --scrollbar-track: hsl(var(--foreground) / 0.04);
+  --scrollbar-thumb: hsl(var(--foreground) / 0.28);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.85);
+  --scrollbar-radius: 2px;
 }
 
 .dark[data-style='brutalist'] {
@@ -186,4 +207,7 @@
   --shadow-surface: 4px 4px 0 hsl(48 100% 90%);
   --shadow-surface-sm: 2px 2px 0 hsl(48 100% 90%);
   --shadow-pressed: 1px 1px 0 hsl(48 100% 90%);
+  --scrollbar-track: hsl(var(--foreground) / 0.06);
+  --scrollbar-thumb: hsl(var(--foreground) / 0.32);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.9);
 }

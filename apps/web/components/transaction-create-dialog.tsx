@@ -26,6 +26,9 @@ import {
 } from '@repo/ui/select';
 import { Textarea } from '@repo/ui/textarea';
 
+import { AnimatedFormSection } from './animated-form-section';
+import { SensitiveAmountInput } from './sensitive-amount-input';
+import { SensitiveTextInput } from './sensitive-text-input';
 import { TRANSACTION_TYPE_LABELS } from './transaction-type-badge';
 import { createTransaction, transactionKeys } from '../lib/transactions';
 
@@ -121,7 +124,7 @@ export function TransactionCreateDialog({
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
+          <AnimatedFormSection index={0} className="grid gap-2">
             <Label htmlFor="createBankName">Bank</Label>
             <Input
               id="createBankName"
@@ -130,13 +133,12 @@ export function TransactionCreateDialog({
                 setBankName(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={1} className="grid gap-2">
             <Label htmlFor="createTransactionValue">Amount (INR)</Label>
-            <Input
+            <SensitiveAmountInput
               id="createTransactionValue"
-              type="number"
               step="0.01"
               min="0.01"
               value={transactionValue}
@@ -144,9 +146,9 @@ export function TransactionCreateDialog({
                 setTransactionValue(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={2} className="grid gap-2">
             <Label htmlFor="createType">Type</Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger id="createType">
@@ -161,9 +163,9 @@ export function TransactionCreateDialog({
                 </SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={3} className="grid gap-2">
             <Label htmlFor="createTransactionDate">Transaction date</Label>
             <Input
               id="createTransactionDate"
@@ -173,11 +175,11 @@ export function TransactionCreateDialog({
                 setTransactionDate(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={4} className="grid gap-2">
             <Label htmlFor="createPaymentMadeTo">Payee</Label>
-            <Input
+            <SensitiveTextInput
               id="createPaymentMadeTo"
               placeholder="e.g. Grocery store, Rent, Salary"
               value={paymentMadeTo}
@@ -185,9 +187,9 @@ export function TransactionCreateDialog({
                 setPaymentMadeTo(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={5} className="grid gap-2">
             <Label htmlFor="createNotes">Notes (optional)</Label>
             <Textarea
               id="createNotes"
@@ -198,9 +200,9 @@ export function TransactionCreateDialog({
                 setNotes(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="flex items-center gap-2">
+          <AnimatedFormSection index={6} className="flex items-center gap-2">
             <Checkbox
               id="createIsInvestment"
               checked={isInvestment}
@@ -209,7 +211,7 @@ export function TransactionCreateDialog({
               }
             />
             <Label htmlFor="createIsInvestment">Mark as investment</Label>
-          </div>
+          </AnimatedFormSection>
         </div>
 
         <DialogFooter>

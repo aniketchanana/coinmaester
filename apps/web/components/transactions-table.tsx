@@ -5,7 +5,6 @@ import { Pencil, Plus, StickyNote, Trash2, TrendingUp } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
-import { Badge } from '@repo/ui/badge';
 import { Button } from '@repo/ui/button';
 import {
   Dialog,
@@ -43,7 +42,8 @@ import { TRANSACTION_FILTER_TYPE } from '@repo/constant';
 
 import { useDebouncedValue } from '../hooks/use-debounced-value';
 import { useResizableColumns } from '../hooks/use-resizable-columns';
-import { formatTransactionAmount } from '../lib/currency';
+import { FormattedAmount } from './formatted-amount';
+import { MaskedPayee } from './masked-payee';
 import {
   deleteTransaction,
   fetchTransactions,
@@ -60,11 +60,18 @@ import {
   TRANSACTION_SORT_FIELD,
   TRANSACTION_SORT_ORDER,
 } from '../types/transaction';
+import {
+  EMPTY_STATE_ENTER_CLASS,
+  REVEAL_UP_CLASS,
+  ROW_ENTER_CLASS,
+  staggerDelay,
+} from '../lib/motion';
 import { DateRangePicker } from './date-range-picker';
 import {
   ResizableSortableTableHead,
   ResizableTableHead,
 } from './resizable-table-head';
+import { TableSkeleton } from './table-skeleton';
 import { TransactionCreateDialog } from './transaction-create-dialog';
 import { TransactionEditDialog } from './transaction-edit-dialog';
 import { TransactionNotesDialog } from './transaction-notes-dialog';
@@ -325,15 +332,20 @@ export function TransactionsTable() {
 
   return (
     <div className="flex flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-start">
-      <aside className="order-1 w-full shrink-0 lg:order-none lg:max-h-full lg:w-56 lg:overflow-y-auto xl:w-64">
-        <div className="space-y-4">
+      <aside className="order-1 w-full min-w-0 shrink-0 lg:order-none lg:max-h-full lg:w-72 lg:overflow-x-hidden lg:overflow-y-auto xl:w-80">
+        <div className="min-w-0 space-y-4">
           <Button className="w-full" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add transaction
           </Button>
 
-          <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
-            <div className="grid gap-4">
+          <div
+            className={cn(
+              'min-w-0 space-y-4 rounded-lg border border-surface bg-card p-4 shadow-surface-sm backdrop-blur-surface',
+              REVEAL_UP_CLASS,
+            )}
+          >
+            <div className="grid min-w-0 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="payee">Payee</Label>
                 <Input
@@ -409,7 +421,7 @@ export function TransactionsTable() {
       <div className="order-3 min-w-0 flex-1 space-y-4 lg:order-none lg:flex lg:h-full lg:min-h-0 lg:flex-col">
         <TooltipProvider>
           <Table
-            className="table-fixed"
+            className="table-fixed table-surface-rows"
             containerClassName="lg:min-h-0 lg:flex-1"
           >
             <colgroup>
@@ -417,7 +429,7 @@ export function TransactionsTable() {
                 <col key={columnId} style={{ width: columnWidths[columnId] }} />
               ))}
             </colgroup>
-            <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-[hsl(var(--card))] [&_th]:shadow-[inset_0_-1px_0_0_hsl(var(--border))]">
+            <TableHeader className="table-sticky-header">
               <TableRow className="hover:bg-transparent">
                 <ResizableTableHead
                   onResizeStart={(clientX) =>
@@ -470,15 +482,9 @@ export function TransactionsTable() {
                 </ResizableTableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody key={`${page}-${pageSize}-${sortBy}-${sortOrder}`}>
               {isLoading ? (
-                <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={6} className="h-32 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Loading transactions...
-                    </p>
-                  </TableCell>
-                </TableRow>
+                <TableSkeleton columns={6} />
               ) : isError ? (
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={6} className="h-32 text-center">
@@ -491,44 +497,42 @@ export function TransactionsTable() {
               ) : rows.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={6} className="h-32 text-center">
-                    <p className="text-sm font-medium text-foreground">
-                      No transactions yet
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      They will show up here once your email sync is connected.
-                    </p>
+                    <div className={EMPTY_STATE_ENTER_CLASS}>
+                      <p className="text-sm font-medium text-foreground">
+                        No transactions yet
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        They will show up here once your email sync is connected.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((row) => {
+                rows.map((row, rowIndex) => {
                   const isToday = isTransactionToday(row.transactionDate);
 
                   return (
                     <TableRow
                       key={row.id}
                       className={cn(
+                        ROW_ENTER_CLASS,
                         isToday
-                          ? 'bg-amber-500/10 hover:bg-amber-500/15'
-                          : row.isInvestment && 'bg-emerald-500/5',
+                          ? 'bg-amber-500/10! hover:bg-amber-500/15!'
+                          : row.isInvestment && 'bg-emerald-500/5!',
                       )}
+                      style={staggerDelay(rowIndex)}
                     >
                       <TableCell className="truncate font-medium">
                         {row.bankName}
                       </TableCell>
                       <TableCell className="truncate">
-                        {formatTransactionAmount(row.transactionValue)}
+                        <FormattedAmount value={row.transactionValue} />
                       </TableCell>
                       <TableCell className="truncate">
-                        {row.isInvestment ? (
-                          <Badge
-                            variant="secondary"
-                            className="border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-700"
-                          >
-                            Investment
-                          </Badge>
-                        ) : (
-                          <TransactionTypeBadge type={row.type} />
-                        )}
+                        <TransactionTypeBadge
+                          type={row.type}
+                          isInvestment={row.isInvestment}
+                        />
                       </TableCell>
                       <TableCell
                         className={cn(
@@ -544,10 +548,12 @@ export function TransactionsTable() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="block cursor-default truncate">
-                              {row.paymentMadeTo}
+                              <MaskedPayee value={row.paymentMadeTo} />
                             </span>
                           </TooltipTrigger>
-                          <TooltipContent>{row.paymentMadeTo}</TooltipContent>
+                          <TooltipContent>
+                            <MaskedPayee value={row.paymentMadeTo} />
+                          </TooltipContent>
                         </Tooltip>
                       </TableCell>
                       <TableCell className="text-right">
@@ -652,7 +658,7 @@ export function TransactionsTable() {
                     handlePageSizeChange(Number(value) as PageSize)
                   }
                 >
-                  <SelectTrigger id="pageSize" className="h-9 w-[4.5rem]">
+                  <SelectTrigger id="pageSize" className="h-9 w-fit min-w-[5.5rem]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -692,20 +698,25 @@ export function TransactionsTable() {
       </div>
 
       {aggregate ? (
-        <aside className="order-2 w-full shrink-0 lg:order-none lg:max-h-full lg:w-56 lg:overflow-y-auto xl:w-64">
-          <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
+        <aside className="order-2 w-full min-w-0 shrink-0 lg:order-none lg:max-h-full lg:w-64 lg:overflow-x-hidden lg:overflow-y-auto xl:w-72">
+          <div
+            className={cn(
+              'space-y-4 rounded-lg border border-surface bg-card p-4 shadow-surface-sm backdrop-blur-surface',
+              REVEAL_UP_CLASS,
+            )}
+          >
             <p className="text-sm font-medium">Summary</p>
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground">Total debit</p>
                 <p className="text-xl font-semibold">
-                  {formatTransactionAmount(aggregate.totalDebit)}
+                  <FormattedAmount value={aggregate.totalDebit} />
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total credit</p>
                 <p className="text-xl font-semibold">
-                  {formatTransactionAmount(aggregate.totalCredit)}
+                  <FormattedAmount value={aggregate.totalCredit} />
                 </p>
               </div>
               <div>
@@ -713,7 +724,7 @@ export function TransactionsTable() {
                   Investments made
                 </p>
                 <p className="text-xl font-semibold">
-                  {formatTransactionAmount(aggregate.totalInvestment)}
+                  <FormattedAmount value={aggregate.totalInvestment} />
                 </p>
               </div>
             </div>
@@ -763,9 +774,15 @@ export function TransactionsTable() {
             <DialogTitle>Delete transaction</DialogTitle>
             <DialogDescription>
               This will permanently remove the transaction
-              {deletingTransaction
-                ? ` from ${deletingTransaction.bankName} (${formatTransactionAmount(deletingTransaction.transactionValue)})`
-                : ''}
+              {deletingTransaction ? (
+                <>
+                  {` from ${deletingTransaction.bankName} (`}
+                  <FormattedAmount
+                    value={deletingTransaction.transactionValue}
+                  />
+                  )
+                </>
+              ) : null}
               . This action cannot be undone.
             </DialogDescription>
           </DialogHeader>

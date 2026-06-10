@@ -1,0 +1,59 @@
+/* Theme-aware scrollbar tokens — overridden per design system in themes.css */
+:root {
+  --scrollbar-size: 6px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: hsl(var(--muted-foreground) / 0.28);
+  --scrollbar-thumb-hover: hsl(var(--muted-foreground) / 0.48);
+  --scrollbar-radius: 9999px;
+}
+
+.dark {
+  --scrollbar-thumb: hsl(var(--muted-foreground) / 0.32);
+  --scrollbar-thumb-hover: hsl(var(--ring) / 0.72);
+}
+
+@layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border: 2px solid transparent;
+    border-radius: var(--scrollbar-radius);
+    background-clip: padding-box;
+    transition: background-color 150ms ease;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+
+  *::-webkit-scrollbar-thumb:active {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}

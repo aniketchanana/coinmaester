@@ -25,6 +25,9 @@ import {
   SelectValue,
 } from '@repo/ui/select';
 
+import { AnimatedFormSection } from './animated-form-section';
+import { SensitiveAmountInput } from './sensitive-amount-input';
+import { SensitiveTextInput } from './sensitive-text-input';
 import { TRANSACTION_TYPE_LABELS } from './transaction-type-badge';
 import { transactionKeys, updateTransaction } from '../lib/transactions';
 import type { TransactionRow } from '../types/transaction';
@@ -108,7 +111,7 @@ export function TransactionEditDialog({
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
+          <AnimatedFormSection index={0} className="grid gap-2">
             <Label htmlFor="bankName">Bank</Label>
             <Input
               id="bankName"
@@ -117,22 +120,21 @@ export function TransactionEditDialog({
                 setBankName(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={1} className="grid gap-2">
             <Label htmlFor="transactionValue">Amount (INR)</Label>
-            <Input
+            <SensitiveAmountInput
               id="transactionValue"
-              type="number"
               step="0.01"
               value={transactionValue}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                 setTransactionValue(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={2} className="grid gap-2">
             <Label htmlFor="type">Type</Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger id="type">
@@ -147,9 +149,9 @@ export function TransactionEditDialog({
                 </SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={3} className="grid gap-2">
             <Label htmlFor="transactionDate">Transaction date</Label>
             <Input
               id="transactionDate"
@@ -159,20 +161,20 @@ export function TransactionEditDialog({
                 setTransactionDate(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={4} className="grid gap-2">
             <Label htmlFor="paymentMadeTo">Payee</Label>
-            <Input
+            <SensitiveTextInput
               id="paymentMadeTo"
               value={paymentMadeTo}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                 setPaymentMadeTo(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="flex items-center gap-2">
+          <AnimatedFormSection index={5} className="flex items-center gap-2">
             <Checkbox
               id="isInvestment"
               checked={isInvestment}
@@ -181,7 +183,7 @@ export function TransactionEditDialog({
               }
             />
             <Label htmlFor="isInvestment">Mark as investment</Label>
-          </div>
+          </AnimatedFormSection>
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">

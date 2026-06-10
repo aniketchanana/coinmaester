@@ -10,6 +10,7 @@ import { Badge } from '@repo/ui/badge';
 import { Button } from '@repo/ui/button';
 import { Checkbox } from '@repo/ui/checkbox';
 import { Label } from '@repo/ui/label';
+import { cn } from '@repo/ui/lib/utils';
 import {
   Select,
   SelectContent,
@@ -25,12 +26,26 @@ import {
   TableHeader,
   TableRow,
 } from '@repo/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@repo/ui/tooltip';
 
+import {
+  EMPTY_STATE_ENTER_CLASS,
+  REVEAL_UP_CLASS,
+  ROW_ENTER_CLASS,
+  staggerDelay,
+} from '../lib/motion';
 import {
   fetchGmailMessages,
   gmailMessageKeys,
   retryGmailMessages,
 } from '../lib/gmail-messages';
+import { MaskedSensitiveText } from './masked-sensitive-text';
+import { TableSkeleton } from './table-skeleton';
 import type {
   GmailMessageRow,
   GmailMessageStatusFilter,
@@ -40,6 +55,27 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
 
 const POLL_INTERVAL_MS = 10_000;
+
+const EMAIL_SYNC_TABLE_PAGE_SIZE_STORAGE_KEY =
+  'finance-app:email-sync-table-page-size';
+
+function readStoredPageSize(): PageSize | null {
+  try {
+    const raw = localStorage.getItem(EMAIL_SYNC_TABLE_PAGE_SIZE_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = Number(raw);
+    if (PAGE_SIZE_OPTIONS.includes(parsed as PageSize)) {
+      return parsed as PageSize;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
 
 const STATUS_OPTIONS: Array<{ value: GmailMessageStatusFilter; label: string }> =
   [
@@ -125,6 +161,22 @@ export function EmailSyncTable() {
   const [statusFilter, setStatusFilter] =
     React.useState<GmailMessageStatusFilter>('ALL');
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+
+  React.useEffect(() => {
+    const storedPageSize = readStoredPageSize();
+    if (storedPageSize) {
+      setPageSize(storedPageSize);
+    }
+  }, []);
+
+  const handlePageSizeChange = React.useCallback((size: PageSize) => {
+    setPageSize(size);
+    try {
+      localStorage.setItem(EMAIL_SYNC_TABLE_PAGE_SIZE_STORAGE_KEY, String(size));
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, []);
 
   React.useEffect(() => {
     setPage(1);
@@ -225,40 +277,70 @@ export function EmailSyncTable() {
     setSelectedIds(new Set());
   };
 
+  const clearFilters = () => {
+    setStatusFilter('ALL');
+    setPage(1);
+    setSelectedIds(new Set());
+  };
+
+  const hasActiveFilters = statusFilter !== 'ALL';
+
   return (
-    <div className="space-y-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
-      <div className="flex shrink-0 flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="grid w-full max-w-xs gap-2">
-          <Label htmlFor="statusFilter">Status</Label>
-          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-            <SelectTrigger id="statusFilter">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="flex flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-start">
+      <aside className="order-1 w-full min-w-0 shrink-0 lg:order-none lg:max-h-full lg:w-72 lg:overflow-x-hidden lg:overflow-y-auto xl:w-80">
+        <div
+          className={cn(
+            'min-w-0 space-y-4 rounded-lg border border-surface bg-card p-4 shadow-surface-sm backdrop-blur-surface',
+            REVEAL_UP_CLASS,
+          )}
+        >
+          <div className="grid gap-2">
+            <Label htmlFor="statusFilter">Status</Label>
+            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+              <SelectTrigger id="statusFilter">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {selectedIds.size > 0 ? (
           <Button
-            onClick={() => retryMutation.mutate([...selectedIds])}
-            disabled={retryMutation.isPending}
+            variant="outline"
+            className="w-full"
+            onClick={clearFilters}
+            disabled={!hasActiveFilters}
           >
-            <RefreshCcw
-              className={retryMutation.isPending ? 'animate-spin' : undefined}
-            />
-            Re-run selected ({selectedIds.size})
+            Clear
           </Button>
-        ) : null}
-      </div>
 
-      <Table containerClassName="lg:min-h-0 lg:flex-1">
-        <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-card [&_th]:shadow-[inset_0_-1px_0_0_hsl(var(--border))]">
+          {selectedIds.size > 0 ? (
+            <Button
+              className="w-full animate-in fade-in-0 slide-in-from-top-2 fill-mode-both duration-200 motion-reduce:animate-none"
+              onClick={() => retryMutation.mutate([...selectedIds])}
+              disabled={retryMutation.isPending}
+            >
+              <RefreshCcw
+                className={retryMutation.isPending ? 'animate-spin' : undefined}
+              />
+              Re-run selected ({selectedIds.size})
+            </Button>
+          ) : null}
+        </div>
+      </aside>
+
+      <div className="order-2 min-w-0 flex-1 space-y-4 lg:order-none lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+        <TooltipProvider>
+          <Table
+            className="table-fixed table-surface-rows"
+            containerClassName="lg:min-h-0 lg:flex-1"
+          >
+        <TableHeader className="table-sticky-header">
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-[40px]">
               <Checkbox
@@ -283,42 +365,44 @@ export function EmailSyncTable() {
             <TableHead className="w-[120px] text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody key={`${page}-${pageSize}-${statusFilter}`}>
           {isLoading ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="h-32 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Loading email sync status...
-                </p>
-              </TableCell>
-            </TableRow>
+            <TableSkeleton columns={6} />
           ) : isError ? (
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={6} className="h-32 text-center">
-                <p className="text-sm text-destructive">
-                  {(error as Error).message ||
-                    'Failed to load email sync status'}
-                </p>
+                <div className={EMPTY_STATE_ENTER_CLASS}>
+                  <p className="text-sm text-destructive">
+                    {(error as Error).message ||
+                      'Failed to load email sync status'}
+                  </p>
+                </div>
               </TableCell>
             </TableRow>
           ) : rows.length === 0 ? (
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={6} className="h-32 text-center">
-                <p className="text-sm font-medium text-foreground">
-                  No emails found
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Synced emails will appear here once Gmail sync runs.
-                </p>
+                <div className={EMPTY_STATE_ENTER_CLASS}>
+                  <p className="text-sm font-medium text-foreground">
+                    No emails found
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Synced emails will appear here once Gmail sync runs.
+                  </p>
+                </div>
               </TableCell>
             </TableRow>
           ) : (
-            rows.map((row) => {
+            rows.map((row, rowIndex) => {
               const rerunnable = canRerun(row.status);
               const isSelected = rerunnable && selectedIds.has(row.id);
 
               return (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className={ROW_ENTER_CLASS}
+                  style={staggerDelay(rowIndex)}
+                >
                   <TableCell>
                     <Checkbox
                       checked={isSelected}
@@ -329,17 +413,42 @@ export function EmailSyncTable() {
                       }
                     />
                   </TableCell>
-                  <TableCell className="max-w-[200px] truncate font-medium">
-                    {row.from || '—'}
+                  <TableCell className="truncate font-medium">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="block cursor-default truncate">
+                          <MaskedSensitiveText value={row.from || '—'} />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <MaskedSensitiveText value={row.from || '—'} />
+                      </TooltipContent>
+                    </Tooltip>
                   </TableCell>
-                  <TableCell className="max-w-[280px] truncate">
-                    {row.subject || '—'}
+                  <TableCell className="truncate">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="block cursor-default truncate">
+                          <MaskedSensitiveText value={row.subject || '—'} />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <MaskedSensitiveText value={row.subject || '—'} />
+                      </TooltipContent>
+                    </Tooltip>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDate(row.internalDate)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusBadgeVariant(row.status)}>
+                    <Badge
+                      variant={statusBadgeVariant(row.status)}
+                      className={
+                        row.status === JOB_STATUS.IN_PROGRESS
+                          ? 'animate-pulse motion-reduce:animate-none'
+                          : undefined
+                      }
+                    >
                       {formatStatusLabel(row.status)}
                     </Badge>
                   </TableCell>
@@ -358,9 +467,10 @@ export function EmailSyncTable() {
             })
           )}
         </TableBody>
-      </Table>
+          </Table>
+        </TooltipProvider>
 
-      {pagination && pagination.total > 0 ? (
+        {pagination && pagination.total > 0 ? (
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t pt-4">
           <div className="flex flex-wrap items-center gap-4">
             <p className="text-sm text-muted-foreground">
@@ -377,10 +487,10 @@ export function EmailSyncTable() {
               <Select
                 value={String(pageSize)}
                 onValueChange={(value) =>
-                  setPageSize(Number(value) as PageSize)
+                  handlePageSizeChange(Number(value) as PageSize)
                 }
               >
-                <SelectTrigger id="pageSize" className="h-9 w-[4.5rem]">
+                <SelectTrigger id="pageSize" className="h-9 w-fit min-w-[5.5rem]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -416,7 +526,8 @@ export function EmailSyncTable() {
             </Button>
           </div>
         </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   );
 }
