@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 
 import { Providers } from '../components/providers';
 import { ThemeProvider } from '../components/theme-provider';
+import { ThemeStyleProvider } from '../components/theme-style-provider';
+import { THEME_STYLE_INIT_SCRIPT } from '../lib/theme-styles';
 import './globals.css';
 import '@repo/ui/globals.css';
 
@@ -28,6 +30,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{ __html: THEME_STYLE_INIT_SCRIPT }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen`}
       >
@@ -37,7 +44,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Providers>{children}</Providers>
+          <ThemeStyleProvider>
+            <Providers>{children}</Providers>
+          </ThemeStyleProvider>
         </ThemeProvider>
       </body>
     </html>
