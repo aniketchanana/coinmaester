@@ -51,7 +51,7 @@ services:
       EMAIL_STORAGE_DIR: ingested-emails
       GOOGLE_CALLBACK_URL: http://localhost:3000/api/auth/google/callback
     volumes:
-      - email_data:/app/ingested-emails
+      - ./ingested-emails:/app/ingested-emails
     depends_on:
       postgres:
         condition: service_healthy
@@ -103,7 +103,7 @@ services:
       ANTHROPIC_BASE_URL: http://host.docker.internal:1234
       EMAIL_STORAGE_DIR: ingested-emails
     volumes:
-      - email_data:/app/ingested-emails
+      - ./ingested-emails:/app/ingested-emails
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     depends_on:
@@ -115,4 +115,3 @@ services:
 volumes:
   postgres_data:
   rabbitmq_data:
-  email_data:

@@ -5,6 +5,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 echo "[1/4] Checking environment..."
+mkdir -p ingested-emails
+
 if [[ ! -f .env ]]; then
   cp .env.example .env
   echo "  Created .env from .env.example"
