@@ -100,10 +100,16 @@ Respond with ONLY a single valid JSON object. No markdown, no ```json fences, no
 </schema>
 
 {TRANSACTION_DETECTION_RULES}
+
+<header_ambiguity>
+When the subject line alone is ambiguous between a credit card purchase/spend and a credit card bill
+payment, return `isTransactionEmail: true`. The next step reads the full email body and re-applies the
+same rules with more context to resolve bill payments and other exclusions.
+</header_ambiguity>
 """
 
 
-SYSTEM_PROMPT = f"""<role>
+JSON_DATA_SYSTEM_PROMPT = f"""<role>
 You are an expert financial data extraction AI. Read the body of an email and extract structured
 transaction data into the JSON schema below. Because you can read the full body (not just the subject),
 use any extra clarity it provides — an email that looked like a transaction may reveal itself as a
@@ -114,7 +120,7 @@ credit card bill payment, investment funding, or statement once the body is read
 Respond with ONLY a single valid JSON object. No markdown, no ```json fences, no extra text.
 If the email is NOT a transaction, set `isTransactionEmail` to false and every other field to null.
 {{
-"bankName": "string | null",
+"bankName": "string | null", // HDFC, ICICI, SBI, Scapia, federal, DCB, Niyo Global account from which the transaction happened etc.
 "transactionValue": "positive number | null",   // absolute amount, never signed (e.g., 1500.50)
 "type": "DEBIT | CREDIT",                        // DEBIT when money leaves, CREDIT when it enters
 "transactionDate": "Date | null",               // valid JavaScript date
