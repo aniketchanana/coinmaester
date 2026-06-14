@@ -73,11 +73,12 @@ INR 200 spent on Credit Card XX5001 at Amazon
 INR 50,000 transferred via NEFT to John Doe
 Rs. 10,000 added to your Groww account
 NR 20 spent / debited on/from credit card 
+Transaction alert for your Credit card
 </examples>
 
 <examples is_transaction="false">
 Payment of Rs. 12,500 received towards your HDFC Credit Card bill
-Amazon Pay ICICI Bank Credit Card Statement for May
+Bank Credit Card Statement for May
 OTP for transaction of INR 500 on your Credit Card
 Your order to buy RELIANCE has been executed - Groww
 Rs. 10,000 added to your Zerodha account
