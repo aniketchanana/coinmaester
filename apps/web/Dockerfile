@@ -15,6 +15,9 @@ COPY --from=pruner /app/out/full/ .
 
 ARG API_INTERNAL_URL=http://api-backend:3001
 ENV API_INTERNAL_URL=$API_INTERNAL_URL
+# Browser calls the API via Next.js rewrites on :3000 (/api → api-backend:3001).
+ARG NEXT_PUBLIC_API_URL=/api
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NODE_ENV=production
 
 RUN pnpm turbo build --filter=web

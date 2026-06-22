@@ -29,12 +29,14 @@ docker compose --profile prod up --build -d --force-recreate
 echo "[4/4] Waiting for services to become reachable..."
 for i in $(seq 1 30); do
   if curl -sf http://127.0.0.1:3000/login >/dev/null 2>&1 && \
-     curl -sf http://127.0.0.1:3000/api/ >/dev/null 2>&1; then
+     curl -sf http://127.0.0.1:3000/api/ >/dev/null 2>&1 && \
+     curl -sf http://127.0.0.1:3001/ >/dev/null 2>&1; then
     echo ""
     echo "Stack is up."
     echo ""
     echo "  Web:          http://localhost:3000"
-    echo "  API (proxy):  http://localhost:3000/api"
+    echo "  API (app):    http://localhost:3000/api"
+    echo "  API (direct): http://localhost:3001"
     echo "  RabbitMQ UI:  http://localhost:15672  (finance / finance)"
     echo ""
     echo "  Google OAuth redirect URI must include:"
