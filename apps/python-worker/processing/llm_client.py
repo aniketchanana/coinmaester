@@ -11,6 +11,7 @@ from processing.models import (
     empty_transaction,
 )
 from processing.prompts import JSON_DATA_SYSTEM_PROMPT, build_user_prompt, CLASSIFY_SYSTEM_PROMPT
+from processing.text_preprocess import clean_email_body
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +90,13 @@ class TransactionLlmClient:
         if not classification.is_transaction_email:
             return empty_transaction()
 
+        cleaned_body = clean_email_body(body)
+        logger.info(
+            "Email body trimmed for LLM: %d -> %d chars",
+            len(body),
+            len(cleaned_body),
+        )
+
         response = self._client.messages.create(
             model=settings.anthropic_model,
             max_tokens=1024,
@@ -97,7 +105,7 @@ class TransactionLlmClient:
             messages=[
                 {
                     "role": "user",
-                    "content": build_user_prompt(header, body),
+                    "content": build_user_prompt(header, cleaned_body),
                 }
             ],
         )
