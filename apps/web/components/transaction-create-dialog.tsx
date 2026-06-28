@@ -17,9 +17,20 @@ import {
 } from '@repo/ui/dialog';
 import { Input } from '@repo/ui/input';
 import { Label } from '@repo/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@repo/ui/select';
 import { Textarea } from '@repo/ui/textarea';
 
+import { AnimatedFormSection } from './animated-form-section';
+import { SensitiveAmountInput } from './sensitive-amount-input';
+import { SensitiveTextInput } from './sensitive-text-input';
 import { TRANSACTION_TYPE_LABELS } from './transaction-type-badge';
+import { analyticsKeys } from '../lib/analytics';
 import { createTransaction, transactionKeys } from '../lib/transactions';
 
 interface TransactionCreateDialogProps {
@@ -39,7 +50,8 @@ export function TransactionCreateDialog({
   const [bankName, setBankName] = React.useState('Manual');
   const [transactionValue, setTransactionValue] = React.useState('');
   const [type, setType] = React.useState<string>(TRANSACTION_TYPE.DEBIT);
-  const [transactionDate, setTransactionDate] = React.useState(todayDateInputValue);
+  const [transactionDate, setTransactionDate] =
+    React.useState(todayDateInputValue);
   const [paymentMadeTo, setPaymentMadeTo] = React.useState('');
   const [notes, setNotes] = React.useState('');
   const [isInvestment, setIsInvestment] = React.useState(false);
@@ -86,7 +98,9 @@ export function TransactionCreateDialog({
       return createTransaction({
         bankName: bankName.trim(),
         transactionValue: parsedValue,
-        type: type as typeof TRANSACTION_TYPE.DEBIT | typeof TRANSACTION_TYPE.CREDIT,
+        type: type as
+          | typeof TRANSACTION_TYPE.DEBIT
+          | typeof TRANSACTION_TYPE.CREDIT,
         transactionDate,
         paymentMadeTo: paymentMadeTo.trim(),
         notes: notes.trim() || undefined,
@@ -95,6 +109,7 @@ export function TransactionCreateDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all });
       toast.success('Transaction added');
       onOpenChange(false);
     },
@@ -114,7 +129,7 @@ export function TransactionCreateDialog({
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
+          <AnimatedFormSection index={0} className="grid gap-2">
             <Label htmlFor="createBankName">Bank</Label>
             <Input
               id="createBankName"
@@ -123,13 +138,12 @@ export function TransactionCreateDialog({
                 setBankName(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={1} className="grid gap-2">
             <Label htmlFor="createTransactionValue">Amount (INR)</Label>
-            <Input
+            <SensitiveAmountInput
               id="createTransactionValue"
-              type="number"
               step="0.01"
               min="0.01"
               value={transactionValue}
@@ -137,28 +151,26 @@ export function TransactionCreateDialog({
                 setTransactionValue(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={2} className="grid gap-2">
             <Label htmlFor="createType">Type</Label>
-            <select
-              id="createType"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={type}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                setType(event.target.value)
-              }
-            >
-              <option value={TRANSACTION_TYPE.DEBIT}>
-                {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.DEBIT]}
-              </option>
-              <option value={TRANSACTION_TYPE.CREDIT}>
-                {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.CREDIT]}
-              </option>
-            </select>
-          </div>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger id="createType">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TRANSACTION_TYPE.DEBIT}>
+                  {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.DEBIT]}
+                </SelectItem>
+                <SelectItem value={TRANSACTION_TYPE.CREDIT}>
+                  {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.CREDIT]}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={3} className="grid gap-2">
             <Label htmlFor="createTransactionDate">Transaction date</Label>
             <Input
               id="createTransactionDate"
@@ -168,11 +180,11 @@ export function TransactionCreateDialog({
                 setTransactionDate(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={4} className="grid gap-2">
             <Label htmlFor="createPaymentMadeTo">Payee</Label>
-            <Input
+            <SensitiveTextInput
               id="createPaymentMadeTo"
               placeholder="e.g. Grocery store, Rent, Salary"
               value={paymentMadeTo}
@@ -180,9 +192,9 @@ export function TransactionCreateDialog({
                 setPaymentMadeTo(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={5} className="grid gap-2">
             <Label htmlFor="createNotes">Notes (optional)</Label>
             <Textarea
               id="createNotes"
@@ -193,25 +205,26 @@ export function TransactionCreateDialog({
                 setNotes(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="flex items-center gap-2">
+          <AnimatedFormSection index={6} className="flex items-center gap-2">
             <Checkbox
               id="createIsInvestment"
               checked={isInvestment}
-              onCheckedChange={(checked) =>
-                setIsInvestment(checked === true)
-              }
+              onCheckedChange={(checked) => setIsInvestment(checked === true)}
             />
             <Label htmlFor="createIsInvestment">Mark as investment</Label>
-          </div>
+          </AnimatedFormSection>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+          <Button
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+          >
             {mutation.isPending ? 'Adding...' : 'Add transaction'}
           </Button>
         </DialogFooter>

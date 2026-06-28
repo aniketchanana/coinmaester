@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ArrowDown, ArrowUp } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 
 import { TableHead } from '@repo/ui/table';
 import { cn } from '@repo/ui/lib/utils';
@@ -12,8 +12,7 @@ import type {
 } from '../types/transaction';
 import { TRANSACTION_SORT_ORDER } from '../types/transaction';
 
-interface ResizableTableHeadProps
-  extends React.ThHTMLAttributes<HTMLTableCellElement> {
+interface ResizableTableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
   onResizeStart?: (clientX: number) => void;
   resizable?: boolean;
 }
@@ -85,15 +84,17 @@ export function ResizableSortableTableHead({
         onClick={() => onSort(field)}
       >
         {label}
-        {isActive ? (
-          sortOrder === TRANSACTION_SORT_ORDER.ASC ? (
-            <ArrowUp className="h-4 w-4 shrink-0" aria-hidden="true" />
-          ) : (
-            <ArrowDown className="h-4 w-4 shrink-0" aria-hidden="true" />
-          )
-        ) : (
-          <span className="inline-flex h-4 w-4 shrink-0" aria-hidden="true" />
-        )}
+        <ArrowDown
+          aria-hidden="true"
+          className={cn(
+            'h-4 w-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none',
+            isActive
+              ? sortOrder === TRANSACTION_SORT_ORDER.ASC
+                ? 'rotate-180 opacity-100'
+                : 'rotate-0 opacity-100'
+              : 'opacity-0',
+          )}
+        />
       </button>
     </ResizableTableHead>
   );

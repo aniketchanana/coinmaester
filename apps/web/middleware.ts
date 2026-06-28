@@ -10,6 +10,7 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/transactions') ||
+    pathname.startsWith('/analytics') ||
     pathname.startsWith('/email-sync');
 
   if (isProtectedRoute && !token) {
@@ -24,5 +25,11 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/transactions/:path*', '/email-sync/:path*', '/login'],
+  matcher: [
+    '/dashboard/:path*',
+    '/transactions/:path*',
+    '/analytics/:path*',
+    '/email-sync/:path*',
+    '/login',
+  ],
 };

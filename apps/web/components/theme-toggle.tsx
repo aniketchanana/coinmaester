@@ -1,39 +1,65 @@
 'use client';
 
-import { Moon, Sun } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { Palette } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@repo/ui/button';
 
+type ThemePickerModule = typeof import('./theme-picker-content');
+
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
+  const pickerModuleRef = React.useRef<Promise<ThemePickerModule> | null>(null);
+  const [PickerContent, setPickerContent] = React.useState<
+    ThemePickerModule['ThemePickerContent'] | null
+  >(null);
+  const [defaultOpen, setDefaultOpen] = React.useState(false);
+  const [openSignal, setOpenSignal] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const loadPicker = React.useCallback(
+    (openOnLoad = false) => {
+      if (PickerContent) {
+        if (openOnLoad) {
+          setOpenSignal((count) => count + 1);
+        }
+        return;
+      }
 
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon" aria-label="Toggle theme">
-        <Sun className="h-5 w-5" />
-      </Button>
-    );
+      if (openOnLoad) {
+        setDefaultOpen(true);
+      }
+
+      if (!pickerModuleRef.current) {
+        setIsLoading(true);
+        pickerModuleRef.current = import('./theme-picker-content');
+      }
+
+      pickerModuleRef.current
+        .then((module) => {
+          setPickerContent(() => module.ThemePickerContent);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    },
+    [PickerContent],
+  );
+
+  if (PickerContent) {
+    return <PickerContent defaultOpen={defaultOpen} openSignal={openSignal} />;
   }
 
   return (
     <Button
       variant="ghost"
       size="icon"
-      aria-label="Toggle theme"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      aria-label="Open theme picker"
+      aria-busy={isLoading}
+      onPointerEnter={() => loadPicker()}
+      onFocus={() => loadPicker()}
+      onClick={() => loadPicker(true)}
     >
-      {theme === 'dark' ? (
-        <Sun className="h-5 w-5" />
-      ) : (
-        <Moon className="h-5 w-5" />
-      )}
+      <Palette className="h-5 w-5" />
     </Button>
   );
 }

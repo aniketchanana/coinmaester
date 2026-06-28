@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JOB_STATUS } from '@repo/constant';
 import { Prisma, type SyncStatus } from '@repo/database';
 import type { AxiosInstance, AxiosResponse } from 'axios';
@@ -145,7 +141,6 @@ export class GmailIngestionService {
       select: { id: true, userId: true, createdAt: true, status: true },
     });
 
-
     if (!job || job.status !== JOB_STATUS.IN_PROGRESS) {
       return;
     }
@@ -153,9 +148,8 @@ export class GmailIngestionService {
     const { userId, createdAt: syncCreatedAt } = job;
 
     try {
-      const accessToken = await this.authService.getValidGoogleAccessToken(
-        userId,
-      );
+      const accessToken =
+        await this.authService.getValidGoogleAccessToken(userId);
       const bounds = await this.resolveSyncBounds(userId, syncCreatedAt);
       const messageIds = await this.listInboxMessageIdsInBounds(
         accessToken,
@@ -274,7 +268,7 @@ export class GmailIngestionService {
       }
 
       try {
-        await this.rabbitMqPublisher.publishGmailMessage(row.id);
+        this.rabbitMqPublisher.publishGmailMessage(row.id);
       } catch (error) {
         this.logger.error(
           `Failed to publish Gmail message ${row.id} to RabbitMQ`,
@@ -304,11 +298,15 @@ export class GmailIngestionService {
     let pageToken: string | undefined;
 
     do {
-      const data = await this.getGmailResource(accessToken, '/users/me/messages', {
-        q: query,
-        maxResults: LIST_PAGE_SIZE,
-        pageToken,
-      });
+      const data = await this.getGmailResource(
+        accessToken,
+        '/users/me/messages',
+        {
+          q: query,
+          maxResults: LIST_PAGE_SIZE,
+          pageToken,
+        },
+      );
       const listResponse = this.parseGmailMessageListResponse(data);
 
       for (const message of listResponse.messages ?? []) {
@@ -476,7 +474,9 @@ export class GmailIngestionService {
     return message;
   }
 
-  private parseGmailMessageListResponse(data: unknown): GmailMessageListResponse {
+  private parseGmailMessageListResponse(
+    data: unknown,
+  ): GmailMessageListResponse {
     if (typeof data !== 'object' || data === null) {
       throw new Error('Invalid Gmail message list response');
     }
@@ -497,7 +497,9 @@ export class GmailIngestionService {
     return response;
   }
 
-  private isGmailMessageListItem(value: unknown): value is GmailMessageListItem {
+  private isGmailMessageListItem(
+    value: unknown,
+  ): value is GmailMessageListItem {
     if (typeof value !== 'object' || value === null) {
       return false;
     }
@@ -522,8 +524,8 @@ export class GmailIngestionService {
   private formatHeader(message: GmailApiMessage): string {
     const headers = message.payload?.headers ?? [];
     const get = (name: string) =>
-      headers.find((h) => h.name.toLowerCase() === name.toLowerCase())
-        ?.value ?? '';
+      headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ??
+      '';
 
     const from = get('From');
     const subject = get('Subject');

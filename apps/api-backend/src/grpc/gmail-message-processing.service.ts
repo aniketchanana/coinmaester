@@ -24,7 +24,7 @@ interface CompleteProcessingPayload {
 
 @Injectable()
 export class GmailMessageProcessingService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async claimForProcessing(gmailMessageId: string): Promise<{
     id: string;
@@ -68,9 +68,7 @@ export class GmailMessageProcessingService {
     };
   }
 
-  async completeProcessing(
-    payload: CompleteProcessingPayload,
-  ): Promise<{
+  async completeProcessing(payload: CompleteProcessingPayload): Promise<{
     id: string;
     status: string;
   }> {
@@ -217,9 +215,9 @@ export class GmailMessageProcessingService {
   ): { type: TransactionType; date: Date } | null {
     const type = this.tryParseTransactionType(transaction.type);
     const date = this.tryParseTransactionDate(transaction.transactionDate);
-    console.log('-------')
-    console.log(type, date)
-    console.log('-------')
+    console.log('-------');
+    console.log(type, date);
+    console.log('-------');
     if (!type || !date) {
       return null;
     }

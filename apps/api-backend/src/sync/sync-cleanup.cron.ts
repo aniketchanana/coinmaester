@@ -11,7 +11,7 @@ const ZOMBIE_THRESHOLD_MS = 60 * 60 * 1000;
 export class SyncCleanupCron {
   private readonly logger = new Logger(SyncCleanupCron.name);
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   @Cron('0 0 */2 * * *')
   async markStaleJobsFailed(): Promise<void> {

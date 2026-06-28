@@ -7,9 +7,7 @@ import {
 import amqp, { type Channel, type ChannelModel } from 'amqplib';
 
 @Injectable()
-export class RabbitMqPublisherService
-  implements OnModuleInit, OnModuleDestroy
-{
+export class RabbitMqPublisherService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RabbitMqPublisherService.name);
   private connection: ChannelModel | null = null;
   private channel: Channel | null = null;
@@ -34,7 +32,7 @@ export class RabbitMqPublisherService
     await this.connection?.close();
   }
 
-  async publishGmailMessage(gmailMessageId: string): Promise<void> {
+  publishGmailMessage(gmailMessageId: string): void {
     if (!this.channel) {
       throw new Error('RabbitMQ channel is not initialized');
     }

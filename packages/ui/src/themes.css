@@ -1,0 +1,304 @@
+/* Neumorphic — soft extruded surfaces */
+[data-style='neumorphic'] {
+  --background: 220 14% 90%;
+  --foreground: 220 15% 25%;
+  --card: 220 14% 90%;
+  --card-foreground: 220 15% 25%;
+  --popover: 220 14% 90%;
+  --popover-foreground: 220 15% 25%;
+  --primary: 220 20% 40%;
+  --primary-foreground: 220 14% 96%;
+  --secondary: 220 12% 85%;
+  --secondary-foreground: 220 15% 30%;
+  --muted: 220 12% 86%;
+  --muted-foreground: 220 10% 45%;
+  --accent: 220 12% 84%;
+  --accent-foreground: 220 15% 30%;
+  --destructive: 0 70% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 14% 88%;
+  --input: 220 12% 84%;
+  --ring: 220 15% 55%;
+  --radius: 1.25rem;
+  --card-alpha: 1;
+  --popover-alpha: 1;
+  --surface-blur: 0px;
+  --border-width-surface: 0px;
+  --shadow-surface:
+    8px 8px 16px hsl(220 15% 70%), -8px -8px 16px hsl(0 0% 100%);
+  --shadow-surface-sm:
+    4px 4px 8px hsl(220 15% 70%), -4px -4px 8px hsl(0 0% 100%);
+  --shadow-pressed:
+    inset 4px 4px 8px hsl(220 15% 70%), inset -4px -4px 8px hsl(0 0% 100%);
+  --scrollbar-size: 7px;
+  --scrollbar-thumb: hsl(var(--muted-foreground) / 0.38);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.55);
+  --scrollbar-radius: 9999px;
+  --cursor-default:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%238B95A8' stroke='%23E8ECF2' stroke-width='0.6' stroke-linejoin='round'/%3E%3C/svg%3E")
+      6 2,
+    default;
+  --cursor-pointer:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%237A8498' stroke='%23E8ECF2' stroke-width='0.75' stroke-linejoin='round'/%3E%3C/svg%3E")
+      6 2,
+    pointer;
+  --cursor-text: text;
+  --cursor-col-resize:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M6 4v12M14 4v12M4 6h12M4 14h12' stroke='%238B95A8' stroke-width='1.75' stroke-linecap='round'/%3E%3C/svg%3E")
+      10 10,
+    col-resize;
+}
+
+.dark[data-style='neumorphic'] {
+  --background: 220 15% 13%;
+  --foreground: 220 10% 88%;
+  --card: 220 15% 13%;
+  --card-foreground: 220 10% 88%;
+  --popover: 220 15% 13%;
+  --popover-foreground: 220 10% 88%;
+  --primary: 220 15% 75%;
+  --primary-foreground: 220 15% 12%;
+  --secondary: 220 12% 18%;
+  --secondary-foreground: 220 10% 85%;
+  --muted: 220 12% 17%;
+  --muted-foreground: 220 8% 58%;
+  --accent: 220 12% 20%;
+  --accent-foreground: 220 10% 88%;
+  --destructive: 0 55% 45%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 12% 18%;
+  --input: 220 12% 18%;
+  --ring: 220 10% 60%;
+  --shadow-surface:
+    6px 6px 12px hsl(220 20% 6%), -6px -6px 12px hsl(220 10% 20%);
+  --shadow-surface-sm:
+    3px 3px 6px hsl(220 20% 6%), -3px -3px 6px hsl(220 10% 20%);
+  --shadow-pressed:
+    inset 3px 3px 6px hsl(220 20% 6%), inset -3px -3px 6px hsl(220 10% 20%);
+  --scrollbar-thumb: hsl(var(--muted-foreground) / 0.42);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.68);
+  --cursor-default:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23A8B0BE' stroke='%232A3140' stroke-width='0.6' stroke-linejoin='round'/%3E%3C/svg%3E")
+      6 2,
+    default;
+  --cursor-pointer:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23B8C0CE' stroke='%232A3140' stroke-width='0.75' stroke-linejoin='round'/%3E%3C/svg%3E")
+      6 2,
+    pointer;
+}
+
+/* Glassmorphic — translucent layers over vivid gradients */
+[data-style='glass'] {
+  --background: 230 60% 96%;
+  --foreground: 230 25% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 230 25% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 230 25% 15%;
+  --primary: 250 70% 58%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 230 40% 92% / 0.6;
+  --secondary-foreground: 230 25% 20%;
+  --muted: 230 30% 94% / 0.5;
+  --muted-foreground: 230 15% 40%;
+  --accent: 280 60% 94% / 0.5;
+  --accent-foreground: 280 40% 25%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 100% / 0.35;
+  --input: 0 0% 100% / 0.25;
+  --ring: 250 70% 58%;
+  --radius: 1rem;
+  --card-alpha: 0.55;
+  --popover-alpha: 0.92;
+  --table-header-alpha: 0.94;
+  --table-row-alpha: 0.42;
+  --surface-blur: 16px;
+  --border-width-surface: 1px;
+  --shadow-surface: 0 8px 32px hsl(250 60% 50% / 0.18);
+  --shadow-surface-sm: 0 4px 16px hsl(250 60% 50% / 0.12);
+  --shadow-pressed: 0 2px 8px hsl(250 60% 50% / 0.1);
+  --scrollbar-size: 5px;
+  --scrollbar-thumb: hsl(var(--primary) / 0.32);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.52);
+  --scrollbar-radius: 9999px;
+  --cursor-default:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%237C6DF6' stroke='%23ffffff' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E")
+      6 2,
+    default;
+  --cursor-pointer:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%236D5DF6' stroke='%23ffffff' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E")
+      6 2,
+    pointer;
+  --cursor-text:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20' viewBox='0 0 16 20'%3E%3Cpath d='M4 2v16M10 2v16' stroke='%237C6DF6' stroke-width='1.75' stroke-linecap='round'/%3E%3C/svg%3E")
+      8 10,
+    text;
+  --cursor-col-resize:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M6 4v12M14 4v12' stroke='%237C6DF6' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")
+      10 10,
+    col-resize;
+}
+
+.dark[data-style='glass'] {
+  --background: 240 30% 8%;
+  --foreground: 230 20% 95%;
+  --card: 240 20% 15%;
+  --card-foreground: 230 20% 95%;
+  --popover: 240 20% 15%;
+  --popover-foreground: 230 20% 95%;
+  --primary: 250 75% 68%;
+  --primary-foreground: 240 30% 8%;
+  --secondary: 240 20% 20% / 0.5;
+  --secondary-foreground: 230 20% 90%;
+  --muted: 240 15% 18% / 0.5;
+  --muted-foreground: 230 10% 65%;
+  --accent: 280 40% 25% / 0.5;
+  --accent-foreground: 280 30% 90%;
+  --destructive: 0 62% 50%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 100% / 0.12;
+  --input: 0 0% 100% / 0.08;
+  --ring: 250 75% 68%;
+  --card-alpha: 0.45;
+  --popover-alpha: 0.92;
+  --table-header-alpha: 0.9;
+  --table-row-alpha: 0.35;
+  --shadow-surface: 0 8px 32px hsl(250 60% 20% / 0.4);
+  --shadow-surface-sm: 0 4px 16px hsl(250 60% 20% / 0.3);
+  --shadow-pressed: 0 2px 8px hsl(250 60% 20% / 0.25);
+  --scrollbar-thumb: hsl(var(--primary) / 0.38);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.62);
+  --cursor-default:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23A78BFA' stroke='%231E1B2E' stroke-width='0.9' stroke-linejoin='round'/%3E%3C/svg%3E")
+      6 2,
+    default;
+  --cursor-pointer:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23C4B5FD' stroke='%231E1B2E' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E")
+      6 2,
+    pointer;
+  --cursor-text:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20' viewBox='0 0 16 20'%3E%3Cpath d='M4 2v16M10 2v16' stroke='%23C4B5FD' stroke-width='1.75' stroke-linecap='round'/%3E%3C/svg%3E")
+      8 10,
+    text;
+  --cursor-col-resize:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M6 4v12M14 4v12' stroke='%23C4B5FD' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")
+      10 10,
+    col-resize;
+}
+
+[data-style='glass'] body {
+  background: linear-gradient(
+    135deg,
+    hsl(230 80% 72%) 0%,
+    hsl(280 55% 75%) 45%,
+    hsl(195 70% 72%) 100%
+  );
+  background-attachment: fixed;
+}
+
+.dark[data-style='glass'] body {
+  background: linear-gradient(
+    135deg,
+    hsl(240 45% 12%) 0%,
+    hsl(270 40% 14%) 45%,
+    hsl(210 35% 11%) 100%
+  );
+  background-attachment: fixed;
+}
+
+/* Neo-Brutalist — bold borders, hard shadows, vivid accents */
+[data-style='brutalist'] {
+  --background: 48 100% 96%;
+  --foreground: 0 0% 5%;
+  --card: 48 100% 98%;
+  --card-foreground: 0 0% 5%;
+  --popover: 48 100% 98%;
+  --popover-foreground: 0 0% 5%;
+  --primary: 270 80% 55%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 48 100% 88%;
+  --secondary-foreground: 0 0% 5%;
+  --muted: 48 60% 90%;
+  --muted-foreground: 0 0% 30%;
+  --accent: 48 100% 60%;
+  --accent-foreground: 0 0% 5%;
+  --destructive: 0 85% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 5%;
+  --input: 0 0% 5%;
+  --ring: 270 80% 55%;
+  --radius: 0.125rem;
+  --card-alpha: 1;
+  --popover-alpha: 1;
+  --surface-blur: 0px;
+  --border-width-surface: 2px;
+  --shadow-surface: 4px 4px 0 hsl(0 0% 5%);
+  --shadow-surface-sm: 2px 2px 0 hsl(0 0% 5%);
+  --shadow-pressed: 1px 1px 0 hsl(0 0% 5%);
+  --scrollbar-size: 8px;
+  --scrollbar-track: hsl(var(--foreground) / 0.04);
+  --scrollbar-thumb: hsl(var(--foreground) / 0.28);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.85);
+  --scrollbar-radius: 2px;
+  --cursor-default:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23000000' stroke='%23FFE500' stroke-width='0.75' stroke-linejoin='miter'/%3E%3C/svg%3E")
+      6 2,
+    default;
+  --cursor-pointer:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23000000' stroke='%23FFE500' stroke-width='1' stroke-linejoin='miter'/%3E%3C/svg%3E")
+      6 2,
+    pointer;
+  --cursor-text:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20' viewBox='0 0 16 20'%3E%3Cpath d='M4 2v16M10 2v16' stroke='%23000000' stroke-width='2.25' stroke-linecap='square'/%3E%3C/svg%3E")
+      8 10,
+    text;
+  --cursor-col-resize:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M5 3v14M15 3v14M3 5h14M3 15h14' stroke='%23000000' stroke-width='2'/%3E%3C/svg%3E")
+      10 10,
+    col-resize;
+}
+
+.dark[data-style='brutalist'] {
+  --background: 0 0% 7%;
+  --foreground: 48 100% 95%;
+  --card: 0 0% 10%;
+  --card-foreground: 48 100% 95%;
+  --popover: 0 0% 10%;
+  --popover-foreground: 48 100% 95%;
+  --primary: 48 100% 60%;
+  --primary-foreground: 0 0% 5%;
+  --secondary: 0 0% 14%;
+  --secondary-foreground: 48 100% 90%;
+  --muted: 0 0% 14%;
+  --muted-foreground: 48 30% 65%;
+  --accent: 270 70% 65%;
+  --accent-foreground: 0 0% 5%;
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 0 0% 5%;
+  --border: 48 100% 90%;
+  --input: 48 100% 90%;
+  --ring: 48 100% 60%;
+  --shadow-surface: 4px 4px 0 hsl(48 100% 90%);
+  --shadow-surface-sm: 2px 2px 0 hsl(48 100% 90%);
+  --shadow-pressed: 1px 1px 0 hsl(48 100% 90%);
+  --scrollbar-track: hsl(var(--foreground) / 0.06);
+  --scrollbar-thumb: hsl(var(--foreground) / 0.32);
+  --scrollbar-thumb-hover: hsl(var(--primary) / 0.9);
+  --cursor-default:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23FAF3D4' stroke='%23FFE500' stroke-width='0.75' stroke-linejoin='miter'/%3E%3C/svg%3E")
+      6 2,
+    default;
+  --cursor-pointer:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23FAF3D4' stroke='%23FFE500' stroke-width='1' stroke-linejoin='miter'/%3E%3C/svg%3E")
+      6 2,
+    pointer;
+  --cursor-text:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20' viewBox='0 0 16 20'%3E%3Cpath d='M4 2v16M10 2v16' stroke='%23FAF3D4' stroke-width='2.25' stroke-linecap='square'/%3E%3C/svg%3E")
+      8 10,
+    text;
+  --cursor-col-resize:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M5 3v14M15 3v14M3 5h14M3 15h14' stroke='%23FAF3D4' stroke-width='2'/%3E%3C/svg%3E")
+      10 10,
+    col-resize;
+}

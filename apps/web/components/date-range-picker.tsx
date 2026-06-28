@@ -55,22 +55,24 @@ export function DateRangePicker({
           id={id}
           variant="outline"
           className={cn(
-            'w-full justify-start text-left font-normal',
+            'w-full min-w-0 justify-start gap-2 text-left font-normal',
             !value.startDate && !value.endDate && 'text-muted-foreground',
             className,
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {value.startDate && value.endDate ? (
-            <>
-              {format(parseDate(value.startDate)!, 'LLL dd, y')} –{' '}
-              {format(parseDate(value.endDate)!, 'LLL dd, y')}
-            </>
-          ) : value.startDate ? (
-            format(parseDate(value.startDate)!, 'LLL dd, y')
-          ) : (
-            'Pick a date range'
-          )}
+          <CalendarIcon className="h-4 w-4 shrink-0" />
+          <span className="truncate">
+            {value.startDate && value.endDate ? (
+              <>
+                {format(parseDate(value.startDate)!, 'LLL dd, y')} –{' '}
+                {format(parseDate(value.endDate)!, 'LLL dd, y')}
+              </>
+            ) : value.startDate ? (
+              format(parseDate(value.startDate)!, 'LLL dd, y')
+            ) : (
+              'Pick a date range'
+            )}
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

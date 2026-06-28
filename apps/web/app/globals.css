@@ -1,3 +1,8 @@
 /* Scan web app routes and components */
 @source "../**/*.{ts,tsx}";
 @source "../../components/**/*.{ts,tsx}";
+
+.incognito-mask-input {
+  -webkit-text-security: disc;
+  text-security: disc;
+}

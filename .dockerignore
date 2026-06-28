@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+**/node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+.next
+**/.next
+dist
+**/dist
+out
+build
+.turbo
+
+# Local env and secrets
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Local data
+ingested-emails
+email
+
+# Python
+**/__pycache__
+**/*.pyc
+**/.venv
+**/.pytest_cache
+
+# IDE / OS
+.cursor
+.vscode
+.DS_Store
+*.pem
+
+# Test / coverage
+coverage
+**/*.tsbuildinfo
+
+# Docker
+Dockerfile*
+docker-compose*.yml

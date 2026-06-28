@@ -17,8 +17,19 @@ import {
 } from '@repo/ui/dialog';
 import { Input } from '@repo/ui/input';
 import { Label } from '@repo/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@repo/ui/select';
 
+import { AnimatedFormSection } from './animated-form-section';
+import { SensitiveAmountInput } from './sensitive-amount-input';
+import { SensitiveTextInput } from './sensitive-text-input';
 import { TRANSACTION_TYPE_LABELS } from './transaction-type-badge';
+import { analyticsKeys } from '../lib/analytics';
 import { transactionKeys, updateTransaction } from '../lib/transactions';
 import type { TransactionRow } from '../types/transaction';
 
@@ -74,7 +85,9 @@ export function TransactionEditDialog({
       return updateTransaction(transaction.id, {
         bankName,
         transactionValue: parsedValue,
-        type: type as typeof TRANSACTION_TYPE.DEBIT | typeof TRANSACTION_TYPE.CREDIT,
+        type: type as
+          | typeof TRANSACTION_TYPE.DEBIT
+          | typeof TRANSACTION_TYPE.CREDIT,
         transactionDate,
         paymentMadeTo,
         isInvestment,
@@ -82,6 +95,7 @@ export function TransactionEditDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all });
       toast.success('Transaction updated');
       onOpenChange(false);
     },
@@ -96,12 +110,13 @@ export function TransactionEditDialog({
         <DialogHeader>
           <DialogTitle>Edit transaction</DialogTitle>
           <DialogDescription>
-            Update the extracted transaction details if the AI parsing was incorrect.
+            Update the extracted transaction details if the AI parsing was
+            incorrect.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
+          <AnimatedFormSection index={0} className="grid gap-2">
             <Label htmlFor="bankName">Bank</Label>
             <Input
               id="bankName"
@@ -110,41 +125,38 @@ export function TransactionEditDialog({
                 setBankName(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={1} className="grid gap-2">
             <Label htmlFor="transactionValue">Amount (INR)</Label>
-            <Input
+            <SensitiveAmountInput
               id="transactionValue"
-              type="number"
               step="0.01"
               value={transactionValue}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                 setTransactionValue(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={2} className="grid gap-2">
             <Label htmlFor="type">Type</Label>
-            <select
-              id="type"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={type}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                setType(event.target.value)
-              }
-            >
-              <option value={TRANSACTION_TYPE.DEBIT}>
-                {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.DEBIT]}
-              </option>
-              <option value={TRANSACTION_TYPE.CREDIT}>
-                {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.CREDIT]}
-              </option>
-            </select>
-          </div>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger id="type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TRANSACTION_TYPE.DEBIT}>
+                  {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.DEBIT]}
+                </SelectItem>
+                <SelectItem value={TRANSACTION_TYPE.CREDIT}>
+                  {TRANSACTION_TYPE_LABELS[TRANSACTION_TYPE.CREDIT]}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={3} className="grid gap-2">
             <Label htmlFor="transactionDate">Transaction date</Label>
             <Input
               id="transactionDate"
@@ -154,29 +166,27 @@ export function TransactionEditDialog({
                 setTransactionDate(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="grid gap-2">
+          <AnimatedFormSection index={4} className="grid gap-2">
             <Label htmlFor="paymentMadeTo">Payee</Label>
-            <Input
+            <SensitiveTextInput
               id="paymentMadeTo"
               value={paymentMadeTo}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                 setPaymentMadeTo(event.target.value)
               }
             />
-          </div>
+          </AnimatedFormSection>
 
-          <div className="flex items-center gap-2">
+          <AnimatedFormSection index={5} className="flex items-center gap-2">
             <Checkbox
               id="isInvestment"
               checked={isInvestment}
-              onCheckedChange={(checked) =>
-                setIsInvestment(checked === true)
-              }
+              onCheckedChange={(checked) => setIsInvestment(checked === true)}
             />
             <Label htmlFor="isInvestment">Mark as investment</Label>
-          </div>
+          </AnimatedFormSection>
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">

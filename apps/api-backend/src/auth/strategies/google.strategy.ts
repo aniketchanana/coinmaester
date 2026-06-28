@@ -21,15 +21,19 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google', true) {
       clientID,
       clientSecret,
       callbackURL,
-      scope: ['openid', 'email', 'profile',
-        'https://www.googleapis.com/auth/gmail.readonly'],
+      scope: [
+        'openid',
+        'email',
+        'profile',
+        'https://www.googleapis.com/auth/gmail.readonly',
+      ],
     } as StrategyOptions);
   }
 
   validate(
     accessToken: string,
     refreshToken: string,
-    params: { expires_in?: number; scope?: string; },
+    params: { expires_in?: number; scope?: string },
     profile: Profile,
   ): GoogleAuthPayload {
     const email = profile.emails?.[0]?.value;
@@ -42,13 +46,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google', true) {
       googleId: profile.id,
       email,
       name: profile.displayName || undefined,
-      emailVerified: profile.emails?.[0]?.verified
-        ? new Date()
-        : null,
+      emailVerified: profile.emails?.[0]?.verified ? new Date() : null,
       accessToken,
       refreshToken: refreshToken || undefined,
       scope: params.scope ?? 'openid email profile',
-      expiresIn: params.expires_in
+      expiresIn: params.expires_in,
     };
   }
 }
