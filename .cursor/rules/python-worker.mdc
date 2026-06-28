@@ -32,10 +32,8 @@ Transaction-detection rules and prompts belong in `processing/prompts.py` — no
 
 ## LLM Client
 
-- OpenAI Python SDK against LM Studio's `/v1/chat/completions` endpoint (`OPENAI_BASE_URL`, `OPENAI_MODEL`).
-- Structured output via hardcoded `json_schema` + `reasoning_effort` in `processing/llm_client.py`.
-- Reads `message.content` for JSON; `reasoning_content` is logged and ignored.
-- LM Studio must separate reasoning from content (App Settings → Developer) for Gemma thinking models.
+- Anthropic Python SDK against LM Studio's `/v1/messages` endpoint (`ANTHROPIC_BASE_URL`, `ANTHROPIC_MODEL`).
+- Gemma thinking prefixes are stripped on `<channel|>` before JSON parse (`processing/llm_response.py`).
 
 ## gRPC Client
 

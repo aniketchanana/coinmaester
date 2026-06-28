@@ -27,7 +27,7 @@ Run these steps in order. Stop and report if any step fails.
    - Required manual values: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
    - Generate secrets if placeholders are present:
      `openssl rand -base64 32` for `AUTH_SECRET` and `TOKEN_ENCRYPTION_KEY`
-   - LLM: OpenAI SDK → LM Studio at `OPENAI_BASE_URL` (default `http://localhost:1234/v1`). Docker prod uses `docker/compose.env` to point at `host.docker.internal`.
+   - LLM: Anthropic SDK → LM Studio at `ANTHROPIC_BASE_URL` (default `http://localhost:1234`). Docker prod uses `docker/compose.env` to point at `host.docker.internal`.
 
 4. **Run migrations**
 

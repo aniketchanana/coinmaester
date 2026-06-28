@@ -1,19 +1,14 @@
-"""OpenAI-compatible request helpers for LM Studio structured output."""
+"""Strip Gemma-style thinking prefixes from LM responses."""
 
-from typing import TypeVar
-
-from pydantic import BaseModel
-
-ModelT = TypeVar("ModelT", bound=BaseModel)
+_CHANNEL_DELIMITER = "<channel|>"
 
 
-def openai_json_schema_format(model: type[ModelT], name: str) -> dict:
-    """LM Studio structured output (json_schema — not json_object)."""
-    return {
-        "type": "json_schema",
-        "json_schema": {
-            "name": name,
-            "strict": True,
-            "schema": model.model_json_schema(by_alias=True),
-        },
-    }
+def strip_channel_delimiter(raw: str) -> tuple[str, bool]:
+    """Return (payload, was_stripped).
+
+    Only splits when <channel|> is present; otherwise returns the text unchanged.
+    """
+    text = (raw or "").strip()
+    if _CHANNEL_DELIMITER not in text:
+        return text, False
+    return text.rsplit(_CHANNEL_DELIMITER, 1)[-1].strip(), True

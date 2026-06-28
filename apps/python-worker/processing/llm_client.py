@@ -1,11 +1,10 @@
 import logging
-from typing import Any, TypeVar
 
-from openai import OpenAI
-from pydantic import BaseModel, ValidationError
+import anthropic
+from pydantic import ValidationError
 
 from config import settings
-from processing.llm_response import openai_json_schema_format
+from processing.llm_response import strip_channel_delimiter
 from processing.models import (
     ExtractedTransaction,
     LlmClassificationResponse,
@@ -16,12 +15,6 @@ from processing.prompts import JSON_DATA_SYSTEM_PROMPT, build_user_prompt, CLASS
 from processing.text_preprocess import clean_email_body
 
 logger = logging.getLogger(__name__)
-
-ModelT = TypeVar("ModelT", bound=BaseModel)
-
-# LM Studio request defaults (not env-configurable).
-_USE_JSON_SCHEMA = True
-_REASONING_EFFORT = "high"
 
 
 def _to_extracted_transaction(parsed: LlmTransactionResponse) -> ExtractedTransaction:
@@ -55,95 +48,49 @@ def _to_extracted_transaction(parsed: LlmTransactionResponse) -> ExtractedTransa
     )
 
 
+def _text_from_response(response: anthropic.types.Message, *, step: str) -> str:
+    raw = "\n".join(
+        block.text for block in response.content if block.type == "text"
+    ).strip()
+    payload, was_stripped = strip_channel_delimiter(raw)
+    if was_stripped:
+        logger.info(
+            "LLM %s: stripped thinking prefix after <%s> (%d -> %d chars)",
+            step,
+            "channel|",
+            len(raw),
+            len(payload),
+        )
+    else:
+        logger.info(
+            "LLM %s: no <%s> delimiter — using response as-is (%d chars)",
+            step,
+            "channel|",
+            len(payload),
+        )
+    logger.info("LLM %s payload: %s", step, payload)
+    return payload
+
+
 class TransactionLlmClient:
     def __init__(self) -> None:
-        self._client = OpenAI(
-            api_key=settings.openai_api_key,
-            base_url=settings.openai_base_url,
+        self._client = anthropic.Anthropic(
+            api_key=settings.anthropic_api_key,
+            base_url=settings.anthropic_base_url,
         )
-
-    def _build_request_kwargs(
-        self,
-        *,
-        step: str,
-        schema_model: type[ModelT] | None,
-    ) -> dict[str, Any]:
-        request_kwargs: dict[str, Any] = {
-            "extra_body": {"reasoning_effort": _REASONING_EFFORT},
-        }
-
-        if _USE_JSON_SCHEMA and schema_model is not None:
-            request_kwargs["response_format"] = openai_json_schema_format(
-                schema_model,
-                step,
-            )
-
-        logger.info(
-            "LLM %s request: model=%s json_schema=%s reasoning_effort=%s",
-            step,
-            settings.openai_model,
-            schema_model.__name__ if _USE_JSON_SCHEMA and schema_model else None,
-            _REASONING_EFFORT,
-        )
-        return request_kwargs
-
-    def _chat(
-        self,
-        *,
-        step: str,
-        system: str,
-        user_content: str,
-        schema_model: type[ModelT] | None = None,
-    ) -> str:
-        response = self._client.chat.completions.create(
-            model=settings.openai_model,
-            max_tokens=1024,
-            temperature=0,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user_content},
-            ],
-            **self._build_request_kwargs(step=step, schema_model=schema_model),
-        )
-        message = response.choices[0].message
-        reasoning = getattr(message, "reasoning_content", None)
-        content = (message.content or "").strip()
-
-        if reasoning:
-            logger.info(
-                "LLM %s: reasoning_content (%d chars): %.300s",
-                step,
-                len(reasoning),
-                reasoning,
-            )
-        else:
-            logger.warning(
-                "LLM %s: no reasoning_content field — enable LM Studio "
-                "App Settings → Developer → separate reasoning_content and content",
-                step,
-            )
-
-        logger.info("LLM %s content (%d chars): %s", step, len(content), content)
-
-        if reasoning is None and content and not content.startswith("{"):
-            logger.warning(
-                "LLM %s: content does not look like JSON; thinking may still be "
-                "mixed in — fix LM Studio reasoning separation for this model",
-                step,
-            )
-
-        return content
 
     def classify_is_transaction_email(self, header: str) -> str:
         logger.info('----SENDING HEADER-----')
         logger.info(header)
         logger.info('----SENDING HEADER-----')
-        return self._chat(
-            step="classification",
+        response = self._client.messages.create(
+            model=settings.anthropic_model,
+            max_tokens=1024,
             system=CLASSIFY_SYSTEM_PROMPT,
-            user_content=header,
-            schema_model=LlmClassificationResponse,
+            temperature=0,
+            messages=[{"role": "user", "content": header}],
         )
+        return _text_from_response(response, step="classification")
 
     def extract_transaction(self, header: str, body: str) -> ExtractedTransaction:
         logger.info('-----HEADER-----')
@@ -168,12 +115,20 @@ class TransactionLlmClient:
             len(cleaned_body),
         )
 
-        raw_text = self._chat(
-            step="extraction",
+        response = self._client.messages.create(
+            model=settings.anthropic_model,
+            max_tokens=1024,
             system=JSON_DATA_SYSTEM_PROMPT,
-            user_content=build_user_prompt(header, cleaned_body),
-            schema_model=LlmTransactionResponse,
+            temperature=0,
+            messages=[
+                {
+                    "role": "user",
+                    "content": build_user_prompt(header, cleaned_body),
+                }
+            ],
         )
+
+        raw_text = _text_from_response(response, step="extraction")
 
         if not raw_text:
             logger.warning("LLM returned an empty extraction response")

@@ -21,7 +21,7 @@ pnpm docker:prod
 | API (direct)        | http://localhost:3001     |
 | RabbitMQ UI         | http://localhost:15672    |
 
-Container networking overrides are in `docker/compose.env`. Email bodies are bind-mounted from `./ingested-emails/`. LM Studio must be running on the host with the OpenAI-compatible server enabled (default `http://localhost:1234/v1`) for email processing.
+Container networking overrides are in `docker/compose.env`. Email bodies are bind-mounted from `./ingested-emails/`. LM Studio must be running on the host with the Anthropic-compatible server enabled (default `http://localhost:1234`) for email processing.
 
 ## Distribution (pre-built images)
 
