@@ -10,8 +10,7 @@ export function useIncognitoFormatters() {
   const { isIncognito } = useIncognito();
 
   const formatAmount = React.useCallback(
-    (value: number) =>
-      formatTransactionAmount(value, { hidden: isIncognito }),
+    (value: number) => formatTransactionAmount(value, { hidden: isIncognito }),
     [isIncognito],
   );
 

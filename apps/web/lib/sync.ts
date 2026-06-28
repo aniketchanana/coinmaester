@@ -26,7 +26,9 @@ export function triggerSync() {
   return apiPost<CreateSyncJobResponse>('/sync');
 }
 
-export function isSyncInProgress(status: JobStatus | null | undefined): boolean {
+export function isSyncInProgress(
+  status: JobStatus | null | undefined,
+): boolean {
   return status === JOB_STATUS.PENDING || status === JOB_STATUS.IN_PROGRESS;
 }
 

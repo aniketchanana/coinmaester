@@ -5,11 +5,7 @@ import { useTheme } from 'next-themes';
 import * as React from 'react';
 
 import { Button } from '@repo/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@repo/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui/popover';
 import { cn } from '@repo/ui/lib/utils';
 
 import {

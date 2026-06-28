@@ -1,9 +1,13 @@
 /* Default design system — sleek minimal arrows */
 :root {
-  --cursor-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%2318181b'/%3E%3C/svg%3E")
-    6 2, default;
-  --cursor-pointer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%2309090b'/%3E%3C/svg%3E")
-    6 2, pointer;
+  --cursor-default:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%2318181b'/%3E%3C/svg%3E")
+      6 2,
+    default;
+  --cursor-pointer:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%2309090b'/%3E%3C/svg%3E")
+      6 2,
+    pointer;
   --cursor-text: text;
   --cursor-grab: grab;
   --cursor-grabbing: grabbing;
@@ -12,10 +16,14 @@
 }
 
 .dark {
-  --cursor-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23fafafa'/%3E%3C/svg%3E")
-    6 2, default;
-  --cursor-pointer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23ffffff'/%3E%3C/svg%3E")
-    6 2, pointer;
+  --cursor-default:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23fafafa'/%3E%3C/svg%3E")
+      6 2,
+    default;
+  --cursor-pointer:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 2 L6 17 L9.5 13.5 L9 19.5 L12.5 17.5 L11 12.5 L17 10 Z' fill='%23ffffff'/%3E%3C/svg%3E")
+      6 2,
+    pointer;
 }
 
 @layer base {

@@ -10,11 +10,7 @@ type AppHeaderProps = {
   image?: string;
 };
 
-export function AppHeader({
-  name = 'User',
-  email,
-  image,
-}: AppHeaderProps) {
+export function AppHeader({ name = 'User', email, image }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md transition-[background-color,box-shadow,border-color] duration-300">
       <div className="flex h-16 w-full items-center justify-between gap-4 px-3">

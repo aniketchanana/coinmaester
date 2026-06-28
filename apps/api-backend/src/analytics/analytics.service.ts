@@ -61,21 +61,17 @@ export class AnalyticsService {
     const rangeEnd = this.endOfDay(endDate);
     const { prevStart, prevEnd } = this.previousPeriod(rangeStart, rangeEnd);
 
-    const truncUnit = granularity === ANALYTICS_GRANULARITY.MONTH ? 'month' : 'day';
+    const truncUnit =
+      granularity === ANALYTICS_GRANULARITY.MONTH ? 'month' : 'day';
 
-    const [
-      trends,
-      currentSummary,
-      previousSummary,
-      payeeRows,
-      bankRows,
-    ] = await Promise.all([
-      this.fetchTrends(userId, rangeStart, rangeEnd, truncUnit),
-      this.fetchSummary(userId, rangeStart, rangeEnd),
-      this.fetchSummary(userId, prevStart, prevEnd),
-      this.fetchBreakdown(userId, rangeStart, rangeEnd, 'payee'),
-      this.fetchBreakdown(userId, rangeStart, rangeEnd, 'bank'),
-    ]);
+    const [trends, currentSummary, previousSummary, payeeRows, bankRows] =
+      await Promise.all([
+        this.fetchTrends(userId, rangeStart, rangeEnd, truncUnit),
+        this.fetchSummary(userId, rangeStart, rangeEnd),
+        this.fetchSummary(userId, prevStart, prevEnd),
+        this.fetchBreakdown(userId, rangeStart, rangeEnd, 'payee'),
+        this.fetchBreakdown(userId, rangeStart, rangeEnd, 'bank'),
+      ]);
 
     const summary = this.toSummary(currentSummary, rangeStart, rangeEnd);
     const comparison = this.toComparison(currentSummary, previousSummary);
@@ -220,21 +216,20 @@ export class AnalyticsService {
     `;
   }
 
-  private toSummary(
-    row: SummaryRow,
-    start: Date,
-    end: Date,
-  ): AnalyticsSummary {
+  private toSummary(row: SummaryRow, start: Date, end: Date): AnalyticsSummary {
     const totalDebit = this.decimalToNumber(row.total_debit);
     const totalCredit = this.decimalToNumber(row.total_credit);
     const totalInvestment = this.decimalToNumber(row.total_investment);
     const dayCount = Math.max(1, this.inclusiveDayCount(start, end));
 
+    const netCashflow = totalCredit - totalDebit;
+
     return {
       totalDebit,
       totalCredit,
       totalInvestment,
-      netCashflow: totalCredit - totalDebit,
+      netCashflow,
+      estimatedBankBalance: netCashflow - totalInvestment,
       transactionCount: Number(row.transaction_count),
       avgDailySpend: totalDebit / dayCount,
     };
@@ -360,7 +355,10 @@ export class AnalyticsService {
     return insights.slice(0, 4);
   }
 
-  private previousPeriod(start: Date, end: Date): { prevStart: Date; prevEnd: Date } {
+  private previousPeriod(
+    start: Date,
+    end: Date,
+  ): { prevStart: Date; prevEnd: Date } {
     const dayMs = 24 * 60 * 60 * 1000;
     const lengthDays = this.inclusiveDayCount(start, end);
     const prevEnd = this.endOfDay(new Date(start.getTime() - dayMs));
@@ -406,9 +404,7 @@ export class AnalyticsService {
     return parsed;
   }
 
-  private parseGranularity(
-    value?: AnalyticsGranularity,
-  ): AnalyticsGranularity {
+  private parseGranularity(value?: AnalyticsGranularity): AnalyticsGranularity {
     if (!value) {
       return ANALYTICS_GRANULARITY.DAY;
     }

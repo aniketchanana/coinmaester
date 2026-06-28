@@ -52,6 +52,16 @@ export const nextJsConfig = [
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
       'react/react-in-jsx-scope': 'off',
+      // TypeScript validates props; prop-types are not used in this codebase.
+      'react/prop-types': 'off',
+    },
+  },
+  {
+    files: ['next.config.js', '*.config.js', '*.config.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
     },
   },
 ];

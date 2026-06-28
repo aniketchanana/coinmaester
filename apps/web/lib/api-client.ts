@@ -5,7 +5,7 @@ import axios, {
   isAxiosError,
 } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
 export class ApiError extends Error {
   constructor(
@@ -40,7 +40,11 @@ function createApiClient(): AxiosInstance {
             ? error.response.data.message
             : error.message;
 
-        throw new ApiError(message, error.response?.status, error.response?.data);
+        throw new ApiError(
+          message,
+          error.response?.status,
+          error.response?.data,
+        );
       }
 
       throw error;

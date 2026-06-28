@@ -167,7 +167,7 @@ export class TransactionsService {
     transactionId: string,
     body: UpdateTransactionBody,
   ): Promise<TransactionDto> {
-    const existing = await this.findActiveTransaction(userId, transactionId);
+    await this.findActiveTransaction(userId, transactionId);
 
     const data: Prisma.TransactionUpdateInput = {};
 

@@ -77,14 +77,16 @@ function readStoredPageSize(): PageSize | null {
   return null;
 }
 
-const STATUS_OPTIONS: Array<{ value: GmailMessageStatusFilter; label: string }> =
-  [
-    { value: 'ALL', label: 'All statuses' },
-    { value: JOB_STATUS.PENDING, label: 'Pending' },
-    { value: JOB_STATUS.IN_PROGRESS, label: 'In progress' },
-    { value: JOB_STATUS.COMPLETED, label: 'Completed' },
-    { value: JOB_STATUS.FAILED, label: 'Failed' },
-  ];
+const STATUS_OPTIONS: Array<{
+  value: GmailMessageStatusFilter;
+  label: string;
+}> = [
+  { value: 'ALL', label: 'All statuses' },
+  { value: JOB_STATUS.PENDING, label: 'Pending' },
+  { value: JOB_STATUS.IN_PROGRESS, label: 'In progress' },
+  { value: JOB_STATUS.COMPLETED, label: 'Completed' },
+  { value: JOB_STATUS.FAILED, label: 'Failed' },
+];
 
 function formatDate(isoDate: string): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -172,7 +174,10 @@ export function EmailSyncTable() {
   const handlePageSizeChange = React.useCallback((size: PageSize) => {
     setPageSize(size);
     try {
-      localStorage.setItem(EMAIL_SYNC_TABLE_PAGE_SIZE_STORAGE_KEY, String(size));
+      localStorage.setItem(
+        EMAIL_SYNC_TABLE_PAGE_SIZE_STORAGE_KEY,
+        String(size),
+      );
     } catch {
       // Ignore storage write failures.
     }
@@ -296,7 +301,10 @@ export function EmailSyncTable() {
         >
           <div className="grid gap-2">
             <Label htmlFor="statusFilter">Status</Label>
-            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+            <Select
+              value={statusFilter}
+              onValueChange={handleStatusFilterChange}
+            >
               <SelectTrigger id="statusFilter">
                 <SelectValue />
               </SelectTrigger>
@@ -340,192 +348,195 @@ export function EmailSyncTable() {
             className="table-fixed table-surface-rows"
             containerClassName="lg:min-h-0 lg:flex-1"
           >
-        <TableHeader className="table-sticky-header">
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="w-[40px]">
-              <Checkbox
-                checked={
-                  allRowsSelected
-                    ? true
-                    : someRowsSelected
-                      ? 'indeterminate'
-                      : false
-                }
-                disabled={rerunnableRowIds.length === 0}
-                aria-label="Select all re-runnable emails on this page"
-                onCheckedChange={(checked) =>
-                  toggleSelectAllRows(checked === true)
-                }
-              />
-            </TableHead>
-            <TableHead>From</TableHead>
-            <TableHead>Subject</TableHead>
-            <TableHead>Received</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-[120px] text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody key={`${page}-${pageSize}-${statusFilter}`}>
-          {isLoading ? (
-            <TableSkeleton columns={6} />
-          ) : isError ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="h-32 text-center">
-                <div className={EMPTY_STATE_ENTER_CLASS}>
-                  <p className="text-sm text-destructive">
-                    {(error as Error).message ||
-                      'Failed to load email sync status'}
-                  </p>
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : rows.length === 0 ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="h-32 text-center">
-                <div className={EMPTY_STATE_ENTER_CLASS}>
-                  <p className="text-sm font-medium text-foreground">
-                    No emails found
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Synced emails will appear here once Gmail sync runs.
-                  </p>
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : (
-            rows.map((row, rowIndex) => {
-              const rerunnable = canRerun(row.status);
-              const isSelected = rerunnable && selectedIds.has(row.id);
-
-              return (
-                <TableRow
-                  key={row.id}
-                  className={ROW_ENTER_CLASS}
-                  style={staggerDelay(rowIndex)}
-                >
-                  <TableCell>
-                    <Checkbox
-                      checked={isSelected}
-                      disabled={!rerunnable}
-                      aria-label={`Select email ${row.id}`}
-                      onCheckedChange={(checked) =>
-                        toggleRowSelection(row, checked === true)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="truncate font-medium">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="block cursor-default truncate">
-                          <MaskedSensitiveText value={row.from || '—'} />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <MaskedSensitiveText value={row.from || '—'} />
-                      </TooltipContent>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell className="truncate">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="block cursor-default truncate">
-                          <MaskedSensitiveText value={row.subject || '—'} />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <MaskedSensitiveText value={row.subject || '—'} />
-                      </TooltipContent>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {formatDate(row.internalDate)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={statusBadgeVariant(row.status)}
-                      className={
-                        row.status === JOB_STATUS.IN_PROGRESS
-                          ? 'animate-pulse motion-reduce:animate-none'
-                          : undefined
-                      }
-                    >
-                      {formatStatusLabel(row.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={!rerunnable || retryMutation.isPending}
-                      onClick={() => retryMutation.mutate([row.id])}
-                    >
-                      Re-run
-                    </Button>
+            <TableHeader className="table-sticky-header">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[40px]">
+                  <Checkbox
+                    checked={
+                      allRowsSelected
+                        ? true
+                        : someRowsSelected
+                          ? 'indeterminate'
+                          : false
+                    }
+                    disabled={rerunnableRowIds.length === 0}
+                    aria-label="Select all re-runnable emails on this page"
+                    onCheckedChange={(checked) =>
+                      toggleSelectAllRows(checked === true)
+                    }
+                  />
+                </TableHead>
+                <TableHead>From</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead>Received</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[120px] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody key={`${page}-${pageSize}-${statusFilter}`}>
+              {isLoading ? (
+                <TableSkeleton columns={6} />
+              ) : isError ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={6} className="h-32 text-center">
+                    <div className={EMPTY_STATE_ENTER_CLASS}>
+                      <p className="text-sm text-destructive">
+                        {(error as Error).message ||
+                          'Failed to load email sync status'}
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
-              );
-            })
-          )}
-        </TableBody>
+              ) : rows.length === 0 ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={6} className="h-32 text-center">
+                    <div className={EMPTY_STATE_ENTER_CLASS}>
+                      <p className="text-sm font-medium text-foreground">
+                        No emails found
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Synced emails will appear here once Gmail sync runs.
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                rows.map((row, rowIndex) => {
+                  const rerunnable = canRerun(row.status);
+                  const isSelected = rerunnable && selectedIds.has(row.id);
+
+                  return (
+                    <TableRow
+                      key={row.id}
+                      className={ROW_ENTER_CLASS}
+                      style={staggerDelay(rowIndex)}
+                    >
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected}
+                          disabled={!rerunnable}
+                          aria-label={`Select email ${row.id}`}
+                          onCheckedChange={(checked) =>
+                            toggleRowSelection(row, checked === true)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className="truncate font-medium">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="block cursor-default truncate">
+                              <MaskedSensitiveText value={row.from || '—'} />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <MaskedSensitiveText value={row.from || '—'} />
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="truncate">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="block cursor-default truncate">
+                              <MaskedSensitiveText value={row.subject || '—'} />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <MaskedSensitiveText value={row.subject || '—'} />
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDate(row.internalDate)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={statusBadgeVariant(row.status)}
+                          className={
+                            row.status === JOB_STATUS.IN_PROGRESS
+                              ? 'animate-pulse motion-reduce:animate-none'
+                              : undefined
+                          }
+                        >
+                          {formatStatusLabel(row.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!rerunnable || retryMutation.isPending}
+                          onClick={() => retryMutation.mutate([row.id])}
+                        >
+                          Re-run
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
           </Table>
         </TooltipProvider>
 
         {pagination && pagination.total > 0 ? (
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t pt-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Page {pagination.page} of {pagination.totalPages} ({pagination.total}{' '}
-              items)
-            </p>
-            <div className="flex items-center gap-2">
-              <Label
-                htmlFor="pageSize"
-                className="whitespace-nowrap text-sm text-muted-foreground"
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t pt-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <p className="text-sm text-muted-foreground">
+                Page {pagination.page} of {pagination.totalPages} (
+                {pagination.total} items)
+              </p>
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor="pageSize"
+                  className="whitespace-nowrap text-sm text-muted-foreground"
+                >
+                  Rows per page
+                </Label>
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={(value) =>
+                    handlePageSizeChange(Number(value) as PageSize)
+                  }
+                >
+                  <SelectTrigger
+                    id="pageSize"
+                    className="h-9 w-fit min-w-[5.5rem]"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAGE_SIZE_OPTIONS.map((size) => (
+                      <SelectItem key={size} value={String(size)}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={pagination.page <= 1}
               >
-                Rows per page
-              </Label>
-              <Select
-                value={String(pageSize)}
-                onValueChange={(value) =>
-                  handlePageSizeChange(Number(value) as PageSize)
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setPage((current) =>
+                    Math.min(pagination.totalPages, current + 1),
+                  )
                 }
+                disabled={pagination.page >= pagination.totalPages}
               >
-                <SelectTrigger id="pageSize" className="h-9 w-fit min-w-[5.5rem]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PAGE_SIZE_OPTIONS.map((size) => (
-                    <SelectItem key={size} value={String(size)}>
-                      {size}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                Next
+              </Button>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              disabled={pagination.page <= 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setPage((current) =>
-                  Math.min(pagination.totalPages, current + 1),
-                )
-              }
-              disabled={pagination.page >= pagination.totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
         ) : null}
       </div>
     </div>

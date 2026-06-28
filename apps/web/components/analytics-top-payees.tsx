@@ -50,7 +50,9 @@ export function AnalyticsTopPayees({ byPayee }: AnalyticsTopPayeesProps) {
           </TableBody>
         </Table>
       ) : (
-        <p className="text-sm text-muted-foreground">No payee data available.</p>
+        <p className="text-sm text-muted-foreground">
+          No payee data available.
+        </p>
       )}
     </div>
   );

@@ -181,7 +181,10 @@ export function TransactionsTable() {
   const handlePageSizeChange = React.useCallback((size: PageSize) => {
     setPageSize(size);
     try {
-      localStorage.setItem(TRANSACTIONS_TABLE_PAGE_SIZE_STORAGE_KEY, String(size));
+      localStorage.setItem(
+        TRANSACTIONS_TABLE_PAGE_SIZE_STORAGE_KEY,
+        String(size),
+      );
     } catch {
       // Ignore storage write failures.
     }
@@ -505,7 +508,8 @@ export function TransactionsTable() {
                         No transactions yet
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        They will show up here once your email sync is connected.
+                        They will show up here once your email sync is
+                        connected.
                       </p>
                     </div>
                   </TableCell>
@@ -661,7 +665,10 @@ export function TransactionsTable() {
                     handlePageSizeChange(Number(value) as PageSize)
                   }
                 >
-                  <SelectTrigger id="pageSize" className="h-9 w-fit min-w-[5.5rem]">
+                  <SelectTrigger
+                    id="pageSize"
+                    className="h-9 w-fit min-w-[5.5rem]"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

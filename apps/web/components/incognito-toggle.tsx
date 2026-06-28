@@ -3,11 +3,7 @@
 import { Eye, EyeOff } from 'lucide-react';
 
 import { Button } from '@repo/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@repo/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@repo/ui/tooltip';
 
 import { useIncognito } from './incognito-provider';
 

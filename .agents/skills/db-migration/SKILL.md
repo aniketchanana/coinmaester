@@ -13,9 +13,11 @@ description: Run a Prisma schema change and migration in this monorepo. Use when
    - Soft delete pattern: `isDeleted Boolean @default(false)` on Transaction
 
 2. **Create migration**
+
    ```bash
    pnpm db:migrate
    ```
+
    Prisma will prompt for a migration name. Use descriptive snake_case: `add_transaction_notes`, `add_gmail_message_index`.
 
 3. **Verify generated client**

@@ -16,7 +16,10 @@ import {
   AnalyticsDatePresets,
   type AnalyticsDatePreset,
 } from './analytics-date-presets';
-import { AnalyticsInsights, AnalyticsInsightsSkeleton } from './analytics-insights';
+import {
+  AnalyticsInsights,
+  AnalyticsInsightsSkeleton,
+} from './analytics-insights';
 import {
   AnalyticsSummaryCards,
   AnalyticsSummaryCardsSkeleton,
