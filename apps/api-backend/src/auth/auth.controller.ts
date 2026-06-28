@@ -12,7 +12,7 @@ type GoogleAuthRequest = Request & { user: GoogleAuthPayload };
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Get('google')
   @UseGuards(GoogleAuthGuard)
@@ -27,7 +27,9 @@ export class AuthController {
     @Res() response: Response,
   ) {
     const webUrl = process.env.WEB_URL ?? 'http://localhost:3000';
-    const { accessToken } = await this.authService.loginWithGoogle(request.user);
+    const { accessToken } = await this.authService.loginWithGoogle(
+      request.user,
+    );
 
     // Set the JWT as an httpOnly cookie here instead of passing it through
     // the redirect URL, where it would leak into logs and browser history.

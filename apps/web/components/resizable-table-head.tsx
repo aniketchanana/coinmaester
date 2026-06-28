@@ -12,8 +12,7 @@ import type {
 } from '../types/transaction';
 import { TRANSACTION_SORT_ORDER } from '../types/transaction';
 
-interface ResizableTableHeadProps
-  extends React.ThHTMLAttributes<HTMLTableCellElement> {
+interface ResizableTableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
   onResizeStart?: (clientX: number) => void;
   resizable?: boolean;
 }

@@ -24,7 +24,8 @@ export function ThemeStyleProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [style, setStyleState] = React.useState<ThemeStyle>(DEFAULT_THEME_STYLE);
+  const [style, setStyleState] =
+    React.useState<ThemeStyle>(DEFAULT_THEME_STYLE);
 
   React.useEffect(() => {
     // DOM attribute is already applied by the inline init script in layout.

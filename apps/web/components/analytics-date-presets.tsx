@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  endOfMonth,
-  format,
-  startOfMonth,
-  subDays,
-  subMonths,
-} from 'date-fns';
+import { endOfMonth, format, startOfMonth, subDays, subMonths } from 'date-fns';
 
 import { Button } from '@repo/ui/button';
 import { cn } from '@repo/ui/lib/utils';

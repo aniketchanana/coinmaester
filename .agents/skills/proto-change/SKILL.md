@@ -12,9 +12,11 @@ description: Update the gRPC contract between api-backend and python-worker. Use
    - Do not rename or renumber existing fields (breaks compatibility)
 
 2. **Regenerate stubs**
+
    ```bash
    pnpm proto:generate
    ```
+
    This updates `apps/python-worker/generated/` (Python gRPC stubs).
 
 3. **Update NestJS gRPC layer**

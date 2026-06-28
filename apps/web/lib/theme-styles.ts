@@ -11,7 +11,9 @@ export const THEME_STYLE_IDS = [
 
 export type ThemeStyle = (typeof THEME_STYLE_IDS)[number];
 
-export function isThemeStyle(value: string | null | undefined): value is ThemeStyle {
+export function isThemeStyle(
+  value: string | null | undefined,
+): value is ThemeStyle {
   return THEME_STYLE_IDS.includes(value as ThemeStyle);
 }
 

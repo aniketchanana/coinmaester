@@ -1,0 +1,38 @@
+# API Backend
+
+## Module Structure
+
+One NestJS module per domain: `auth/`, `sync/`, `gmail-messages/`, `transactions/`, `grpc/`, `messaging/`, `storage/`.
+
+## Database Access
+
+- Use `PrismaService` wrapper — never import Prisma client directly in controllers/services.
+- Soft delete transactions via `isDeleted` flag, not hard delete.
+
+## REST API
+
+- JWT auth via `@UseGuards(JwtAuthGuard)` on protected routes.
+- Port 3001; web sends `Authorization: Bearer` + cookie.
+
+## Gmail Ingestion Pipeline
+
+After ingesting a Gmail message:
+
+1. Write email body to disk via `storage/` service (`EMAIL_STORAGE_DIR`).
+2. Store **relative path** in `GmailMessage.emailBody` — not absolute.
+3. Publish `{ gmailMessageId }` to RabbitMQ queue (`RABBITMQ_QUEUE`).
+
+```typescript
+// ✅ GOOD — publish after ingestion
+await this.messagingService.publish({ gmailMessageId: message.id });
+```
+
+## gRPC
+
+- Handlers in `src/grpc/`; service starts alongside HTTP in `main.ts` on port 50051.
+- `ClaimForProcessing` atomically sets status `IN_PROGRESS`.
+- `CompleteProcessing` persists transaction or marks FAILED/COMPLETED.
+
+## Environment
+
+Loads root `.env` via `load-env.ts`. New vars need `.env.example` + `turbo.json` `globalEnv`.

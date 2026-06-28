@@ -55,7 +55,7 @@ export class SyncService {
     ]);
 
     return {
-      lastSyncStatus: (latestJob?.status as SyncStatus | undefined) ?? null,
+      lastSyncStatus: latestJob?.status ?? null,
       lastSyncedTime: latestCompleted?.createdAt.toISOString() ?? null,
     };
   }

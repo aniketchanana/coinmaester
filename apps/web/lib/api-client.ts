@@ -40,7 +40,11 @@ function createApiClient(): AxiosInstance {
             ? error.response.data.message
             : error.message;
 
-        throw new ApiError(message, error.response?.status, error.response?.data);
+        throw new ApiError(
+          message,
+          error.response?.status,
+          error.response?.data,
+        );
       }
 
       throw error;

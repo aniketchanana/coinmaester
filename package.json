@@ -15,6 +15,7 @@
     "db:migrate": "pnpm --filter @repo/database db:migrate",
     "db:studio": "pnpm --filter @repo/database db:studio",
     "proto:generate": "pnpm --filter @repo/proto generate",
+    "agent:sync": "bash scripts/sync-agent-config.sh",
     "seed:dummy-sync": "node seed-dummy-sync.mjs"
   },
   "devDependencies": {

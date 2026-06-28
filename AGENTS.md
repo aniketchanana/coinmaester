@@ -4,10 +4,10 @@ pnpm + Turborepo monorepo for personal finance tracking from Gmail transaction e
 
 ## Apps
 
-| App | Path | Stack |
-|-----|------|-------|
-| Web | `apps/web` | Next.js 16, React 19, React Query, Tailwind v4 |
-| API | `apps/api-backend` | NestJS 11, REST (3001) + gRPC (50051) |
+| App    | Path                 | Stack                                             |
+| ------ | -------------------- | ------------------------------------------------- |
+| Web    | `apps/web`           | Next.js 16, React 19, React Query, Tailwind v4    |
+| API    | `apps/api-backend`   | NestJS 11, REST (3001) + gRPC (50051)             |
 | Worker | `apps/python-worker` | Python 3.14, uv, RabbitMQ consumer, Anthropic LLM |
 
 ## Shared Packages
@@ -47,12 +47,30 @@ External dependency: LM Studio (or compatible) at `ANTHROPIC_BASE_URL` for LLM i
 - **Email storage:** Bodies live on disk at `EMAIL_STORAGE_DIR` (default `ingested-emails/`). DB stores relative path only.
 - **Auth:** Google OAuth through api-backend only. JWT in httpOnly `access_token` cookie.
 
+## Agent Config Layout
+
+Canonical, tool-agnostic config lives in `.agents/`:
+
+- `.agents/rules/` — scoped conventions (synced to nested `AGENTS.md` and `.cursor/rules/`)
+- `.agents/skills/` — reusable workflows ([Agent Skills](https://agentskills.io) format)
+- `.agents/agents/` — subagent definitions (portable body; Cursor overlays in `*.cursor.yaml`)
+
+Run `pnpm agent:sync` after editing `.agents/` to regenerate tool adapters.
+
+| Tool                     | Adapter                                                     |
+| ------------------------ | ----------------------------------------------------------- |
+| Cursor                   | `.cursor/rules/*.mdc`, `.cursor/skills/`, `.cursor/agents/` |
+| Claude Code              | `CLAUDE.md` (symlink), `.claude/skills/`                    |
+| Codex / Copilot / others | Root + nested `AGENTS.md` files                             |
+
 ## Scoped Rules
 
-File-specific conventions live in `.cursor/rules/` and activate when matching files are open:
+File-specific conventions live in `.agents/rules/`:
 
-- `web-frontend.mdc` — `apps/web/**`, `packages/ui/**`
-- `api-backend.mdc` — `apps/api-backend/**`
-- `python-worker.mdc` — `apps/python-worker/**`
-- `database-prisma.mdc` — `packages/database/**`
-- `grpc-contract.mdc` — proto + gRPC files across apps
+- `web-frontend.md` — `apps/web/**`, `packages/ui/**`
+- `api-backend.md` — `apps/api-backend/**`
+- `python-worker.md` — `apps/python-worker/**`
+- `database-prisma.md` — `packages/database/**`
+- `grpc-contract.md` — proto + gRPC files across apps
+
+Cursor auto-attaches these via `.cursor/rules/*.mdc` when matching files are open.

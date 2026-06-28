@@ -17,7 +17,9 @@ function jwtExpiryToMs(value: string | undefined): number {
     return DEFAULT_MAX_AGE_MS;
   }
 
-  return Number(match[1]) * (UNIT_MS[match[2] as string] ?? 0) || DEFAULT_MAX_AGE_MS;
+  return (
+    Number(match[1]) * (UNIT_MS[match[2] as string] ?? 0) || DEFAULT_MAX_AGE_MS
+  );
 }
 
 function isSecureCookieContext(): boolean {

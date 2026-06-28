@@ -33,10 +33,10 @@ function Calendar({
         ),
         [UI.MonthGrid]: 'w-full border-collapse',
         [UI.Weekdays]: 'flex',
-        [UI.Weekday]:
-          'w-9 font-normal text-[0.8rem] text-muted-foreground',
+        [UI.Weekday]: 'w-9 font-normal text-[0.8rem] text-muted-foreground',
         [UI.Week]: 'mt-2 flex w-full',
-        [UI.Day]: 'relative p-0 text-center text-sm focus-within:relative focus-within:z-20',
+        [UI.Day]:
+          'relative p-0 text-center text-sm focus-within:relative focus-within:z-20',
         [UI.DayButton]: cn(
           buttonVariants({ variant: 'ghost' }),
           'h-9 w-9 p-0 font-normal aria-selected:opacity-100',

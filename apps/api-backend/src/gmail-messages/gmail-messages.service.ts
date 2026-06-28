@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { JOB_STATUS } from '@repo/constant';
 import type { SyncStatus } from '@repo/database';
 
@@ -111,7 +107,7 @@ export class GmailMessagesService {
 
       for (const id of requeuedIds) {
         try {
-          await this.rabbitMqPublisher.publishGmailMessage(id);
+          this.rabbitMqPublisher.publishGmailMessage(id);
         } catch (error) {
           this.logger.error(
             `Failed to publish Gmail message ${id} to RabbitMQ`,

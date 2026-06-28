@@ -5,9 +5,7 @@ import { getPrisma, Prisma, type PrismaClient } from '@repo/database';
 export class PrismaService implements OnModuleDestroy {
   readonly client: PrismaClient = getPrisma();
 
-  transaction<T>(
-    fn: (tx: Prisma.TransactionClient) => Promise<T>,
-  ): Promise<T> {
+  transaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
     return this.client.$transaction(fn);
   }
 
