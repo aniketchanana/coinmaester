@@ -15,7 +15,8 @@ Images pulled automatically:
 ## Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose v2)
-- [LM Studio](https://lmstudio.ai/) (or compatible) running on host port **1234** for email processing
+- [LM Studio](https://lmstudio.ai/) running on the host with the **OpenAI-compatible server** enabled (default port **1234**, path `/v1`) for email processing
+- In LM Studio: **App Settings → Developer** → enable *separate reasoning_content and content in API responses* when using Gemma thinking models
 
 ## Run
 

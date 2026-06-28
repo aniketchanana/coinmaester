@@ -8,7 +8,7 @@ pnpm + Turborepo monorepo for personal finance tracking from Gmail transaction e
 | ------ | -------------------- | ------------------------------------------------- |
 | Web    | `apps/web`           | Next.js 16, React 19, React Query, Tailwind v4    |
 | API    | `apps/api-backend`   | NestJS 11, REST (3001) + gRPC (50051)             |
-| Worker | `apps/python-worker` | Python 3.14, uv, RabbitMQ consumer, Anthropic LLM |
+| Worker | `apps/python-worker` | Python 3.14, uv, RabbitMQ consumer, OpenAI SDK (LM Studio) |
 
 ## Shared Packages
 
@@ -37,7 +37,7 @@ pnpm db:migrate
 pnpm dev                # all apps concurrently
 ```
 
-External dependency: LM Studio (or compatible) at `ANTHROPIC_BASE_URL` for LLM inference.
+External dependency: LM Studio (or compatible) OpenAI API at `OPENAI_BASE_URL` (default `http://localhost:1234/v1`) for LLM inference.
 
 ## Global Invariants
 

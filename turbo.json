@@ -22,9 +22,9 @@
     "GRPC_PORT",
     "GRPC_HOST",
     "GRPC_BIND_HOST",
-    "ANTHROPIC_API_KEY",
-    "ANTHROPIC_BASE_URL",
-    "ANTHROPIC_MODEL"
+    "OPENAI_API_KEY",
+    "OPENAI_BASE_URL",
+    "OPENAI_MODEL"
   ],
   "tasks": {
     "build": {

@@ -26,14 +26,14 @@ class Settings(BaseSettings):
         default="ingested-emails",
         alias="EMAIL_STORAGE_DIR",
     )
-    anthropic_api_key: str = Field(default="lmstudio", alias="ANTHROPIC_API_KEY")
-    anthropic_base_url: str = Field(
-        default="http://localhost:1234",
-        alias="ANTHROPIC_BASE_URL",
+    openai_api_key: str = Field(default="lmstudio", alias="OPENAI_API_KEY")
+    openai_base_url: str = Field(
+        default="http://localhost:1234/v1",
+        alias="OPENAI_BASE_URL",
     )
-    anthropic_model: str = Field(
-        default="qwen/qwen2.5-coder-14b",
-        alias="ANTHROPIC_MODEL",
+    openai_model: str = Field(
+        default="google/gemma-4-e4b",
+        alias="OPENAI_MODEL",
     )
 
 
