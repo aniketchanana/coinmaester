@@ -23,6 +23,33 @@ pnpm docker:prod
 
 Container networking overrides are in `docker/compose.env`. Email bodies are bind-mounted from `./ingested-emails/`. LM Studio must be running on the host at port 1234 for email processing.
 
+## Distribution (pre-built images)
+
+Production images are built and pushed to [GHCR](https://github.com/aniketchanana/finance-app/pkgs/container/finance-app-web) on every push to `main`.
+
+Distribution compose lives in `deploy-docker-app-assets/docker-compose.yml` (tracked in git, GHCR pull-only). To share, copy your `.env` into that folder (apply Docker overrides from `docker/compose.env`), then zip:
+
+```bash
+cp .env deploy-docker-app-assets/.env
+zip -r deploy-docker-app-assets.zip deploy-docker-app-assets
+```
+
+Recipients unzip and run:
+
+```bash
+mkdir -p ingested-emails
+docker compose up -d
+```
+
+| Service             | URL                       |
+| ------------------- | ------------------------- |
+| Web (browser)       | http://localhost:3000     |
+| API (via app proxy) | http://localhost:3000/api |
+| API (direct)        | http://localhost:3001     |
+| RabbitMQ UI         | http://localhost:15672    |
+
+Images: `ghcr.io/aniketchanana/finance-app-{web,api-backend,python-worker}:latest`
+
 ## Email body storage
 
 Gmail sync stores message headers in Postgres (`gmailMessages`) and bodies on disk:
