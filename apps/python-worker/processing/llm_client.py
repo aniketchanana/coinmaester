@@ -4,6 +4,7 @@ import anthropic
 from pydantic import ValidationError
 
 from config import settings
+from processing.llm_response import strip_channel_delimiter
 from processing.models import (
     ExtractedTransaction,
     LlmClassificationResponse,
@@ -47,6 +48,30 @@ def _to_extracted_transaction(parsed: LlmTransactionResponse) -> ExtractedTransa
     )
 
 
+def _text_from_response(response: anthropic.types.Message, *, step: str) -> str:
+    raw = "\n".join(
+        block.text for block in response.content if block.type == "text"
+    ).strip()
+    payload, was_stripped = strip_channel_delimiter(raw)
+    if was_stripped:
+        logger.info(
+            "LLM %s: stripped thinking prefix after <%s> (%d -> %d chars)",
+            step,
+            "channel|",
+            len(raw),
+            len(payload),
+        )
+    else:
+        logger.info(
+            "LLM %s: no <%s> delimiter — using response as-is (%d chars)",
+            step,
+            "channel|",
+            len(payload),
+        )
+    logger.info("LLM %s payload: %s", step, payload)
+    return payload
+
+
 class TransactionLlmClient:
     def __init__(self) -> None:
         self._client = anthropic.Anthropic(
@@ -70,7 +95,7 @@ class TransactionLlmClient:
                 }
             ],
         )
-        return response.content[0].text.strip()
+        return _text_from_response(response, step="classification")
 
     def extract_transaction(self, header: str, body: str) -> ExtractedTransaction:
         logger.info('-----HEADER-----')
@@ -80,9 +105,7 @@ class TransactionLlmClient:
             classification = LlmClassificationResponse.model_validate_json(
                 self.classify_is_transaction_email(header)
             )
-            print('---------')
-            print(classification)
-            print('---------')
+            logger.info("Classification result: %s", classification)
         except (ValidationError, ValueError) as error:
             logger.warning("Failed to parse classification response: %s", error)
             return empty_transaction()
@@ -109,16 +132,7 @@ class TransactionLlmClient:
                 }
             ],
         )
-        print('---------')
-        print(response)
-        print('---------')
-
-        text_blocks = [
-            block.text
-            for block in response.content
-            if block.type == "text"
-        ]
-        raw_text = "\n".join(text_blocks).strip()
+        raw_text = _text_from_response(response, step="extraction")
 
         if not raw_text:
             logger.warning("LLM returned an empty extraction response")
@@ -126,9 +140,7 @@ class TransactionLlmClient:
 
         try:
             parsed_raw_text = LlmTransactionResponse.model_validate_json(raw_text)
-            print('---------')
-            print(parsed_raw_text)
-            print('---------')
+            logger.info("Extraction result: %s", parsed_raw_text)
         except (ValidationError, ValueError) as error:
             logger.warning("Failed to parse extraction response: %s", error)
             return empty_transaction()
