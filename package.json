@@ -10,10 +10,12 @@
     "check-types": "turbo run check-types",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
+    "docker:prod": "bash scripts/docker-prod.sh",
     "db:generate": "pnpm --filter @repo/database db:generate",
     "db:migrate": "pnpm --filter @repo/database db:migrate",
     "db:studio": "pnpm --filter @repo/database db:studio",
     "proto:generate": "pnpm --filter @repo/proto generate",
+    "agent:sync": "bash scripts/sync-agent-config.sh",
     "seed:dummy-sync": "node seed-dummy-sync.mjs"
   },
   "devDependencies": {

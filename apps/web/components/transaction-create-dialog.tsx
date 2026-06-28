@@ -30,6 +30,7 @@ import { AnimatedFormSection } from './animated-form-section';
 import { SensitiveAmountInput } from './sensitive-amount-input';
 import { SensitiveTextInput } from './sensitive-text-input';
 import { TRANSACTION_TYPE_LABELS } from './transaction-type-badge';
+import { analyticsKeys } from '../lib/analytics';
 import { createTransaction, transactionKeys } from '../lib/transactions';
 
 interface TransactionCreateDialogProps {
@@ -49,7 +50,8 @@ export function TransactionCreateDialog({
   const [bankName, setBankName] = React.useState('Manual');
   const [transactionValue, setTransactionValue] = React.useState('');
   const [type, setType] = React.useState<string>(TRANSACTION_TYPE.DEBIT);
-  const [transactionDate, setTransactionDate] = React.useState(todayDateInputValue);
+  const [transactionDate, setTransactionDate] =
+    React.useState(todayDateInputValue);
   const [paymentMadeTo, setPaymentMadeTo] = React.useState('');
   const [notes, setNotes] = React.useState('');
   const [isInvestment, setIsInvestment] = React.useState(false);
@@ -96,7 +98,9 @@ export function TransactionCreateDialog({
       return createTransaction({
         bankName: bankName.trim(),
         transactionValue: parsedValue,
-        type: type as typeof TRANSACTION_TYPE.DEBIT | typeof TRANSACTION_TYPE.CREDIT,
+        type: type as
+          | typeof TRANSACTION_TYPE.DEBIT
+          | typeof TRANSACTION_TYPE.CREDIT,
         transactionDate,
         paymentMadeTo: paymentMadeTo.trim(),
         notes: notes.trim() || undefined,
@@ -105,6 +109,7 @@ export function TransactionCreateDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all });
       toast.success('Transaction added');
       onOpenChange(false);
     },
@@ -206,9 +211,7 @@ export function TransactionCreateDialog({
             <Checkbox
               id="createIsInvestment"
               checked={isInvestment}
-              onCheckedChange={(checked) =>
-                setIsInvestment(checked === true)
-              }
+              onCheckedChange={(checked) => setIsInvestment(checked === true)}
             />
             <Label htmlFor="createIsInvestment">Mark as investment</Label>
           </AnimatedFormSection>
@@ -218,7 +221,10 @@ export function TransactionCreateDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+          <Button
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+          >
             {mutation.isPending ? 'Adding...' : 'Add transaction'}
           </Button>
         </DialogFooter>

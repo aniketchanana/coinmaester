@@ -17,13 +17,20 @@ function jwtExpiryToMs(value: string | undefined): number {
     return DEFAULT_MAX_AGE_MS;
   }
 
-  return Number(match[1]) * (UNIT_MS[match[2] as string] ?? 0) || DEFAULT_MAX_AGE_MS;
+  return (
+    Number(match[1]) * (UNIT_MS[match[2] as string] ?? 0) || DEFAULT_MAX_AGE_MS
+  );
+}
+
+function isSecureCookieContext(): boolean {
+  const webUrl = process.env.WEB_URL ?? 'http://localhost:3000';
+  return webUrl.startsWith('https://');
 }
 
 function baseCookieOptions(): CookieOptions {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecureCookieContext(),
     sameSite: 'lax',
     path: '/',
     // In production, set COOKIE_DOMAIN to the shared parent domain

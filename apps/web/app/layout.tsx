@@ -31,9 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{ __html: THEME_STYLE_INIT_SCRIPT }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: THEME_STYLE_INIT_SCRIPT }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen`}

@@ -8,18 +8,14 @@ import { JwtService } from '@nestjs/jwt';
 import { decryptAes, encryptAes } from '../common/aes-encryption';
 import { httpClient } from '../common/http-client';
 import { PrismaService } from '../database/prisma.service';
-import type {
-  GoogleAuthPayload,
-  JwtPayload,
-  SessionUser,
-} from './auth.types';
+import type { GoogleAuthPayload, JwtPayload, SessionUser } from './auth.types';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async loginWithGoogle(payload: GoogleAuthPayload): Promise<{
     accessToken: string;

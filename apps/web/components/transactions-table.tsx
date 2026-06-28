@@ -44,6 +44,7 @@ import { useDebouncedValue } from '../hooks/use-debounced-value';
 import { useResizableColumns } from '../hooks/use-resizable-columns';
 import { FormattedAmount } from './formatted-amount';
 import { MaskedPayee } from './masked-payee';
+import { analyticsKeys } from '../lib/analytics';
 import {
   deleteTransaction,
   fetchTransactions,
@@ -180,7 +181,10 @@ export function TransactionsTable() {
   const handlePageSizeChange = React.useCallback((size: PageSize) => {
     setPageSize(size);
     try {
-      localStorage.setItem(TRANSACTIONS_TABLE_PAGE_SIZE_STORAGE_KEY, String(size));
+      localStorage.setItem(
+        TRANSACTIONS_TABLE_PAGE_SIZE_STORAGE_KEY,
+        String(size),
+      );
     } catch {
       // Ignore storage write failures.
     }
@@ -220,6 +224,7 @@ export function TransactionsTable() {
     mutationFn: (id: string) => deleteTransaction(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all });
       toast.success('Transaction deleted');
       setDeletingTransaction(null);
       setEditingTransaction(null);
@@ -260,6 +265,7 @@ export function TransactionsTable() {
     },
     onSuccess: (_updated, { isInvestment }) => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all });
       toast.success(
         isInvestment ? 'Marked as investment' : 'Unmarked as investment',
       );
@@ -502,7 +508,8 @@ export function TransactionsTable() {
                         No transactions yet
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        They will show up here once your email sync is connected.
+                        They will show up here once your email sync is
+                        connected.
                       </p>
                     </div>
                   </TableCell>
@@ -658,7 +665,10 @@ export function TransactionsTable() {
                     handlePageSizeChange(Number(value) as PageSize)
                   }
                 >
-                  <SelectTrigger id="pageSize" className="h-9 w-fit min-w-[5.5rem]">
+                  <SelectTrigger
+                    id="pageSize"
+                    className="h-9 w-fit min-w-[5.5rem]"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

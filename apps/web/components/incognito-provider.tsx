@@ -2,10 +2,7 @@
 
 import * as React from 'react';
 
-import {
-  persistIncognito,
-  readStoredIncognito,
-} from '../lib/incognito';
+import { persistIncognito, readStoredIncognito } from '../lib/incognito';
 
 interface IncognitoContextValue {
   isIncognito: boolean;
@@ -13,7 +10,9 @@ interface IncognitoContextValue {
   setIncognito: (enabled: boolean) => void;
 }
 
-const IncognitoContext = React.createContext<IncognitoContextValue | null>(null);
+const IncognitoContext = React.createContext<IncognitoContextValue | null>(
+  null,
+);
 
 export function IncognitoProvider({ children }: { children: React.ReactNode }) {
   const [isIncognito, setIsIncognito] = React.useState(false);
@@ -47,7 +46,9 @@ export function IncognitoProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <IncognitoContext.Provider value={value}>{children}</IncognitoContext.Provider>
+    <IncognitoContext.Provider value={value}>
+      {children}
+    </IncognitoContext.Provider>
   );
 }
 

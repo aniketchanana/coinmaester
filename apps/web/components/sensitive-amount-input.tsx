@@ -7,8 +7,10 @@ import { cn } from '@repo/ui/lib/utils';
 
 import { useIncognito } from './incognito-provider';
 
-interface SensitiveAmountInputProps
-  extends Omit<React.ComponentProps<typeof Input>, 'type'> {
+interface SensitiveAmountInputProps extends Omit<
+  React.ComponentProps<typeof Input>,
+  'type'
+> {
   value: string;
 }
 

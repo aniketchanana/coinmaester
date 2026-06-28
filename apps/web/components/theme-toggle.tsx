@@ -46,9 +46,7 @@ export function ThemeToggle() {
   );
 
   if (PickerContent) {
-    return (
-      <PickerContent defaultOpen={defaultOpen} openSignal={openSignal} />
-    );
+    return <PickerContent defaultOpen={defaultOpen} openSignal={openSignal} />;
   }
 
   return (

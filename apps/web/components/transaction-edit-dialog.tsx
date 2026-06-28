@@ -29,6 +29,7 @@ import { AnimatedFormSection } from './animated-form-section';
 import { SensitiveAmountInput } from './sensitive-amount-input';
 import { SensitiveTextInput } from './sensitive-text-input';
 import { TRANSACTION_TYPE_LABELS } from './transaction-type-badge';
+import { analyticsKeys } from '../lib/analytics';
 import { transactionKeys, updateTransaction } from '../lib/transactions';
 import type { TransactionRow } from '../types/transaction';
 
@@ -84,7 +85,9 @@ export function TransactionEditDialog({
       return updateTransaction(transaction.id, {
         bankName,
         transactionValue: parsedValue,
-        type: type as typeof TRANSACTION_TYPE.DEBIT | typeof TRANSACTION_TYPE.CREDIT,
+        type: type as
+          | typeof TRANSACTION_TYPE.DEBIT
+          | typeof TRANSACTION_TYPE.CREDIT,
         transactionDate,
         paymentMadeTo,
         isInvestment,
@@ -92,6 +95,7 @@ export function TransactionEditDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all });
       toast.success('Transaction updated');
       onOpenChange(false);
     },
@@ -106,7 +110,8 @@ export function TransactionEditDialog({
         <DialogHeader>
           <DialogTitle>Edit transaction</DialogTitle>
           <DialogDescription>
-            Update the extracted transaction details if the AI parsing was incorrect.
+            Update the extracted transaction details if the AI parsing was
+            incorrect.
           </DialogDescription>
         </DialogHeader>
 
@@ -178,9 +183,7 @@ export function TransactionEditDialog({
             <Checkbox
               id="isInvestment"
               checked={isInvestment}
-              onCheckedChange={(checked) =>
-                setIsInvestment(checked === true)
-              }
+              onCheckedChange={(checked) => setIsInvestment(checked === true)}
             />
             <Label htmlFor="isInvestment">Mark as investment</Label>
           </AnimatedFormSection>

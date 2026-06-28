@@ -10,7 +10,7 @@ from processing.models import (
     LlmTransactionResponse,
     empty_transaction,
 )
-from processing.prompts import SYSTEM_PROMPT, build_user_prompt, CLASSIFY_SYSTEM_PROMPT
+from processing.prompts import JSON_DATA_SYSTEM_PROMPT, build_user_prompt, CLASSIFY_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,9 @@ class TransactionLlmClient:
         )
 
     def classify_is_transaction_email(self, header: str) -> str:
+        logger.info('----SENDING HEADER-----')
+        logger.info(header)
+        logger.info('----SENDING HEADER-----')
         response = self._client.messages.create(
             model=settings.anthropic_model,
             max_tokens=1024,
@@ -69,6 +72,9 @@ class TransactionLlmClient:
         return response.content[0].text.strip()
 
     def extract_transaction(self, header: str, body: str) -> ExtractedTransaction:
+        logger.info('-----HEADER-----')
+        logger.info(header)
+        logger.info('-----HEADER-----')
         try:
             classification = LlmClassificationResponse.model_validate_json(
                 self.classify_is_transaction_email(header)
@@ -86,7 +92,7 @@ class TransactionLlmClient:
         response = self._client.messages.create(
             model=settings.anthropic_model,
             max_tokens=1024,
-            system=SYSTEM_PROMPT,
+            system=JSON_DATA_SYSTEM_PROMPT,
             temperature=0,
             messages=[
                 {

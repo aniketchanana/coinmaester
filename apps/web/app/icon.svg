@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Finance App">
+  <defs>
+    <linearGradient id="finance-bg" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6D5DF6" />
+      <stop offset="1" stop-color="#8B5CF6" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#finance-bg)" />
+  <path
+    d="M8 22V18M13 22V14M18 22V17M23 22V10"
+    fill="none"
+    stroke="#fff"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+  <path
+    d="M23 10h3v3"
+    fill="none"
+    stroke="#fff"
+    stroke-width="2.25"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
