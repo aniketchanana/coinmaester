@@ -32,7 +32,7 @@ class Settings(BaseSettings):
         alias="ANTHROPIC_BASE_URL",
     )
     anthropic_model: str = Field(
-        default="google/gemma-4-e4b",
+        default="qwen/qwen2.5-CODER-14b",
         alias="ANTHROPIC_MODEL",
     )
 

@@ -40,6 +40,10 @@ import {
   staggerDelay,
 } from '../lib/motion';
 import {
+  persistEmailSyncStatusFilter,
+  readStoredEmailSyncStatusFilter,
+} from '../lib/email-sync-filters';
+import {
   fetchGmailMessages,
   gmailMessageKeys,
   retryGmailMessages,
@@ -161,7 +165,19 @@ export function EmailSyncTable() {
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState<PageSize>(100);
   const [statusFilter, setStatusFilter] =
-    React.useState<GmailMessageStatusFilter>('ALL');
+    React.useState<GmailMessageStatusFilter>(() => {
+      return readStoredEmailSyncStatusFilter();
+    });
+  const skipFilterPersistRef = React.useRef(true);
+
+  React.useEffect(() => {
+    if (skipFilterPersistRef.current) {
+      skipFilterPersistRef.current = false;
+      return;
+    }
+
+    persistEmailSyncStatusFilter(statusFilter);
+  }, [statusFilter]);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
 
   React.useEffect(() => {

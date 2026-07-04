@@ -46,6 +46,10 @@ import { FormattedAmount } from './formatted-amount';
 import { MaskedPayee } from './masked-payee';
 import { analyticsKeys } from '../lib/analytics';
 import {
+  persistTransactionFilters,
+  readStoredTransactionFilters,
+} from '../lib/transaction-filters';
+import {
   deleteTransaction,
   fetchTransactions,
   transactionKeys,
@@ -198,6 +202,28 @@ export function TransactionsTable() {
   const [sortOrder, setSortOrder] = React.useState<TransactionSortOrder>(
     TRANSACTION_SORT_ORDER.DESC,
   );
+  const [filtersHydrated, setFiltersHydrated] = React.useState(false);
+
+  React.useEffect(() => {
+    const stored = readStoredTransactionFilters();
+    setFilters({
+      startDate: stored.startDate,
+      endDate: stored.endDate,
+      payee: stored.payee,
+      type: stored.type,
+    });
+    setSortBy(stored.sortBy);
+    setSortOrder(stored.sortOrder);
+    setFiltersHydrated(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!filtersHydrated) {
+      return;
+    }
+
+    persistTransactionFilters({ ...filters, sortBy, sortOrder });
+  }, [filters, sortBy, sortOrder, filtersHydrated]);
   const [editingTransaction, setEditingTransaction] =
     React.useState<TransactionRow | null>(null);
   const [deletingTransaction, setDeletingTransaction] =
