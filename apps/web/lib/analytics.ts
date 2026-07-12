@@ -11,15 +11,42 @@ export const analyticsKeys = {
 };
 
 export function fetchAnalytics(
-  params: FetchAnalyticsParams,
+  params: FetchAnalyticsParams = {},
 ): Promise<AnalyticsResponse> {
   const searchParams = new URLSearchParams();
-  searchParams.set('startDate', params.startDate);
-  searchParams.set('endDate', params.endDate);
+
+  if (params.startDate) {
+    searchParams.set('startDate', params.startDate);
+  }
+
+  if (params.endDate) {
+    searchParams.set('endDate', params.endDate);
+  }
+
+  if (params.payee) {
+    searchParams.set('payee', params.payee);
+  }
+
+  if (params.type) {
+    searchParams.set('type', params.type);
+  }
 
   if (params.granularity) {
     searchParams.set('granularity', params.granularity);
   }
 
-  return apiGet<AnalyticsResponse>(`/analytics?${searchParams.toString()}`);
+  const query = searchParams.toString();
+
+  return apiGet<AnalyticsResponse>(
+    query ? `/analytics?${query}` : '/analytics',
+  ).then((data) => ({
+    ...data,
+    trends: data.trends ?? [],
+    topTransactions: data.topTransactions ?? [],
+    insights: data.insights ?? [],
+    breakdown: {
+      byPayee: data.breakdown?.byPayee ?? [],
+      byBank: data.breakdown?.byBank ?? [],
+    },
+  }));
 }

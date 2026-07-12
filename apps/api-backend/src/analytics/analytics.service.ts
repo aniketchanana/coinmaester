@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { TRANSACTION_FILTER_TYPE } from '@repo/constant';
 import { Prisma } from '@repo/database';
 
 import { PrismaService } from '../database/prisma.service';
@@ -13,6 +14,7 @@ import {
   type AnalyticsQuery,
   type AnalyticsResponse,
   type AnalyticsSummary,
+  type AnalyticsTopTransaction,
   type AnalyticsTrendPoint,
 } from './analytics.types';
 
@@ -41,6 +43,13 @@ interface BreakdownRow {
   investment: Prisma.Decimal | null;
 }
 
+interface AnalyticsFilters {
+  payee?: string;
+  type?: AnalyticsQuery['type'];
+  rangeStart: Date | null;
+  rangeEnd: Date | null;
+}
+
 @Injectable()
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -49,32 +58,71 @@ export class AnalyticsService {
     userId: string,
     query: AnalyticsQuery,
   ): Promise<AnalyticsResponse> {
-    const startDate = this.parseDate(query.startDate, 'startDate');
-    const endDate = this.parseDate(query.endDate, 'endDate');
-    const granularity = this.parseGranularity(query.granularity);
+    const hasStart = Boolean(query.startDate?.trim());
+    const hasEnd = Boolean(query.endDate?.trim());
 
-    if (startDate > endDate) {
+    const rangeStart = hasStart
+      ? this.startOfDay(this.parseDate(query.startDate!, 'startDate'))
+      : null;
+    const rangeEnd = hasEnd
+      ? this.endOfDay(this.parseDate(query.endDate!, 'endDate'))
+      : null;
+
+    if (rangeStart && rangeEnd && rangeStart > rangeEnd) {
       throw new BadRequestException('startDate must be on or before endDate');
     }
 
-    const rangeStart = this.startOfDay(startDate);
-    const rangeEnd = this.endOfDay(endDate);
-    const { prevStart, prevEnd } = this.previousPeriod(rangeStart, rangeEnd);
+    const filters: AnalyticsFilters = {
+      payee: query.payee?.trim() || undefined,
+      type: query.type,
+      rangeStart,
+      rangeEnd,
+    };
 
+    const isAllTime = rangeStart === null && rangeEnd === null;
+    const granularity =
+      this.parseGranularity(query.granularity) ??
+      (isAllTime ? ANALYTICS_GRANULARITY.MONTH : ANALYTICS_GRANULARITY.DAY);
     const truncUnit =
       granularity === ANALYTICS_GRANULARITY.MONTH ? 'month' : 'day';
 
-    const [trends, currentSummary, previousSummary, payeeRows, bankRows] =
-      await Promise.all([
-        this.fetchTrends(userId, rangeStart, rangeEnd, truncUnit),
-        this.fetchSummary(userId, rangeStart, rangeEnd),
-        this.fetchSummary(userId, prevStart, prevEnd),
-        this.fetchBreakdown(userId, rangeStart, rangeEnd, 'payee'),
-        this.fetchBreakdown(userId, rangeStart, rangeEnd, 'bank'),
-      ]);
+    const previousPeriod =
+      rangeStart && rangeEnd
+        ? this.previousPeriod(rangeStart, rangeEnd)
+        : null;
 
-    const summary = this.toSummary(currentSummary, rangeStart, rangeEnd);
-    const comparison = this.toComparison(currentSummary, previousSummary);
+    const [
+      trends,
+      currentSummary,
+      previousSummary,
+      payeeRows,
+      bankRows,
+      topTransactions,
+    ] = await Promise.all([
+      this.fetchTrends(userId, filters, truncUnit),
+      this.fetchSummary(userId, filters),
+      previousPeriod
+        ? this.fetchSummary(userId, {
+            ...filters,
+            rangeStart: previousPeriod.prevStart,
+            rangeEnd: previousPeriod.prevEnd,
+          })
+        : Promise.resolve(null),
+      this.fetchBreakdown(userId, filters, 'payee'),
+      this.fetchBreakdown(userId, filters, 'bank'),
+      this.fetchTopTransactions(userId, filters),
+    ]);
+
+    const summary = this.toSummary(
+      currentSummary,
+      rangeStart,
+      rangeEnd,
+      trends,
+    );
+    const comparison =
+      previousSummary !== null
+        ? this.toComparison(currentSummary, previousSummary)
+        : null;
     const byPayee = this.toPayeeBreakdown(payeeRows);
     const byBank = this.toBankBreakdown(bankRows);
     const insights = this.buildInsights(summary, comparison, byPayee);
@@ -85,19 +133,56 @@ export class AnalyticsService {
       trends,
       breakdown: { byPayee, byBank },
       insights,
+      topTransactions,
     };
+  }
+
+  private buildWhereSql(
+    userId: string,
+    filters: AnalyticsFilters,
+  ): Prisma.Sql {
+    const parts: Prisma.Sql[] = [
+      Prisma.sql`"userId" = ${userId}`,
+      Prisma.sql`"isDeleted" = false`,
+    ];
+
+    if (filters.rangeStart) {
+      parts.push(Prisma.sql`"transactionDate" >= ${filters.rangeStart}`);
+    }
+
+    if (filters.rangeEnd) {
+      parts.push(Prisma.sql`"transactionDate" <= ${filters.rangeEnd}`);
+    }
+
+    if (filters.payee) {
+      parts.push(
+        Prisma.sql`"paymentMadeTo" ILIKE ${`%${filters.payee}%`}`,
+      );
+    }
+
+    if (filters.type === TRANSACTION_FILTER_TYPE.INVESTMENT) {
+      parts.push(Prisma.sql`"isInvestment" = true`);
+    } else if (
+      filters.type === TRANSACTION_FILTER_TYPE.DEBIT ||
+      filters.type === TRANSACTION_FILTER_TYPE.CREDIT
+    ) {
+      parts.push(Prisma.sql`"type" = ${filters.type}`);
+      parts.push(Prisma.sql`"isInvestment" = false`);
+    }
+
+    return Prisma.join(parts, ' AND ');
   }
 
   private async fetchTrends(
     userId: string,
-    start: Date,
-    end: Date,
+    filters: AnalyticsFilters,
     truncUnit: 'day' | 'month',
   ): Promise<AnalyticsTrendPoint[]> {
     const dateTrunc =
       truncUnit === ANALYTICS_GRANULARITY.MONTH
         ? Prisma.sql`DATE_TRUNC('month', "transactionDate")`
         : Prisma.sql`DATE_TRUNC('day', "transactionDate")`;
+    const whereSql = this.buildWhereSql(userId, filters);
 
     const rows = await this.prisma.client.$queryRaw<TrendRow[]>`
       WITH filtered AS (
@@ -107,10 +192,7 @@ export class AnalyticsService {
           "type",
           "isInvestment"
         FROM transactions
-        WHERE "userId" = ${userId}
-          AND "isDeleted" = false
-          AND "transactionDate" >= ${start}
-          AND "transactionDate" <= ${end}
+        WHERE ${whereSql}
       ),
       daily AS (
         SELECT
@@ -149,9 +231,10 @@ export class AnalyticsService {
 
   private async fetchSummary(
     userId: string,
-    start: Date,
-    end: Date,
+    filters: AnalyticsFilters,
   ): Promise<SummaryRow> {
+    const whereSql = this.buildWhereSql(userId, filters);
+
     const rows = await this.prisma.client.$queryRaw<SummaryRow[]>`
       SELECT
         COALESCE(SUM(CASE WHEN NOT "isInvestment" AND "type" = 'DEBIT' THEN "transactionValue" END), 0) AS total_debit,
@@ -159,10 +242,7 @@ export class AnalyticsService {
         COALESCE(SUM(CASE WHEN "isInvestment" THEN "transactionValue" END), 0) AS total_investment,
         COUNT(*)::bigint AS transaction_count
       FROM transactions
-      WHERE "userId" = ${userId}
-        AND "isDeleted" = false
-        AND "transactionDate" >= ${start}
-        AND "transactionDate" <= ${end}
+      WHERE ${whereSql}
     `;
 
     return (
@@ -177,50 +257,111 @@ export class AnalyticsService {
 
   private async fetchBreakdown(
     userId: string,
-    start: Date,
-    end: Date,
+    filters: AnalyticsFilters,
     dimension: 'payee' | 'bank',
   ): Promise<BreakdownRow[]> {
-    if (dimension === 'payee') {
-      return this.prisma.client.$queryRaw<BreakdownRow[]>`
-        SELECT
-          "paymentMadeTo" AS label,
-          COALESCE(SUM(CASE WHEN NOT "isInvestment" AND "type" = 'DEBIT' THEN "transactionValue" END), 0) AS debit,
-          COALESCE(SUM(CASE WHEN NOT "isInvestment" AND "type" = 'CREDIT' THEN "transactionValue" END), 0) AS credit,
-          COALESCE(SUM(CASE WHEN "isInvestment" THEN "transactionValue" END), 0) AS investment
-        FROM transactions
-        WHERE "userId" = ${userId}
-          AND "isDeleted" = false
-          AND "transactionDate" >= ${start}
-          AND "transactionDate" <= ${end}
-        GROUP BY "paymentMadeTo"
-        ORDER BY debit DESC
-        LIMIT 10
-      `;
-    }
+    const whereSql = this.buildWhereSql(userId, filters);
+    const groupColumn =
+      dimension === 'payee'
+        ? Prisma.sql`"paymentMadeTo"`
+        : Prisma.sql`"bankName"`;
 
     return this.prisma.client.$queryRaw<BreakdownRow[]>`
       SELECT
-        "bankName" AS label,
+        ${groupColumn} AS label,
         COALESCE(SUM(CASE WHEN NOT "isInvestment" AND "type" = 'DEBIT' THEN "transactionValue" END), 0) AS debit,
         COALESCE(SUM(CASE WHEN NOT "isInvestment" AND "type" = 'CREDIT' THEN "transactionValue" END), 0) AS credit,
         COALESCE(SUM(CASE WHEN "isInvestment" THEN "transactionValue" END), 0) AS investment
       FROM transactions
-      WHERE "userId" = ${userId}
-        AND "isDeleted" = false
-        AND "transactionDate" >= ${start}
-        AND "transactionDate" <= ${end}
-      GROUP BY "bankName"
+      WHERE ${whereSql}
+      GROUP BY ${groupColumn}
       ORDER BY debit DESC
       LIMIT 10
     `;
   }
 
-  private toSummary(row: SummaryRow, start: Date, end: Date): AnalyticsSummary {
+  private async fetchTopTransactions(
+    userId: string,
+    filters: AnalyticsFilters,
+  ): Promise<AnalyticsTopTransaction[]> {
+    const where: Prisma.TransactionWhereInput = {
+      userId,
+      isDeleted: false,
+    };
+
+    if (filters.rangeStart || filters.rangeEnd) {
+      where.transactionDate = {};
+      if (filters.rangeStart) {
+        where.transactionDate.gte = filters.rangeStart;
+      }
+      if (filters.rangeEnd) {
+        where.transactionDate.lte = filters.rangeEnd;
+      }
+    }
+
+    if (filters.payee) {
+      where.paymentMadeTo = {
+        contains: filters.payee,
+        mode: 'insensitive',
+      };
+    }
+
+    if (filters.type === TRANSACTION_FILTER_TYPE.INVESTMENT) {
+      where.isInvestment = true;
+    } else if (
+      filters.type === TRANSACTION_FILTER_TYPE.DEBIT ||
+      filters.type === TRANSACTION_FILTER_TYPE.CREDIT
+    ) {
+      where.type = filters.type;
+      where.isInvestment = false;
+    }
+
+    const rows = await this.prisma.client.transaction.findMany({
+      where,
+      orderBy: [{ transactionValue: 'desc' }, { id: 'asc' }],
+      take: 5,
+      select: {
+        id: true,
+        paymentMadeTo: true,
+        bankName: true,
+        transactionValue: true,
+        type: true,
+        isInvestment: true,
+        transactionDate: true,
+      },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      paymentMadeTo: row.paymentMadeTo,
+      bankName: row.bankName,
+      transactionValue: row.transactionValue.toNumber(),
+      type: row.type,
+      isInvestment: row.isInvestment,
+      transactionDate: row.transactionDate.toISOString(),
+    }));
+  }
+
+  private toSummary(
+    row: SummaryRow,
+    start: Date | null,
+    end: Date | null,
+    trends: AnalyticsTrendPoint[],
+  ): AnalyticsSummary {
     const totalDebit = this.decimalToNumber(row.total_debit);
     const totalCredit = this.decimalToNumber(row.total_credit);
     const totalInvestment = this.decimalToNumber(row.total_investment);
-    const dayCount = Math.max(1, this.inclusiveDayCount(start, end));
+
+    let dayCount = 1;
+    if (start && end) {
+      dayCount = Math.max(1, this.inclusiveDayCount(start, end));
+    } else if (trends.length >= 2) {
+      const first = new Date(trends[0]!.date);
+      const last = new Date(trends[trends.length - 1]!.date);
+      dayCount = Math.max(1, this.inclusiveDayCount(first, last));
+    } else if (trends.length === 1) {
+      dayCount = 1;
+    }
 
     const netCashflow = totalCredit - totalDebit;
 
@@ -298,12 +439,12 @@ export class AnalyticsService {
 
   private buildInsights(
     summary: AnalyticsSummary,
-    comparison: AnalyticsComparison,
+    comparison: AnalyticsComparison | null,
     byPayee: AnalyticsPayeeBreakdown[],
   ): AnalyticsInsight[] {
     const insights: AnalyticsInsight[] = [];
 
-    if (comparison.debitChangePercent !== null) {
+    if (comparison?.debitChangePercent !== null && comparison) {
       if (comparison.debitChangePercent > 5) {
         insights.push({
           type: ANALYTICS_INSIGHT_TYPE.SPEND_INCREASE,
@@ -404,9 +545,11 @@ export class AnalyticsService {
     return parsed;
   }
 
-  private parseGranularity(value?: AnalyticsGranularity): AnalyticsGranularity {
+  private parseGranularity(
+    value?: AnalyticsGranularity,
+  ): AnalyticsGranularity | undefined {
     if (!value) {
-      return ANALYTICS_GRANULARITY.DAY;
+      return undefined;
     }
 
     if (

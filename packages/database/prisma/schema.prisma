@@ -40,6 +40,7 @@ model User {
   emailSyncs     EmailSync[]
   gmailMessages  GmailMessage[]
   transactions   Transaction[]
+  presetFilters  PresetFilter[]
 
   @@map("users")
 }
@@ -100,4 +101,23 @@ model Transaction {
   @@index([userId, transactionDate(sort: Desc)])
   @@index([userId, isDeleted])
   @@map("transactions")
+}
+
+/// Named dashboard filter preset saved by a user.
+model PresetFilter {
+  id        String   @id @default(cuid())
+  name      String
+  payee     String?
+  /// Strict shape: `{ startDate?: string, endDate?: string }` only.
+  dateRange Json?
+  /// DEBIT | CREDIT | INVESTMENT (filter facet, not TransactionType alone).
+  type      String?
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isDeleted])
+  @@map("presetFilters")
 }

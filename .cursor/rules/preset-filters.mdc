@@ -1,0 +1,53 @@
+---
+description: Keep PresetFilter schema aligned with dashboard transaction filters
+globs:
+  - apps/web/components/transactions-table.tsx
+  - apps/web/lib/transaction-filters.ts
+  - apps/web/lib/preset-filters.ts
+  - apps/web/components/preset-filter-*.tsx
+  - apps/api-backend/src/preset-filters/**
+  - packages/database/prisma/schema.prisma
+alwaysApply: false
+---
+
+# Preset Filters
+
+Named dashboard filter presets are stored in `PresetFilter` (`presetFilters` table), scoped per user.
+
+## Schema alignment (required)
+
+Dashboard filter facets and `PresetFilter` columns must stay in sync:
+
+| Dashboard filter | PresetFilter column |
+| ---------------- | ------------------- |
+| Payee            | `payee` (String?)   |
+| Date range       | `dateRange` (Json?) |
+| Type             | `type` (String?)    |
+
+Also always present: `id`, `name`, `userId`, `isDeleted`, `createdAt`, `updatedAt`.
+
+### When filters change
+
+If you add, remove, or rename a dashboard filter facet:
+
+1. Update `PresetFilter` in `packages/database/prisma/schema.prisma`
+2. Run `pnpm db:migrate` with a descriptive name (e.g. `preset_filter_add_bank`)
+3. Update NestJS validation/DTOs in `apps/api-backend/src/preset-filters/`
+4. Update web mapping in `apps/web/lib/preset-filters.ts` and save/edit/apply UI
+
+```typescript
+// ❌ BAD — new dashboard filter without schema/API changes
+filters.bankName = value;
+
+// ✅ GOOD — schema + migration + API + web mapping updated together
+// PresetFilter.bankName String?
+```
+
+## Constraints
+
+- Do **not** store sort or pagination in `PresetFilter`.
+- `dateRange` must be `{ startDate?: string, endDate?: string }` only (`yyyy-MM-dd`). Reject other keys on write.
+- `type` values: `DEBIT` | `CREDIT` | `INVESTMENT` (`TRANSACTION_FILTER_TYPE`).
+- Soft-delete only (`isDeleted: true`); always scope queries by `userId`.
+- Partial filters are allowed; at least one of payee / type / dateRange must be set.
+- `name` is required.

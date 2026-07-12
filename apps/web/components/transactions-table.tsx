@@ -1,10 +1,12 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { Pencil, Plus, StickyNote, Trash2, TrendingUp } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import { Badge } from '@repo/ui/badge';
 import { Button } from '@repo/ui/button';
 import {
   Dialog,
@@ -17,6 +19,7 @@ import {
 import { Input } from '@repo/ui/input';
 import { Label } from '@repo/ui/label';
 import { cn } from '@repo/ui/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui/popover';
 import {
   Select,
   SelectContent,
@@ -44,7 +47,17 @@ import { useDebouncedValue } from '../hooks/use-debounced-value';
 import { useResizableColumns } from '../hooks/use-resizable-columns';
 import { FormattedAmount } from './formatted-amount';
 import { MaskedPayee } from './masked-payee';
+import {
+  TransactionsSummaryCards,
+  TransactionsSummaryCardsSkeleton,
+} from './transactions-summary-cards';
 import { analyticsKeys } from '../lib/analytics';
+import {
+  fetchPresetFilters,
+  presetFilterKeys,
+  presetToFilters,
+  type PresetFilter,
+} from '../lib/preset-filters';
 import {
   persistTransactionFilters,
   readStoredTransactionFilters,
@@ -72,6 +85,8 @@ import {
   staggerDelay,
 } from '../lib/motion';
 import { DateRangePicker } from './date-range-picker';
+import { PresetFilterEditDialog } from './preset-filter-edit-dialog';
+import { PresetFilterSaveDialog } from './preset-filter-save-dialog';
 import {
   ResizableSortableTableHead,
   ResizableTableHead,
@@ -137,6 +152,26 @@ function readStoredPageSize(): PageSize | null {
 
 const TYPE_FILTER_ALL = 'ALL';
 
+const PRESET_CHIP_COLORS = [
+  'border-sky-500/40 bg-sky-500/15 text-sky-800 dark:bg-sky-500/25 dark:text-sky-200 hover:bg-sky-500/25 dark:hover:bg-sky-500/35',
+  'border-emerald-500/40 bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-200 hover:bg-emerald-500/25 dark:hover:bg-emerald-500/35',
+  'border-amber-500/40 bg-amber-500/15 text-amber-900 dark:bg-amber-500/25 dark:text-amber-200 hover:bg-amber-500/25 dark:hover:bg-amber-500/35',
+  'border-violet-500/40 bg-violet-500/15 text-violet-800 dark:bg-violet-500/25 dark:text-violet-200 hover:bg-violet-500/25 dark:hover:bg-violet-500/35',
+  'border-rose-500/40 bg-rose-500/15 text-rose-800 dark:bg-rose-500/25 dark:text-rose-200 hover:bg-rose-500/25 dark:hover:bg-rose-500/35',
+  'border-cyan-500/40 bg-cyan-500/15 text-cyan-800 dark:bg-cyan-500/25 dark:text-cyan-200 hover:bg-cyan-500/25 dark:hover:bg-cyan-500/35',
+  'border-orange-500/40 bg-orange-500/15 text-orange-900 dark:bg-orange-500/25 dark:text-orange-200 hover:bg-orange-500/25 dark:hover:bg-orange-500/35',
+  'border-fuchsia-500/40 bg-fuchsia-500/15 text-fuchsia-800 dark:bg-fuchsia-500/25 dark:text-fuchsia-200 hover:bg-fuchsia-500/25 dark:hover:bg-fuchsia-500/35',
+] as const;
+
+function presetChipColorClass(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
+  const color = PRESET_CHIP_COLORS[hash % PRESET_CHIP_COLORS.length];
+  return color ?? PRESET_CHIP_COLORS[0]!;
+}
+
 interface TransactionFilters {
   startDate: string;
   endDate: string;
@@ -150,6 +185,24 @@ const DEFAULT_FILTERS: TransactionFilters = {
   payee: '',
   type: '',
 };
+
+function getInitialTransactionFilters(): {
+  filters: TransactionFilters;
+  sortBy: TransactionSortField;
+  sortOrder: TransactionSortOrder;
+} {
+  const stored = readStoredTransactionFilters();
+  return {
+    filters: {
+      startDate: stored.startDate,
+      endDate: stored.endDate,
+      payee: stored.payee,
+      type: stored.type,
+    },
+    sortBy: stored.sortBy,
+    sortOrder: stored.sortOrder,
+  };
+}
 
 function formatDate(isoDate: string): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -173,14 +226,9 @@ function isTransactionToday(isoDate: string): boolean {
 export function TransactionsTable() {
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState<PageSize>(100);
-
-  React.useEffect(() => {
-    const storedPageSize = readStoredPageSize();
-    if (storedPageSize) {
-      setPageSize(storedPageSize);
-    }
-  }, []);
+  const [pageSize, setPageSize] = React.useState<PageSize>(
+    () => readStoredPageSize() ?? 100,
+  );
 
   const handlePageSizeChange = React.useCallback((size: PageSize) => {
     setPageSize(size);
@@ -193,37 +241,26 @@ export function TransactionsTable() {
       // Ignore storage write failures.
     }
   }, []);
-  const [filters, setFilters] =
-    React.useState<TransactionFilters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = React.useState<TransactionFilters>(
+    () => getInitialTransactionFilters().filters,
+  );
   const debouncedFilters = useDebouncedValue(filters, FILTER_DEBOUNCE_MS);
   const [sortBy, setSortBy] = React.useState<TransactionSortField>(
-    TRANSACTION_SORT_FIELD.TRANSACTION_DATE,
+    () => getInitialTransactionFilters().sortBy,
   );
   const [sortOrder, setSortOrder] = React.useState<TransactionSortOrder>(
-    TRANSACTION_SORT_ORDER.DESC,
+    () => getInitialTransactionFilters().sortOrder,
   );
-  const [filtersHydrated, setFiltersHydrated] = React.useState(false);
+  const skipFilterPersistRef = React.useRef(true);
 
   React.useEffect(() => {
-    const stored = readStoredTransactionFilters();
-    setFilters({
-      startDate: stored.startDate,
-      endDate: stored.endDate,
-      payee: stored.payee,
-      type: stored.type,
-    });
-    setSortBy(stored.sortBy);
-    setSortOrder(stored.sortOrder);
-    setFiltersHydrated(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (!filtersHydrated) {
+    if (skipFilterPersistRef.current) {
+      skipFilterPersistRef.current = false;
       return;
     }
 
     persistTransactionFilters({ ...filters, sortBy, sortOrder });
-  }, [filters, sortBy, sortOrder, filtersHydrated]);
+  }, [filters, sortBy, sortOrder]);
   const [editingTransaction, setEditingTransaction] =
     React.useState<TransactionRow | null>(null);
   const [deletingTransaction, setDeletingTransaction] =
@@ -231,6 +268,13 @@ export function TransactionsTable() {
   const [notesTransaction, setNotesTransaction] =
     React.useState<TransactionRow | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
+  const [savePresetDialogOpen, setSavePresetDialogOpen] = React.useState(false);
+  const [editingPreset, setEditingPreset] = React.useState<PresetFilter | null>(
+    null,
+  );
+  const [openPresetChipId, setOpenPresetChipId] = React.useState<string | null>(
+    null,
+  );
   const { columnWidths, startResize } = useResizableColumns(
     DEFAULT_TRANSACTION_COLUMN_WIDTHS,
     TRANSACTION_TABLE_COLUMN_WIDTHS_STORAGE_KEY,
@@ -328,9 +372,41 @@ export function TransactionsTable() {
     queryFn: () => fetchTransactions(queryParams),
   });
 
+  const todayDate = format(new Date(), 'yyyy-MM-dd');
+  const { data: todayData } = useQuery({
+    queryKey: transactionKeys.list({
+      page: 1,
+      limit: 1,
+      startDate: todayDate,
+      endDate: todayDate,
+      type: TRANSACTION_FILTER_TYPE.DEBIT,
+    }),
+    queryFn: () =>
+      fetchTransactions({
+        page: 1,
+        limit: 1,
+        startDate: todayDate,
+        endDate: todayDate,
+        type: TRANSACTION_FILTER_TYPE.DEBIT,
+      }),
+    staleTime: 60_000,
+  });
+
+  const { data: presetFilters = [] } = useQuery({
+    queryKey: presetFilterKeys.list(),
+    queryFn: fetchPresetFilters,
+  });
+
   const rows = data?.data ?? [];
   const pagination = data?.pagination;
   const aggregate = data?.aggregate;
+  const spentToday = todayData?.aggregate.totalDebit ?? 0;
+
+  const applyPresetFilter = (preset: PresetFilter) => {
+    setFilters(presetToFilters(preset));
+    setPage(1);
+    setOpenPresetChipId(null);
+  };
 
   const handleSort = (field: TransactionSortField) => {
     setPage(1);
@@ -361,6 +437,12 @@ export function TransactionsTable() {
     filters.endDate !== '' ||
     sortBy !== TRANSACTION_SORT_FIELD.TRANSACTION_DATE ||
     sortOrder !== TRANSACTION_SORT_ORDER.DESC;
+
+  const hasSavableFilters =
+    filters.payee !== '' ||
+    filters.type !== '' ||
+    filters.startDate !== '' ||
+    filters.endDate !== '';
 
   return (
     <div className="flex flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-start">
@@ -446,11 +528,80 @@ export function TransactionsTable() {
             >
               Clear
             </Button>
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => setSavePresetDialogOpen(true)}
+              disabled={!hasSavableFilters}
+            >
+              Save filter
+            </Button>
+            {presetFilters.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {presetFilters.map((preset) => (
+                  <Popover
+                    key={preset.id}
+                    open={openPresetChipId === preset.id}
+                    onOpenChange={(open) =>
+                      setOpenPresetChipId(open ? preset.id : null)
+                    }
+                  >
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="max-w-full cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            'max-w-full truncate border font-medium transition-colors',
+                            presetChipColorClass(preset.id),
+                          )}
+                        >
+                          {preset.name}
+                        </Badge>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-40 p-2" align="start">
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="ghost"
+                          className="h-8 justify-start"
+                          onClick={() => applyPresetFilter(preset)}
+                        >
+                          Apply
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="h-8 justify-start"
+                          onClick={() => {
+                            setOpenPresetChipId(null);
+                            setEditingPreset(preset);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </aside>
 
-      <div className="order-3 min-w-0 flex-1 space-y-4 lg:order-none lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <div className="order-2 min-w-0 flex-1 space-y-4 lg:order-none lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+        {isLoading && !aggregate ? (
+          <TransactionsSummaryCardsSkeleton />
+        ) : aggregate ? (
+          <TransactionsSummaryCards
+            aggregate={aggregate}
+            startDate={debouncedFilters.startDate || null}
+            spentToday={spentToday}
+          />
+        ) : null}
+
         <TooltipProvider>
           <Table
             className="table-fixed table-surface-rows"
@@ -733,44 +884,25 @@ export function TransactionsTable() {
         ) : null}
       </div>
 
-      {aggregate ? (
-        <aside className="order-2 w-full min-w-0 shrink-0 lg:order-none lg:max-h-full lg:w-64 lg:overflow-x-hidden lg:overflow-y-auto xl:w-72">
-          <div
-            className={cn(
-              'space-y-4 rounded-lg border border-surface bg-card p-4 shadow-surface-sm backdrop-blur-surface',
-              REVEAL_UP_CLASS,
-            )}
-          >
-            <p className="text-sm font-medium">Summary</p>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Total debit</p>
-                <p className="text-xl font-semibold">
-                  <FormattedAmount value={aggregate.totalDebit} />
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total credit</p>
-                <p className="text-xl font-semibold">
-                  <FormattedAmount value={aggregate.totalCredit} />
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Investments made
-                </p>
-                <p className="text-xl font-semibold">
-                  <FormattedAmount value={aggregate.totalInvestment} />
-                </p>
-              </div>
-            </div>
-          </div>
-        </aside>
-      ) : null}
-
       <TransactionCreateDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
+      />
+
+      <PresetFilterSaveDialog
+        open={savePresetDialogOpen}
+        onOpenChange={setSavePresetDialogOpen}
+        filters={filters}
+      />
+
+      <PresetFilterEditDialog
+        open={editingPreset !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingPreset(null);
+          }
+        }}
+        preset={editingPreset}
       />
 
       <TransactionEditDialog

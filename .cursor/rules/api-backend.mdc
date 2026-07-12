@@ -8,12 +8,12 @@ alwaysApply: false
 
 ## Module Structure
 
-One NestJS module per domain: `auth/`, `sync/`, `gmail-messages/`, `transactions/`, `grpc/`, `messaging/`, `storage/`.
+One NestJS module per domain: `auth/`, `sync/`, `gmail-messages/`, `transactions/`, `preset-filters/`, `grpc/`, `messaging/`, `storage/`.
 
 ## Database Access
 
 - Use `PrismaService` wrapper — never import Prisma client directly in controllers/services.
-- Soft delete transactions via `isDeleted` flag, not hard delete.
+- Soft delete transactions and preset filters via `isDeleted` flag, not hard delete.
 
 ## REST API
 

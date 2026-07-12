@@ -1,3 +1,5 @@
+import type { TransactionFilterType, TransactionType } from '@repo/constant';
+
 export const ANALYTICS_GRANULARITY = {
   DAY: 'day',
   MONTH: 'month',
@@ -54,6 +56,16 @@ export interface AnalyticsBankBreakdown {
   total: number;
 }
 
+export interface AnalyticsTopTransaction {
+  id: string;
+  paymentMadeTo: string;
+  bankName: string;
+  transactionValue: number;
+  type: TransactionType;
+  isInvestment: boolean;
+  transactionDate: string;
+}
+
 export const ANALYTICS_INSIGHT_TYPE = {
   SPEND_INCREASE: 'spend_increase',
   SPEND_DECREASE: 'spend_decrease',
@@ -74,17 +86,20 @@ export interface AnalyticsInsight {
 
 export interface AnalyticsResponse {
   summary: AnalyticsSummary;
-  comparison: AnalyticsComparison;
+  comparison: AnalyticsComparison | null;
   trends: AnalyticsTrendPoint[];
   breakdown: {
     byPayee: AnalyticsPayeeBreakdown[];
     byBank: AnalyticsBankBreakdown[];
   };
   insights: AnalyticsInsight[];
+  topTransactions: AnalyticsTopTransaction[];
 }
 
 export interface FetchAnalyticsParams {
-  startDate: string;
-  endDate: string;
+  startDate?: string;
+  endDate?: string;
+  payee?: string;
+  type?: TransactionFilterType | string;
   granularity?: AnalyticsGranularity;
 }

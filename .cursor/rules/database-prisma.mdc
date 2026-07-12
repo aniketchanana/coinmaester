@@ -33,6 +33,9 @@ Migration naming: `YYYYMMDDHHMMSS_description` (e.g. `20260608120000_add_transac
 - `EmailSync` — on-demand Gmail sync jobs (`SyncStatus`)
 - `GmailMessage` — ingested message metadata + body path
 - `Transaction` — extracted or manual; soft delete via `isDeleted`
+- `PresetFilter` — named dashboard filter presets per user; soft delete via `isDeleted`; `dateRange` is JSONB `{ startDate?, endDate? }` only
+
+When dashboard filter facets change, update `PresetFilter` columns and migrate — see `.cursor/rules/preset-filters.mdc`.
 
 ## Enums
 

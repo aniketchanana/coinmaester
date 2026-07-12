@@ -12,6 +12,7 @@ import { MessagingModule } from './messaging/messaging.module';
 import { GmailMessagesModule } from './gmail-messages/gmail-messages.module';
 import { SyncModule } from './sync/sync.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { PresetFiltersModule } from './preset-filters/preset-filters.module';
 import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     AuthModule,
     SyncModule,
     TransactionsModule,
+    PresetFiltersModule,
     AnalyticsModule,
     GmailMessagesModule,
     GrpcModule,
