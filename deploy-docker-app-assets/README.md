@@ -15,7 +15,7 @@ Images pulled automatically:
 ## Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose v2)
-- [LM Studio](https://lmstudio.ai/) (or compatible) running on host port **1234** for email processing
+- Enough disk/RAM for the Hugging Face model used by the python-worker (default `microsoft/Phi-4-mini-instruct`)
 
 ## Run
 

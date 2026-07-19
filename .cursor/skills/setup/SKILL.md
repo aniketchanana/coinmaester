@@ -27,7 +27,7 @@ Run these steps in order. Stop and report if any step fails.
    - Required manual values: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
    - Generate secrets if placeholders are present:
      `openssl rand -base64 32` for `AUTH_SECRET` and `TOKEN_ENCRYPTION_KEY`
-   - LLM inference expects LM Studio (or compatible) at `ANTHROPIC_BASE_URL` (default `http://localhost:1234`)
+   - LLM inference loads a Hugging Face model in-process (default `HF_MODEL_ID=microsoft/Phi-4-mini-instruct`)
 
 4. **Run migrations**
 

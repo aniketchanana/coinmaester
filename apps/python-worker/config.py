@@ -26,15 +26,12 @@ class Settings(BaseSettings):
         default="ingested-emails",
         alias="EMAIL_STORAGE_DIR",
     )
-    anthropic_api_key: str = Field(default="lmstudio", alias="ANTHROPIC_API_KEY")
-    anthropic_base_url: str = Field(
-        default="http://localhost:1234",
-        alias="ANTHROPIC_BASE_URL",
+    hf_model_id: str = Field(
+        default="microsoft/Phi-4-mini-instruct",
+        alias="HF_MODEL_ID",
     )
-    anthropic_model: str = Field(
-        default="qwen/qwen2.5-CODER-14b",
-        alias="ANTHROPIC_MODEL",
-    )
+    hf_device: str = Field(default="auto", alias="HF_DEVICE")
+    hf_max_new_tokens: int = Field(default=1024, alias="HF_MAX_NEW_TOKENS")
 
 
 settings = Settings()

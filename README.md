@@ -21,7 +21,7 @@ pnpm docker:prod
 | API (direct)        | http://localhost:3001     |
 | RabbitMQ UI         | http://localhost:15672    |
 
-Container networking overrides are in `docker/compose.env`. Email bodies are bind-mounted from `./ingested-emails/`. LM Studio must be running on the host at port 1234 for email processing.
+Container networking overrides are in `docker/compose.env`. Email bodies are bind-mounted from `./ingested-emails/`. The python-worker loads a Hugging Face model in-process for email classification and extraction.
 
 ## Distribution (pre-built images)
 

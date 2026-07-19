@@ -42,7 +42,7 @@ for i in $(seq 1 30); do
     echo "  Google OAuth redirect URI must include:"
     echo "    http://localhost:3000/api/auth/google/callback"
     echo ""
-    echo "  LM Studio must be running on host port 1234 for email processing."
+    echo "  Python worker loads a Hugging Face model in-process for email processing."
     echo "  Logs: docker compose --profile prod logs -f"
     exit 0
   fi

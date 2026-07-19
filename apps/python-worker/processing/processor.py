@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-import anthropic
+from llm_inference import LlmError
 
 from processing.email_reader import EmailBodyReader
 from processing.llm_client import TransactionLlmClient
@@ -42,9 +42,9 @@ class MessageProcessor:
         try:
             transaction = self._llm_client.extract_transaction(claim.header, body)
             return ProcessingResult(transaction=transaction)
-        except anthropic.APIError as error:
+        except LlmError as error:
             return ProcessingResult(
-                failure_reason=f"Anthropic API error during extraction: {error}"
+                failure_reason=f"LLM error during extraction: {error}"
             )
         except Exception as error:
             return ProcessingResult(

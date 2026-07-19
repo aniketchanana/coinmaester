@@ -99,12 +99,9 @@ services:
     environment:
       RABBITMQ_URL: amqp://finance:finance@rabbitmq:5672
       GRPC_HOST: api-backend:50051
-      ANTHROPIC_BASE_URL: http://host.docker.internal:1234
       EMAIL_STORAGE_DIR: ingested-emails
     volumes:
       - *email-volume
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
     depends_on:
       api-backend:
         condition: service_healthy

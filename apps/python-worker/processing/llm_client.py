@@ -1,10 +1,9 @@
 import logging
 
-import anthropic
 from pydantic import ValidationError
 
 from config import settings
-from processing.llm_response import strip_channel_delimiter
+from llm_inference import LlmProvider, LlmProviderConfig, create_provider
 from processing.models import (
     ExtractedTransaction,
     LlmClassificationResponse,
@@ -48,59 +47,33 @@ def _to_extracted_transaction(parsed: LlmTransactionResponse) -> ExtractedTransa
     )
 
 
-def _text_from_response(response: anthropic.types.Message, *, step: str) -> str:
-    raw = "\n".join(
-        block.text for block in response.content if block.type == "text"
-    ).strip()
-    payload, was_stripped = strip_channel_delimiter(raw)
-    if was_stripped:
-        logger.info(
-            "LLM %s: stripped thinking prefix after <%s> (%d -> %d chars)",
-            step,
-            "channel|",
-            len(raw),
-            len(payload),
-        )
-    else:
-        logger.info(
-            "LLM %s: no <%s> delimiter — using response as-is (%d chars)",
-            step,
-            "channel|",
-            len(payload),
-        )
-    logger.info("LLM %s payload: %s", step, payload)
-    return payload
-
-
 class TransactionLlmClient:
-    def __init__(self) -> None:
-        self._client = anthropic.Anthropic(
-            api_key=settings.anthropic_api_key,
-            base_url=settings.anthropic_base_url,
+    def __init__(self, provider: LlmProvider | None = None) -> None:
+        self._provider = provider or create_provider(
+            LlmProviderConfig(
+                hf_model_id=settings.hf_model_id,
+                hf_device=settings.hf_device,
+                hf_max_new_tokens=settings.hf_max_new_tokens,
+            )
         )
 
     def classify_is_transaction_email(self, header: str) -> str:
-        logger.info('----SENDING HEADER-----')
+        logger.info("----SENDING HEADER-----")
         logger.info(header)
-        logger.info('----SENDING HEADER-----')
-        response = self._client.messages.create(
-            model=settings.anthropic_model,
-            max_tokens=1024,
-            system=CLASSIFY_SYSTEM_PROMPT,
+        logger.info("----SENDING HEADER-----")
+        text = self._provider.generate(
+            CLASSIFY_SYSTEM_PROMPT,
+            header,
+            max_tokens=settings.hf_max_new_tokens,
             temperature=0,
-            messages=[
-                {
-                    "role": "user",
-                    "content": header,
-                }
-            ],
-        )
-        return _text_from_response(response, step="classification")
+        ).strip()
+        logger.info("LLM classification payload: %s", text)
+        return text
 
     def extract_transaction(self, header: str, body: str) -> ExtractedTransaction:
-        logger.info('-----HEADER-----')
+        logger.info("-----HEADER-----")
         logger.info(header)
-        logger.info('-----HEADER-----')
+        logger.info("-----HEADER-----")
         try:
             classification = LlmClassificationResponse.model_validate_json(
                 self.classify_is_transaction_email(header)
@@ -120,19 +93,13 @@ class TransactionLlmClient:
             len(cleaned_body),
         )
 
-        response = self._client.messages.create(
-            model=settings.anthropic_model,
-            max_tokens=1024,
-            system=JSON_DATA_SYSTEM_PROMPT,
+        raw_text = self._provider.generate(
+            JSON_DATA_SYSTEM_PROMPT,
+            build_user_prompt(header, cleaned_body),
+            max_tokens=settings.hf_max_new_tokens,
             temperature=0,
-            messages=[
-                {
-                    "role": "user",
-                    "content": build_user_prompt(header, cleaned_body),
-                }
-            ],
-        )
-        raw_text = _text_from_response(response, step="extraction")
+        ).strip()
+        logger.info("LLM extraction payload: %s", raw_text)
 
         if not raw_text:
             logger.warning("LLM returned an empty extraction response")

@@ -8,7 +8,7 @@ pnpm + Turborepo monorepo for personal finance tracking from Gmail transaction e
 | ------ | -------------------- | ------------------------------------------------- |
 | Web    | `apps/web`           | Next.js 16, React 19, React Query, Tailwind v4    |
 | API    | `apps/api-backend`   | NestJS 11, REST (3001) + gRPC (50051)             |
-| Worker | `apps/python-worker` | Python 3.14, uv, RabbitMQ consumer, Anthropic LLM |
+| Worker | `apps/python-worker` | Python 3.14, uv, RabbitMQ consumer, Hugging Face LLM |
 
 ## Shared Packages
 
@@ -37,7 +37,7 @@ pnpm db:migrate
 pnpm dev                # all apps concurrently
 ```
 
-External dependency: LM Studio (or compatible) at `ANTHROPIC_BASE_URL` for LLM inference.
+External dependency: Hugging Face model weights (default `microsoft/Phi-4-mini-instruct`) loaded in-process by the python-worker via its local `llm_inference` module.
 
 ## Global Invariants
 

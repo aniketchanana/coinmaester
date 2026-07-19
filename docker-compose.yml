@@ -99,8 +99,6 @@ services:
       - docker/compose.env
     volumes:
       - *email-volume
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
     depends_on:
       api-backend:
         condition: service_healthy

@@ -22,9 +22,9 @@
     "GRPC_PORT",
     "GRPC_HOST",
     "GRPC_BIND_HOST",
-    "ANTHROPIC_API_KEY",
-    "ANTHROPIC_BASE_URL",
-    "ANTHROPIC_MODEL"
+    "HF_MODEL_ID",
+    "HF_DEVICE",
+    "HF_MAX_NEW_TOKENS"
   ],
   "tasks": {
     "build": {
