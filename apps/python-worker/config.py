@@ -13,10 +13,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    rabbitmq_url: str = Field(
-        default="amqp://finance:finance@localhost:5672",
-        alias="RABBITMQ_URL",
-    )
+    rabbitmq_url: str = Field(alias="RABBITMQ_URL")
     rabbitmq_queue: str = Field(
         default="gmail.messages.process",
         alias="RABBITMQ_QUEUE",

@@ -77,7 +77,7 @@ def _strip_html(body: str) -> str:
         parser.feed(body)
         parser.close()
     except Exception:
-        # Malformed markup: fall back to a crude tag strip so we still send text.
+        # Malformed markup: fall back to a simple tag strip so we still send text.
         return unescape(re.sub(r"<[^>]+>", " ", body))
     return parser.get_text()
 
@@ -119,8 +119,8 @@ def clean_email_body(body: str) -> str:
     The full message is preserved — it is never truncated mid-email.
 
     Safety: cleaning must never destroy a body that actually had content. If the
-    cleaned result loses all meaningful text, we progressively fall back to a crude
-    tag strip and finally to the raw body so the LLM always gets *something*.
+    cleaned result loses all meaningful text, we progressively fall back to a simple
+    tag strip and finally to the raw body so the LLM still receives usable text.
     """
     if not body:
         return ""
@@ -131,7 +131,9 @@ def clean_email_body(body: str) -> str:
 
     # Don't trust an empty/markup-only result when the source clearly had text.
     if not _has_meaningful_text(text) and _has_meaningful_text(body):
-        crude = _collapse_whitespace(_shorten_urls(unescape(re.sub(r"<[^>]+>", " ", body))))
-        text = crude if _has_meaningful_text(crude) else body.strip()
+        stripped = _collapse_whitespace(
+            _shorten_urls(unescape(re.sub(r"<[^>]+>", " ", body)))
+        )
+        text = stripped if _has_meaningful_text(stripped) else body.strip()
 
     return text
