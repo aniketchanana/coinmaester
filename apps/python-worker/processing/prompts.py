@@ -124,7 +124,7 @@ If the email is NOT a transaction, set `isTransactionEmail` to false and every o
 "bankName": "string | null", // HDFC, ICICI, SBI, Scapia, federal, DCB, Niyo Global account from which the transaction happened etc.
 "transactionValue": "positive number | null",   // absolute amount, never signed (e.g., 1500.50)
 "type": "DEBIT | CREDIT",                        // DEBIT when money leaves, CREDIT when it enters
-"transactionDate": "Date | null",               // valid JavaScript date date format DD/MM/YYYY or DD-MM-YYYY
+"transactionDate": "Date | null",               // valid JavaScript date & date format is YYYY-MM-DD
 "paymentMadeTo": "string | null",                // payee / merchant / sender
 "isTransactionEmail": "boolean"
 }}
