@@ -4,6 +4,15 @@ Personal finance tracking from Gmail transaction emails. Sync inbox messages, cl
 
 This is a **pnpm + Turborepo** monorepo: Next.js web app, NestJS API, and a Python worker that runs the LLM **on the host** (not in Docker).
 
+## Documentation
+
+| Guide | Open this when you want to… |
+| ----- | --------------------------- |
+| [Architecture](docs/architecture.md) | Understand the email → LLM → Postgres pipeline, host worker vs Docker, apps and packages |
+| [Self-hosting](docs/self-hosting.md) | Run the product for yourself: Docker web/API + host LLM worker, OAuth URIs, networking |
+| [Local development](docs/development.md) | Set up a fork for day-to-day coding (`pnpm docker:dev` + `pnpm dev`), ports, conventions |
+| [Contributing](CONTRIBUTING.md) | Learn PR workflow, coding conventions, and what to run before opening a PR |
+
 ## Architecture
 
 ```
@@ -12,9 +21,7 @@ Gmail API → api-backend (ingest) → body on disk (EMAIL_STORAGE_DIR)
          → LLM classify + extract → gRPC CompleteProcessing → Postgres
 ```
 
-The Python worker never writes to Postgres directly. All persistence goes through gRPC to the API.
-
-More detail: [docs/architecture.md](docs/architecture.md)
+The Python worker never writes to Postgres directly. All persistence goes through gRPC to the API. See [Architecture](docs/architecture.md) for the full pipeline and storage/auth details.
 
 ## Tech stack
 
@@ -59,7 +66,7 @@ cd apps/python-worker && uv sync && cd ../..
 pnpm worker            # required for email classification
 ```
 
-Full steps, OAuth URIs, and ports: [docs/self-hosting.md](docs/self-hosting.md)
+Full steps, OAuth URIs, and ports: [Self-hosting](docs/self-hosting.md)
 
 ## Develop / contribute
 
@@ -72,8 +79,8 @@ cd apps/python-worker && uv sync && cd ../..
 pnpm dev               # web, API, worker via Turborepo
 ```
 
-- Local development guide: [docs/development.md](docs/development.md)
-- Contribution guidelines: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Day-to-day setup and ports: [Local development](docs/development.md)
+- PR workflow and conventions: [Contributing](CONTRIBUTING.md)
 
 ## Scripts cheat sheet
 
