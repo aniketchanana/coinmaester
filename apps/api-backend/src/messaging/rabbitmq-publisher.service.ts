@@ -13,7 +13,11 @@ export class RabbitMqPublisherService implements OnModuleInit, OnModuleDestroy {
   private channel: Channel | null = null;
 
   private get rabbitMqUrl(): string {
-    return process.env.RABBITMQ_URL ?? 'amqp://finance:finance@localhost:5672';
+    const url = process.env.RABBITMQ_URL?.trim();
+    if (!url) {
+      throw new Error('RABBITMQ_URL environment variable is required');
+    }
+    return url;
   }
 
   private get queueName(): string {

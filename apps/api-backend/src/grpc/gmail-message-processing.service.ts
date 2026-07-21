@@ -215,9 +215,6 @@ export class GmailMessageProcessingService {
   ): { type: TransactionType; date: Date } | null {
     const type = this.tryParseTransactionType(transaction.type);
     const date = this.tryParseTransactionDate(transaction.transactionDate);
-    console.log('-------');
-    console.log(type, date);
-    console.log('-------');
     if (!type || !date) {
       return null;
     }
