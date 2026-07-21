@@ -58,27 +58,21 @@ class TransactionLlmClient:
         )
 
     def classify_is_transaction_email(self, header: str) -> str:
-        logger.info("----SENDING HEADER-----")
-        logger.info(header)
-        logger.info("----SENDING HEADER-----")
         text = self._provider.generate(
             CLASSIFY_SYSTEM_PROMPT,
             header,
             max_tokens=settings.hf_max_new_tokens,
             temperature=0,
         ).strip()
-        logger.info("LLM classification payload: %s", text)
+        logger.debug("LLM classification payload: %s", text)
         return text
 
     def extract_transaction(self, header: str, body: str) -> ExtractedTransaction:
-        logger.info("-----HEADER-----")
-        logger.info(header)
-        logger.info("-----HEADER-----")
         try:
             classification = LlmClassificationResponse.model_validate_json(
                 self.classify_is_transaction_email(header)
             )
-            logger.info("Classification result: %s", classification)
+            logger.debug("Classification result: %s", classification)
         except (ValidationError, ValueError) as error:
             logger.warning("Failed to parse classification response: %s", error)
             return empty_transaction()
@@ -99,7 +93,7 @@ class TransactionLlmClient:
             max_tokens=settings.hf_max_new_tokens,
             temperature=0,
         ).strip()
-        logger.info("LLM extraction payload: %s", raw_text)
+        logger.debug("LLM extraction payload: %s", raw_text)
 
         if not raw_text:
             logger.warning("LLM returned an empty extraction response")
@@ -107,7 +101,7 @@ class TransactionLlmClient:
 
         try:
             parsed_raw_text = LlmTransactionResponse.model_validate_json(raw_text)
-            logger.info("Extraction result: %s", parsed_raw_text)
+            logger.debug("Extraction result: %s", parsed_raw_text)
         except (ValidationError, ValueError) as error:
             logger.warning("Failed to parse extraction response: %s", error)
             return empty_transaction()

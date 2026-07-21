@@ -170,6 +170,7 @@ class GmailMessageConsumer:
             and transaction.is_transaction_email
             and transaction.transaction_value > 0
         ):
+            logger.info("=====> Transaction: %s", transaction)
             logger.info(
                 "Completed Gmail message %s with transaction",
                 gmail_message_id,
