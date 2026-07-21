@@ -1,8 +1,5 @@
 x-email-volume: &email-volume ./ingested-emails:/app/ingested-emails
 
-# Local development compose. App services use `build:` (requires repo source).
-# To share with others (GHCR pull-only, no code): copy `.env` into `deploy-docker-app-assets/` and zip that folder.
-
 services:
   postgres:
     image: postgres:16
@@ -46,9 +43,10 @@ services:
     restart: unless-stopped
     ports:
       - '3001:3001'
+      - '50051:50051'
     env_file:
       - .env
-      - docker/compose.env
+      - compose.env
     volumes:
       - *email-volume
     depends_on:
@@ -62,7 +60,7 @@ services:
           'CMD',
           'node',
           '-e',
-          "fetch('http://localhost:3001/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://localhost:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
@@ -86,23 +84,6 @@ services:
       API_INTERNAL_URL: http://api-backend:3001
     depends_on:
       api-backend:
-        condition: service_healthy
-
-  python-worker:
-    profiles: [prod]
-    build:
-      context: .
-      dockerfile: apps/python-worker/Dockerfile
-    restart: unless-stopped
-    env_file:
-      - .env
-      - docker/compose.env
-    volumes:
-      - *email-volume
-    depends_on:
-      api-backend:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
 
 volumes:

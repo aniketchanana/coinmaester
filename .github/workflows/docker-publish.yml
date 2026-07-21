@@ -34,9 +34,6 @@ jobs:
           - service: api-backend
             dockerfile: apps/api-backend/Dockerfile
             image: finance-app-api-backend
-          - service: python-worker
-            dockerfile: apps/python-worker/Dockerfile
-            image: finance-app-python-worker
 
     steps:
       - name: Checkout
@@ -84,7 +81,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for pkg in finance-app-web finance-app-api-backend finance-app-python-worker; do
+          for pkg in finance-app-web finance-app-api-backend; do
             echo "Setting ${pkg} visibility to public..."
             gh api \
               --method PATCH \
