@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+set -e
+
+# Install Husky git hooks (sets core.hooksPath to .husky/_).
+# Silent on success by default — print a short confirmation for contributors.
+husky
+
+hooks_path=$(git config core.hooksPath 2>/dev/null || true)
+if [ -z "$hooks_path" ]; then
+  echo "✖ Husky did not set core.hooksPath. Are you inside a git repo?"
+  exit 1
+fi
+
+echo "✔ Git hooks installed (core.hooksPath=${hooks_path})."
+echo "  On commit, .husky/pre-commit will run: pnpm lint && pnpm test"

@@ -61,7 +61,7 @@ type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
 const POLL_INTERVAL_MS = 10_000;
 
 const EMAIL_SYNC_TABLE_PAGE_SIZE_STORAGE_KEY =
-  'finance-app:email-sync-table-page-size';
+  'coinmaester:email-sync-table-page-size';
 
 function readStoredPageSize(): PageSize | null {
   try {
@@ -411,7 +411,7 @@ export function EmailSyncTable() {
                         No emails found
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Synced emails will appear here once Gmail sync runs.
+                        Synced emails will appear here once email sync runs.
                       </p>
                     </div>
                   </TableCell>

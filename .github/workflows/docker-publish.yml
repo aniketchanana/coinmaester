@@ -27,16 +27,13 @@ jobs:
         include:
           - service: web
             dockerfile: apps/web/Dockerfile
-            image: finance-app-web
+            image: coinmaester-web
             build_args: |
               API_INTERNAL_URL=http://api-backend:3001
               NEXT_PUBLIC_API_URL=/api
           - service: api-backend
             dockerfile: apps/api-backend/Dockerfile
-            image: finance-app-api-backend
-          - service: python-worker
-            dockerfile: apps/python-worker/Dockerfile
-            image: finance-app-python-worker
+            image: coinmaester-api-backend
 
     steps:
       - name: Checkout
@@ -84,7 +81,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for pkg in finance-app-web finance-app-api-backend finance-app-python-worker; do
+          for pkg in coinmaester-web coinmaester-api-backend; do
             echo "Setting ${pkg} visibility to public..."
             gh api \
               --method PATCH \

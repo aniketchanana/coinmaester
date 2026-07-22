@@ -14,11 +14,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/email-sync');
 
   if (isProtectedRoute && !token) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  if (pathname === '/login' && token) {
-    return NextResponse.redirect(new URL('/transactions', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
@@ -30,6 +26,5 @@ export const config = {
     '/transactions/:path*',
     '/analytics/:path*',
     '/email-sync/:path*',
-    '/login',
   ],
 };

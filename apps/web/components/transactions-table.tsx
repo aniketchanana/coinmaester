@@ -127,10 +127,10 @@ const DEFAULT_TRANSACTION_COLUMN_WIDTHS: Record<
 };
 
 const TRANSACTION_TABLE_COLUMN_WIDTHS_STORAGE_KEY =
-  'finance-app:transactions-table-column-widths';
+  'coinmaester:transactions-table-column-widths';
 
 const TRANSACTIONS_TABLE_PAGE_SIZE_STORAGE_KEY =
-  'finance-app:transactions-table-page-size';
+  'coinmaester:transactions-table-page-size';
 
 function readStoredPageSize(): PageSize | null {
   try {

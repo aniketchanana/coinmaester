@@ -1,13 +1,13 @@
-# Finance App — Agent Context
+# Coinmaester — Agent Context
 
-pnpm + Turborepo monorepo for personal finance tracking from Gmail transaction emails.
+pnpm + Turborepo monorepo for personal finance tracking from transaction emails.
 
 ## Apps
 
-| App    | Path                 | Stack                                             |
+| App | Path | Stack |
 | ------ | -------------------- | ------------------------------------------------- |
-| Web    | `apps/web`           | Next.js 16, React 19, React Query, Tailwind v4    |
-| API    | `apps/api-backend`   | NestJS 11, REST (3001) + gRPC (50051)             |
+| Web | `apps/web` | Next.js 16, React 19, React Query, Tailwind v4 |
+| API | `apps/api-backend` | NestJS 11, REST (3001) + gRPC (50051) |
 | Worker | `apps/python-worker` | Python 3.14, uv, RabbitMQ consumer, Hugging Face LLM |
 
 ## Shared Packages
@@ -21,21 +21,24 @@ pnpm + Turborepo monorepo for personal finance tracking from Gmail transaction e
 ## Email Processing Pipeline
 
 ```
-Gmail API → api-backend (ingest) → body on disk (EMAIL_STORAGE_DIR)
-         → RabbitMQ { gmailMessageId } → python-worker
+Email inbox → api-backend (ingest) → body on disk (EMAIL_STORAGE_DIR)
+         → RabbitMQ { gmailMessageId } → python-worker (host)
          → LLM classify + extract → gRPC CompleteProcessing → Postgres
 ```
 
-The Python worker **never** writes to Postgres directly. All persistence goes through gRPC to `apps/api-backend`.
+The Python worker **never** writes to Postgres directly. All persistence goes through gRPC to `apps/api-backend`. The worker is **not** run in Docker (LLM needs host CPU); use `pnpm worker` or `pnpm dev`.
 
 ## Dev Workflow
 
 ```bash
-pnpm docker:up          # Postgres 16 + RabbitMQ
+pnpm docker:dev         # Postgres 16 + RabbitMQ
 cp .env.example .env    # configure Google OAuth + secrets
 pnpm db:migrate
-pnpm dev                # all apps concurrently
+pnpm dev                # all apps concurrently (includes worker)
+# or: pnpm worker       # python-worker alone (e.g. with docker:prod)
 ```
+
+`pnpm docker:prod` starts web + API + infra in Docker and prints a reminder to run `pnpm worker` on the host. Container networking overrides live in root `compose.env`.
 
 External dependency: Hugging Face model weights (default `microsoft/Phi-4-mini-instruct`) loaded in-process by the python-worker via its local `llm_inference` module.
 

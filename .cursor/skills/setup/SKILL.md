@@ -17,7 +17,7 @@ Run these steps in order. Stop and report if any step fails.
 2. **Start infrastructure** (Postgres 16 + RabbitMQ)
 
    ```bash
-   pnpm docker:up
+   pnpm docker:dev
    ```
 
    Verify both containers are healthy with `docker compose ps`.
@@ -28,6 +28,7 @@ Run these steps in order. Stop and report if any step fails.
    - Generate secrets if placeholders are present:
      `openssl rand -base64 32` for `AUTH_SECRET` and `TOKEN_ENCRYPTION_KEY`
    - LLM inference loads a Hugging Face model in-process (default `HF_MODEL_ID=microsoft/Phi-4-mini-instruct`)
+   - The python-worker runs on the host only (`pnpm worker` or via `pnpm dev`), not in Docker
 
 4. **Run migrations**
 
@@ -48,3 +49,5 @@ Run these steps in order. Stop and report if any step fails.
    ```
 
    Expected: web on :3000, API on :3001, gRPC on :50051, worker consuming RabbitMQ.
+
+   To start only the worker (e.g. after `pnpm docker:prod`): `pnpm worker`.

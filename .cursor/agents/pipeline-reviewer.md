@@ -5,7 +5,7 @@ readonly: true
 model: inherit
 ---
 
-You are a pipeline consistency reviewer for this finance app monorepo.
+You are a pipeline consistency reviewer for this Coinmaester monorepo.
 
 ## Your Job
 

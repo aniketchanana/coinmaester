@@ -6,7 +6,6 @@ import { cn } from '@repo/ui/lib/utils';
 import { computeAvgDailySpend } from '../lib/analytics-avg-daily-spend';
 import { formatTransactionAmount } from '../lib/currency';
 import type { ComparePresetSeries } from './analytics-compare-bars';
-import { FormattedAmount } from './formatted-amount';
 import { useIncognito } from './incognito-provider';
 
 interface AnalyticsCompareMetricsProps {
@@ -106,7 +105,12 @@ export function AnalyticsCompareMetrics({
     a: number | null,
     b: number | null,
   ): { text: string; positive: boolean | null } => {
-    if (a === null || b === null || !Number.isFinite(a) || !Number.isFinite(b)) {
+    if (
+      a === null ||
+      b === null ||
+      !Number.isFinite(a) ||
+      !Number.isFinite(b)
+    ) {
       return { text: '—', positive: null };
     }
 
@@ -141,7 +145,10 @@ export function AnalyticsCompareMetrics({
               <tr className="border-b border-surface text-left text-muted-foreground">
                 <th className="py-2 pr-4 font-medium">Metric</th>
                 {series.map((item) => (
-                  <th key={item.id} className="px-4 py-2 text-right font-medium">
+                  <th
+                    key={item.id}
+                    className="px-4 py-2 text-right font-medium"
+                  >
                     <span className="inline-flex items-center gap-1.5">
                       <span
                         className="size-2.5 rounded-full"

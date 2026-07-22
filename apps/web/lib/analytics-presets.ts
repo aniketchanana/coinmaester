@@ -3,7 +3,7 @@ import { presetToFilters } from './preset-filters';
 import type { FetchAnalyticsParams } from '../types/analytics';
 import { ANALYTICS_GRANULARITY } from '../types/analytics';
 
-const STORAGE_KEY = 'finance-app:analytics-selected-presets';
+const STORAGE_KEY = 'coinmaester:analytics-selected-presets';
 
 export function presetToAnalyticsParams(
   preset: PresetFilter | null,

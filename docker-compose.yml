@@ -1,7 +1,8 @@
-x-email-volume: &email-volume ./ingested-emails:/app/ingested-emails
+# Pin the project name so renaming the folder/package does not create
+# orphan empty volumes (Docker Compose defaults project name to the directory).
+name: coinmaester
 
-# Local development compose. App services use `build:` (requires repo source).
-# To share with others (GHCR pull-only, no code): copy `.env` into `deploy-docker-app-assets/` and zip that folder.
+x-email-volume: &email-volume ./ingested-emails:/app/ingested-emails
 
 services:
   postgres:
@@ -12,11 +13,11 @@ services:
     environment:
       POSTGRES_USER: finance
       POSTGRES_PASSWORD: finance
-      POSTGRES_DB: finance_app
+      POSTGRES_DB: coinmaester
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U finance -d finance_app']
+      test: ['CMD-SHELL', 'pg_isready -U finance -d coinmaester']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -46,9 +47,10 @@ services:
     restart: unless-stopped
     ports:
       - '3001:3001'
+      - '50051:50051'
     env_file:
       - .env
-      - docker/compose.env
+      - compose.env
     volumes:
       - *email-volume
     depends_on:
@@ -62,7 +64,7 @@ services:
           'CMD',
           'node',
           '-e',
-          "fetch('http://localhost:3001/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://localhost:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
@@ -86,23 +88,6 @@ services:
       API_INTERNAL_URL: http://api-backend:3001
     depends_on:
       api-backend:
-        condition: service_healthy
-
-  python-worker:
-    profiles: [prod]
-    build:
-      context: .
-      dockerfile: apps/python-worker/Dockerfile
-    restart: unless-stopped
-    env_file:
-      - .env
-      - docker/compose.env
-    volumes:
-      - *email-volume
-    depends_on:
-      api-backend:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
 
 volumes:
