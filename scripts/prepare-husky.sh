@@ -1,6 +1,12 @@
 #!/usr/bin/env sh
 set -e
 
+# Skip outside local git checkouts (Docker/CI installs, turbo prune, etc.).
+# Husky also honors HUSKY=0 to disable hook installation.
+if [ "${HUSKY:-}" = "0" ] || [ ! -d .git ]; then
+  exit 0
+fi
+
 # Install Husky git hooks (sets core.hooksPath to .husky/_).
 # Silent on success by default — print a short confirmation for contributors.
 husky

@@ -19,7 +19,7 @@
     "db:migrate": "pnpm --filter @repo/database db:migrate",
     "db:studio": "pnpm --filter @repo/database db:studio",
     "proto:generate": "pnpm --filter @repo/proto generate",
-    "prepare": "bash scripts/prepare-husky.sh"
+    "prepare": "sh -c 'if [ \"${HUSKY:-}\" = \"0\" ] || [ ! -d .git ]; then exit 0; fi; exec sh scripts/prepare-husky.sh'"
   },
   "devDependencies": {
     "husky": "^9.1.7",
