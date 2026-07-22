@@ -1,5 +1,5 @@
 const SPONSOR_EMAIL = 'aniket.chanana@gmail.com';
-const WHATSAPP_NUMBER = '919588195330';
+const WHATSAPP_USERNAME = 'aniketchanana';
 
 const SPONSOR_SUBJECT = 'Coinmaester - interested in supporting or collaborating';
 
@@ -24,7 +24,7 @@ export const SPONSOR_MAILTO = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&t
 export const SPONSOR_MAILTO_NATIVE = `mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(SPONSOR_SUBJECT)}&body=${encodeURIComponent(SPONSOR_BODY)}`;
 
 /** Opens WhatsApp with a polite support / collaboration message prefilled. */
-export const SPONSOR_WHATSAPP = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_BODY)}`;
+export const SPONSOR_WHATSAPP = `https://wa.me/${WHATSAPP_USERNAME}?text=${encodeURIComponent(WHATSAPP_BODY)}`;
 
 export const CREATOR = {
   name: 'Aniket Chanana',
@@ -33,8 +33,10 @@ export const CREATOR = {
   github: 'https://github.com/aniketchanana',
   site: 'https://aniketchanana.com',
   linkedin: 'https://www.linkedin.com/in/aniket-chanana-470471147/',
-  whatsappDisplay: '+91-9588195330',
+  whatsappDisplay: '@aniketchanana',
   whatsapp: SPONSOR_WHATSAPP,
+  cal: 'https://cal.com/aniket-chanana-ixamrr',
+  calDisplay: 'Schedule a call',
   handle: '@aniketchanana',
 } as const;
 
