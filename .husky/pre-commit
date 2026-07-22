@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+echo ""
+echo "▶ Pre-commit: running lint and tests…"
+echo ""
+
+if ! pnpm lint; then
+  echo ""
+  echo "✖ Lint failed. Fix the reported issues, then commit again."
+  echo "  Tip: run \`pnpm lint\` locally to reproduce."
+  exit 1
+fi
+
+if ! pnpm test; then
+  echo ""
+  echo "✖ Tests failed. Fix the failing tests, then commit again."
+  echo "  Tip: run \`pnpm test\` locally to reproduce."
+  exit 1
+fi
+
+echo ""
+echo "✔ Pre-commit checks passed."
+echo ""

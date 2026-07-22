@@ -81,11 +81,15 @@ http://localhost:3001/auth/google/callback
 | Command | Purpose |
 | ------- | ------- |
 | `pnpm lint` | Lint the monorepo |
+| `pnpm test` | Run package unit tests (via Turborepo) |
+| `pnpm precommit` | Same checks as the git pre-commit hook (`lint` + `test`) |
 | `pnpm format` | Prettier write |
 | `pnpm check-types` | Typecheck |
 | `pnpm db:studio` | Prisma Studio |
 | `pnpm proto:generate` | Regenerate Python gRPC stubs after proto edits |
 | `pnpm docker:down` | Stop infra containers |
+
+Git **pre-commit** hooks (Husky) run `pnpm lint` and `pnpm test` on every commit and block the commit if either fails. See [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Conventions
 

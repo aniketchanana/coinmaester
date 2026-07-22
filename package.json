@@ -5,9 +5,12 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check-types": "turbo run check-types",
+    "test": "turbo run test",
+    "precommit": "pnpm lint && pnpm test",
     "docker:dev": "docker compose up -d",
     "docker:down": "docker compose --profile prod down",
     "docker:prod": "bash scripts/docker-prod.sh",
@@ -16,9 +19,10 @@
     "db:migrate": "pnpm --filter @repo/database db:migrate",
     "db:studio": "pnpm --filter @repo/database db:studio",
     "proto:generate": "pnpm --filter @repo/proto generate",
-    "seed:dummy-sync": "node seed-dummy-sync.mjs"
+    "prepare": "bash scripts/prepare-husky.sh"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "prettier": "^3.7.4",
     "turbo": "^2.9.16",
     "typescript": "5.9.2"

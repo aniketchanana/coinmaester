@@ -34,8 +34,14 @@
     "lint": {
       "dependsOn": ["^lint"]
     },
+    "lint:fix": {
+      "cache": false
+    },
     "check-types": {
       "dependsOn": ["^check-types"]
+    },
+    "test": {
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md"]
     },
     "dev": {
       "dependsOn": ["@repo/database#build", "@repo/constant#build"],

@@ -18,6 +18,26 @@ Thanks for contributing to Coinmaester. This guide covers how to set up a develo
 
 3. Create a branch from `main` for your change.
 
+## Pre-commit hooks
+
+After `pnpm install`, [Husky](https://typicode.github.io/husky/) installs a git **pre-commit** hook. Every commit runs:
+
+```bash
+pnpm lint   # ESLint across packages that define a lint script
+pnpm test   # Jest (and any other package test scripts) via Turborepo
+```
+
+If either step fails, the commit is **blocked**. Fix the reported issues and commit again.
+
+To run the same checks manually (without committing):
+
+```bash
+pnpm precommit
+```
+
+> [!NOTE]
+> Hooks install via the root `prepare` script on `pnpm install`. If git hooks are missing (e.g. after cloning without install), run `pnpm install` or `pnpm prepare`.
+
 ## Development workflow
 
 - **Package manager:** pnpm only. Do not add npm/yarn lockfiles.
@@ -34,8 +54,9 @@ Thanks for contributing to Coinmaester. This guide covers how to set up a develo
 
 ## Before you open a PR
 
+Pre-commit already enforces lint and tests. Before opening a PR, also run:
+
 ```bash
-pnpm lint
 pnpm format
 pnpm check-types
 ```
