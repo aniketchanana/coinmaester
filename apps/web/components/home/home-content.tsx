@@ -3,6 +3,7 @@ import {
   ArrowUpRight,
   BookOpen,
   Boxes,
+  Calendar,
   Code2,
   Cpu,
   GitPullRequest,
@@ -363,7 +364,7 @@ export function HomeContent({ user }: HomeContentProps) {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <a
                   href={CREATOR.linkedin}
                   target="_blank"
@@ -415,6 +416,24 @@ export function HomeContent({ user }: HomeContentProps) {
                     </span>
                     <span className="block truncate text-sm font-medium">
                       {CREATOR.whatsappDisplay}
+                    </span>
+                  </span>
+                </a>
+                <a
+                  href={CREATOR.cal}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 border-2 border-border bg-background px-3 py-2.5 shadow-(--shadow-surface-sm) transition-transform hover:-translate-y-0.5 hover:shadow-(--shadow-surface)"
+                >
+                  <span className="flex size-9 shrink-0 items-center justify-center border-2 border-border bg-secondary">
+                    <Calendar className="size-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-xs text-muted-foreground">
+                      Cal.com
+                    </span>
+                    <span className="block truncate text-sm font-medium">
+                      {CREATOR.calDisplay}
                     </span>
                   </span>
                 </a>
