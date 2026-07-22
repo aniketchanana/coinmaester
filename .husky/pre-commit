@@ -1,6 +1,15 @@
 #!/usr/bin/env sh
 
 echo ""
+echo "▶ Pre-commit: checking branch name…"
+echo ""
+
+if ! sh scripts/check-branch-name.sh; then
+  exit 1
+fi
+
+echo "✔ Branch name OK."
+echo ""
 echo "▶ Pre-commit: running lint and tests…"
 echo ""
 

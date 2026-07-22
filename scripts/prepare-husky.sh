@@ -18,4 +18,4 @@ if [ -z "$hooks_path" ]; then
 fi
 
 echo "✔ Git hooks installed (core.hooksPath=${hooks_path})."
-echo "  On commit, .husky/pre-commit will run: pnpm lint && pnpm test"
+echo "  On commit, .husky/pre-commit will: check branch name, then pnpm lint && pnpm test"

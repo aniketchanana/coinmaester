@@ -16,18 +16,27 @@ Thanks for contributing to Coinmaester. This guide covers how to set up a develo
    pnpm dev
    ```
 
-3. Create a branch from `main` for your change.
+3. Create a branch from `main` for your change. Branch names must use one of these prefixes:
+
+   | Prefix | Use for |
+   | ------ | ------- |
+   | `feat/` | New features |
+   | `fix/` | Bug fixes |
+   | `chore/` | Maintenance, docs, tooling |
+
+   Examples: `feat/email-sync-filters`, `fix/login-redirect`, `chore/husky-hooks`.
 
 ## Pre-commit hooks
 
 After `pnpm install`, [Husky](https://typicode.github.io/husky/) installs a git **pre-commit** hook. Every commit runs:
 
 ```bash
-pnpm lint   # ESLint across packages that define a lint script
-pnpm test   # Jest (and any other package test scripts) via Turborepo
+pnpm check-branch-name   # branch must be main or feat|fix|chore/<slug>
+pnpm lint                # ESLint across packages that define a lint script
+pnpm test                # Jest (and any other package test scripts) via Turborepo
 ```
 
-If either step fails, the commit is **blocked**. Fix the reported issues and commit again.
+If any step fails, the commit is **blocked**. Fix the reported issues (or rename the branch) and commit again.
 
 To run the same checks manually (without committing):
 
