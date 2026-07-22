@@ -2,9 +2,9 @@
 
 # Coinmaester
 
-**Personal finance tracking from transaction emails.**
+**AI-powered personal finance tracking from transaction emails.**
 
-Sync inbox messages, classify them with a local Hugging Face model, extract amounts and merchants, and explore spending in a web UI.
+Sync your inbox, let a local AI model classify messages and extract amounts and merchants, then explore spending in a web UI — all on your machine.
 
 <br />
 
@@ -37,14 +37,14 @@ Sync inbox messages, classify them with a local Hugging Face model, extract amou
 
 </div>
 
-This is a **pnpm + Turborepo** monorepo: Next.js web app, NestJS API, and a Python worker that runs the LLM **on the host** (not in Docker).
+This is a **pnpm + Turborepo** monorepo: Next.js web app, NestJS API, and a Python worker that runs the AI model **on the host** (not in Docker).
 
 ## Why self-hosted (and not a free online app)?
 
 Coinmaester is intentionally local-first:
 
-1. **Privacy** — Transaction emails are sensitive. Classification runs on your machine so you keep control of that data instead of sending finance mail to a third-party cloud for inference.
-2. **Sustainable open source** — An always-on hosted stack (API, database, queue, and especially LLM inference) has real infrastructure cost. Rather than gate the product behind a paid SaaS, the project ships as open source you can self-host today.
+1. **Privacy** — Transaction emails are sensitive. AI classification runs on your machine so you keep control of that data instead of sending finance mail to a third-party cloud for inference.
+2. **Sustainable open source** — An always-on hosted stack (API, database, queue, and especially AI inference) has real infrastructure cost. Rather than gate the product behind a paid SaaS, the project ships as open source you can self-host today.
 
 If you'd like to **collaborate**, contribute ideas, or help make a future hosted option sustainable, reach out via the [Sponsor](https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=aniket.chanana%40gmail.com&su=Coinmaester%20-%20interested%20in%20supporting%20or%20collaborating&body=Hi%20Aniket%2C%0A%0AI%20came%20across%20Coinmaester%20and%20really%20like%20what%20you%27ve%20built.%20I%27d%20like%20to%20connect%20and%20explore%20ways%20to%20support%20the%20project%20-%20whether%20that%27s%20funding%2C%20collaboration%2C%20or%20helping%20with%20hosting%20so%20a%20shared%20online%20option%20could%20become%20viable%20someday.%0A%0ALooking%20forward%20to%20hearing%20from%20you.%0A%0ABest%20regards) button — a short email is enough to start the conversation.
 

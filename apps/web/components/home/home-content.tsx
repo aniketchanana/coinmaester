@@ -70,9 +70,9 @@ const STEPS: {
     icon: Mail,
   },
   {
-    title: 'Classify locally',
+    title: 'AI classify locally',
     description:
-      'A host-run Hugging Face model labels messages and extracts amounts, merchants, and types — nothing leaves your machine for inference.',
+      'A host-run AI model (Hugging Face) labels messages and extracts amounts, merchants, and types — nothing leaves your machine for inference.',
     icon: Cpu,
   },
   {
@@ -85,7 +85,7 @@ const STEPS: {
 
 const PIPELINE = [
   { label: 'Email', icon: Mail },
-  { label: 'Local LLM', icon: Cpu },
+  { label: 'Local AI', icon: Cpu },
   { label: 'Spending', icon: LineChart },
 ] as const;
 
@@ -93,13 +93,13 @@ const WHY_LOCAL = [
   {
     title: 'Your data stays yours',
     description:
-      'Transaction emails are sensitive. Coinmaester is designed so classification runs on your machine — you keep control instead of uploading finance mail to a third-party cloud for inference.',
+      'Transaction emails are sensitive. Coinmaester is designed so AI classification runs on your machine — you keep control instead of uploading finance mail to a third-party cloud for inference.',
     icon: Lock,
   },
   {
     title: 'Built to run where you are',
     description:
-      'An always-on hosted stack (API, database, queue, and especially LLM inference) has real infrastructure cost. Rather than gate the product behind a paid SaaS, it ships as open source you can self-host today.',
+      'An always-on hosted stack (API, database, queue, and especially AI inference) has real infrastructure cost. Rather than gate the product behind a paid SaaS, it ships as open source you can self-host today.',
     icon: Server,
   },
 ] as const;
@@ -123,8 +123,8 @@ export function HomeContent({ user }: HomeContentProps) {
           >
             <p className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium tracking-wide text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
-                <Github className="size-3.5" />
-                Open source · Self-hosted
+                <Sparkles className="size-3.5" />
+                AI-powered · Open source · Self-hosted
               </span>
               <span aria-hidden className="text-border">
                 ·
@@ -135,7 +135,6 @@ export function HomeContent({ user }: HomeContentProps) {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 underline-offset-4 hover:text-foreground hover:underline"
               >
-                <Sparkles className="size-3.5" />
                 by {CREATOR.shortName}
               </a>
             </p>
@@ -143,9 +142,9 @@ export function HomeContent({ user }: HomeContentProps) {
               Coinmaester
             </h1>
             <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Personal finance tracking from transaction emails. Sync your
-              inbox, classify with a local model, and explore spending in a
-              simple web UI.
+              An AI-powered finance tracker for transaction emails. Sync your
+              inbox, let a local model classify and extract spending details,
+              and explore everything in a simple web UI.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               {user ? (
@@ -222,8 +221,8 @@ export function HomeContent({ user }: HomeContentProps) {
               How it works
             </h2>
             <p className="mt-2 max-w-2xl text-muted-foreground">
-              Email in, structured transactions out — with the LLM worker
-              running on your host, not in Docker.
+              Email in, structured transactions out — local AI does the
+              classification on your host, not in Docker.
             </p>
           </div>
           <ol className="mt-8 grid gap-6 sm:grid-cols-3 sm:gap-5">

@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: '%s · Coinmaester',
   },
   description:
-    'Open-source personal finance tracking from transaction emails.',
+    'Open-source AI-powered finance tracker for transaction emails.',
 };
 
 export default function RootLayout({
