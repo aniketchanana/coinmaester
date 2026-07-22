@@ -23,9 +23,30 @@ Sync inbox messages, classify them with a local Hugging Face model, extract amou
 ![Hugging Face](https://img.shields.io/badge/Hugging_Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
 ![Tailwind](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
+<br />
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-Email_Aniket-EA4AAA?style=for-the-badge&logo=maildotru&logoColor=white)](https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=aniket.chanana%40gmail.com&su=Coinmaester%20-%20interested%20in%20supporting%20or%20collaborating&body=Hi%20Aniket%2C%0A%0AI%20came%20across%20Coinmaester%20and%20really%20like%20what%20you%27ve%20built.%20I%27d%20like%20to%20connect%20and%20explore%20ways%20to%20support%20the%20project%20-%20whether%20that%27s%20funding%2C%20collaboration%2C%20or%20helping%20with%20hosting%20so%20a%20shared%20online%20option%20could%20become%20viable%20someday.%0A%0ALooking%20forward%20to%20hearing%20from%20you.%0A%0ABest%20regards)
+[![GitHub](https://img.shields.io/badge/GitHub-aniketchanana-181717?style=for-the-badge&logo=github)](https://github.com/aniketchanana)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Aniket_Chanana-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/aniket-chanana-470471147/)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-+91_9588195330-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://wa.me/919588195330?text=Hi%20Aniket%2C%20I%20came%20across%20Coinmaester%20and%20really%20like%20what%20you%27ve%20built.%20I%27d%20like%20to%20connect%20and%20explore%20ways%20to%20support%20the%20project%20%E2%80%94%20funding%2C%20collaboration%2C%20or%20helping%20with%20hosting.%20Looking%20forward%20to%20hearing%20from%20you.)
+[![Website](https://img.shields.io/badge/Website-aniketchanana.github.io-111111?style=for-the-badge&logo=googlechrome&logoColor=white)](https://aniketchanana.github.io)
+
+<p align="center">
+  Built independently by <a href="https://aniketchanana.github.io"><strong>Aniket Chanana</strong></a>
+</p>
+
 </div>
 
 This is a **pnpm + Turborepo** monorepo: Next.js web app, NestJS API, and a Python worker that runs the LLM **on the host** (not in Docker).
+
+## Why self-hosted (and not a free online app)?
+
+Coinmaester is intentionally local-first:
+
+1. **Privacy** — Transaction emails are sensitive. Classification runs on your machine so you keep control of that data instead of sending finance mail to a third-party cloud for inference.
+2. **Sustainable open source** — An always-on hosted stack (API, database, queue, and especially LLM inference) has real infrastructure cost. Rather than gate the product behind a paid SaaS, the project ships as open source you can self-host today.
+
+If you'd like to **collaborate**, contribute ideas, or help make a future hosted option sustainable, reach out via the [Sponsor](https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=aniket.chanana%40gmail.com&su=Coinmaester%20-%20interested%20in%20supporting%20or%20collaborating&body=Hi%20Aniket%2C%0A%0AI%20came%20across%20Coinmaester%20and%20really%20like%20what%20you%27ve%20built.%20I%27d%20like%20to%20connect%20and%20explore%20ways%20to%20support%20the%20project%20-%20whether%20that%27s%20funding%2C%20collaboration%2C%20or%20helping%20with%20hosting%20so%20a%20shared%20online%20option%20could%20become%20viable%20someday.%0A%0ALooking%20forward%20to%20hearing%20from%20you.%0A%0ABest%20regards) button — a short email is enough to start the conversation.
 
 ## Documentation
 
@@ -150,3 +171,17 @@ Single root `.env` is shared by all apps. Copy from [`.env.example`](.env.exampl
 For `docker:prod`, container networking overrides live in [`compose.env`](compose.env) (Docker DNS hostnames for Postgres, RabbitMQ, and gRPC). The host-run worker keeps using localhost values from `.env`.
 
 Email bodies are stored under `EMAIL_STORAGE_DIR` (default `./ingested-emails/`). That directory is bind-mounted into the API container so the host worker and containerized API share the same files.
+
+## Support & collaborate
+
+Coinmaester is built and maintained by [Aniket Chanana](https://aniketchanana.github.io) ([@aniketchanana](https://github.com/aniketchanana)).
+
+If the project helps you — and you want to fund development, partner on features, or help underwrite hosting for a shared online option someday — reach out on any channel below:
+
+| Channel | Link |
+| ------- | ---- |
+| **Email** (prefilled) | [aniket.chanana@gmail.com](https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=aniket.chanana%40gmail.com&su=Coinmaester%20-%20interested%20in%20supporting%20or%20collaborating&body=Hi%20Aniket%2C%0A%0AI%20came%20across%20Coinmaester%20and%20really%20like%20what%20you%27ve%20built.%20I%27d%20like%20to%20connect%20and%20explore%20ways%20to%20support%20the%20project%20-%20whether%20that%27s%20funding%2C%20collaboration%2C%20or%20helping%20with%20hosting%20so%20a%20shared%20online%20option%20could%20become%20viable%20someday.%0A%0ALooking%20forward%20to%20hearing%20from%20you.%0A%0ABest%20regards) |
+| **LinkedIn** | [aniket-chanana-470471147](https://www.linkedin.com/in/aniket-chanana-470471147/) |
+| **WhatsApp** (prefilled) | [+91-9588195330](https://wa.me/919588195330?text=Hi%20Aniket%2C%20I%20came%20across%20Coinmaester%20and%20really%20like%20what%20you%27ve%20built.%20I%27d%20like%20to%20connect%20and%20explore%20ways%20to%20support%20the%20project%20%E2%80%94%20funding%2C%20collaboration%2C%20or%20helping%20with%20hosting.%20Looking%20forward%20to%20hearing%20from%20you.) |
+| **GitHub** | [@aniketchanana](https://github.com/aniketchanana) |
+| **Website** | [aniketchanana.github.io](https://aniketchanana.github.io) |

@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import { Heart } from 'lucide-react';
 
 import { Button } from '@repo/ui/button';
 
 import type { SessionUser } from '../../lib/auth';
+import { SPONSOR_MAILTO } from '../../lib/creator';
 import { ThemeToggle } from '../theme-toggle';
 import { UserNav } from '../user-nav';
 
@@ -21,6 +23,16 @@ export function HomeHeader({ user }: HomeHeaderProps) {
           Coinmaester
         </Link>
         <div className="flex shrink-0 items-center gap-2">
+          <Button asChild variant="ghost" size="sm">
+            <a
+              href={SPONSOR_MAILTO}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Heart className="size-4" />
+              Sponsor
+            </a>
+          </Button>
           <ThemeToggle />
           {user ? (
             <>
