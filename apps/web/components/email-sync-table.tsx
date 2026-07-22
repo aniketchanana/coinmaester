@@ -411,7 +411,7 @@ export function EmailSyncTable() {
                         No emails found
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Synced emails will appear here once Gmail sync runs.
+                        Synced emails will appear here once email sync runs.
                       </p>
                     </div>
                   </TableCell>

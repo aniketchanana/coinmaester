@@ -64,9 +64,9 @@ const STEPS: {
   icon: LucideIcon;
 }[] = [
   {
-    title: 'Sync Gmail',
+    title: 'Sync email',
     description:
-      'Connect Google and pull transaction emails. Message bodies stay on disk; only paths live in the database.',
+      'Connect your inbox and pull transaction emails. Message bodies stay on disk; only paths live in the database.',
     icon: Mail,
   },
   {
@@ -84,7 +84,7 @@ const STEPS: {
 ];
 
 const PIPELINE = [
-  { label: 'Gmail', icon: Mail },
+  { label: 'Email', icon: Mail },
   { label: 'Local LLM', icon: Cpu },
   { label: 'Spending', icon: LineChart },
 ] as const;
@@ -143,7 +143,7 @@ export function HomeContent({ user }: HomeContentProps) {
               Coinmaester
             </h1>
             <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Personal finance tracking from Gmail transaction emails. Sync your
+              Personal finance tracking from transaction emails. Sync your
               inbox, classify with a local model, and explore spending in a
               simple web UI.
             </p>
@@ -222,7 +222,7 @@ export function HomeContent({ user }: HomeContentProps) {
               How it works
             </h2>
             <p className="mt-2 max-w-2xl text-muted-foreground">
-              Gmail in, structured transactions out — with the LLM worker
+              Email in, structured transactions out — with the LLM worker
               running on your host, not in Docker.
             </p>
           </div>

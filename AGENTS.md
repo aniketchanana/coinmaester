@@ -1,6 +1,6 @@
 # Coinmaester — Agent Context
 
-pnpm + Turborepo monorepo for personal finance tracking from Gmail transaction emails.
+pnpm + Turborepo monorepo for personal finance tracking from transaction emails.
 
 ## Apps
 
@@ -21,7 +21,7 @@ pnpm + Turborepo monorepo for personal finance tracking from Gmail transaction e
 ## Email Processing Pipeline
 
 ```
-Gmail API → api-backend (ingest) → body on disk (EMAIL_STORAGE_DIR)
+Email inbox → api-backend (ingest) → body on disk (EMAIL_STORAGE_DIR)
          → RabbitMQ { gmailMessageId } → python-worker (host)
          → LLM classify + extract → gRPC CompleteProcessing → Postgres
 ```

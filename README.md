@@ -2,7 +2,7 @@
 
 # Coinmaester
 
-**Personal finance tracking from Gmail transaction emails.**
+**Personal finance tracking from transaction emails.**
 
 Sync inbox messages, classify them with a local Hugging Face model, extract amounts and merchants, and explore spending in a web UI.
 
@@ -29,10 +29,10 @@ Sync inbox messages, classify them with a local Hugging Face model, extract amou
 [![GitHub](https://img.shields.io/badge/GitHub-aniketchanana-181717?style=for-the-badge&logo=github)](https://github.com/aniketchanana)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Aniket_Chanana-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/aniket-chanana-470471147/)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-+91_9588195330-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://wa.me/919588195330?text=Hi%20Aniket%2C%20I%20came%20across%20Coinmaester%20and%20really%20like%20what%20you%27ve%20built.%20I%27d%20like%20to%20connect%20and%20explore%20ways%20to%20support%20the%20project%20%E2%80%94%20funding%2C%20collaboration%2C%20or%20helping%20with%20hosting.%20Looking%20forward%20to%20hearing%20from%20you.)
-[![Website](https://img.shields.io/badge/Website-aniketchanana.github.io-111111?style=for-the-badge&logo=googlechrome&logoColor=white)](https://aniketchanana.github.io)
+[![Website](https://img.shields.io/badge/Website-aniketchanana.com-111111?style=for-the-badge&logo=googlechrome&logoColor=white)](https://aniketchanana.com)
 
 <p align="center">
-  Built independently by <a href="https://aniketchanana.github.io"><strong>Aniket Chanana</strong></a>
+  Built independently by <a href="https://aniketchanana.com"><strong>Aniket Chanana</strong></a>
 </p>
 
 </div>
@@ -63,7 +63,7 @@ Pick a guide based on what you're trying to do:
 
 ```mermaid
 flowchart LR
-    gmail([Gmail API]) --> api[api-backend<br/>ingest]
+    email([Email inbox]) --> api[api-backend<br/>ingest]
     api --> disk[(body on disk<br/>EMAIL_STORAGE_DIR)]
     api --> mq{{RabbitMQ<br/>gmailMessageId}}
     mq --> worker[python-worker<br/>host]
@@ -71,7 +71,7 @@ flowchart LR
     llm -- gRPC CompleteProcessing --> api
     api --> pg[(Postgres)]
 
-    style gmail fill:#EA4335,color:#fff,stroke:#EA4335
+    style email fill:#EA4335,color:#fff,stroke:#EA4335
     style api fill:#E0234E,color:#fff,stroke:#E0234E
     style disk fill:#6B7280,color:#fff,stroke:#6B7280
     style mq fill:#FF6600,color:#fff,stroke:#FF6600
@@ -106,7 +106,7 @@ Install these before running the app:
 | **Docker** | With Compose ([install](https://docs.docker.com/get-docker/)) | Postgres 16 + RabbitMQ (`docker:dev`); also web + API for `docker:prod` |
 | **Python** | 3.14+ | Runtime for `apps/python-worker` |
 | **uv** | Latest ([install](https://docs.astral.sh/uv/)) | Installs and runs the Python worker deps |
-| **Google Cloud OAuth client** | [Console](https://console.cloud.google.com/) | Sign-in + Gmail API access |
+| **Google Cloud OAuth client** | [Console](https://console.cloud.google.com/) | Sign-in + email inbox access |
 
 > [!NOTE]
 > First worker start downloads Hugging Face model weights (default `microsoft/Phi-4-mini-instruct`) — needs disk space and a capable CPU (or GPU if you set `HF_DEVICE`). The LLM worker always runs on the **host**, not inside Docker.
@@ -174,7 +174,7 @@ Email bodies are stored under `EMAIL_STORAGE_DIR` (default `./ingested-emails/`)
 
 ## Support & collaborate
 
-Coinmaester is built and maintained by [Aniket Chanana](https://aniketchanana.github.io) ([@aniketchanana](https://github.com/aniketchanana)).
+Coinmaester is built and maintained by [Aniket Chanana](https://aniketchanana.com) ([@aniketchanana](https://github.com/aniketchanana)).
 
 If the project helps you — and you want to fund development, partner on features, or help underwrite hosting for a shared online option someday — reach out on any channel below:
 
@@ -184,4 +184,4 @@ If the project helps you — and you want to fund development, partner on featur
 | **LinkedIn** | [aniket-chanana-470471147](https://www.linkedin.com/in/aniket-chanana-470471147/) |
 | **WhatsApp** (prefilled) | [+91-9588195330](https://wa.me/919588195330?text=Hi%20Aniket%2C%20I%20came%20across%20Coinmaester%20and%20really%20like%20what%20you%27ve%20built.%20I%27d%20like%20to%20connect%20and%20explore%20ways%20to%20support%20the%20project%20%E2%80%94%20funding%2C%20collaboration%2C%20or%20helping%20with%20hosting.%20Looking%20forward%20to%20hearing%20from%20you.) |
 | **GitHub** | [@aniketchanana](https://github.com/aniketchanana) |
-| **Website** | [aniketchanana.github.io](https://aniketchanana.github.io) |
+| **Website** | [aniketchanana.com](https://aniketchanana.com) |

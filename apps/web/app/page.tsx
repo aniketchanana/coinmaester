@@ -6,21 +6,21 @@ import { getCurrentUser } from '../lib/auth';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Coinmaester — Personal finance from Gmail',
+    absolute: 'Coinmaester — Personal finance from email',
   },
   description:
-    'Open-source personal finance tracking from Gmail transaction emails. Sync inbox messages, classify them with a local Hugging Face model, and explore spending in a web UI.',
+    'Open-source personal finance tracking from transaction emails. Sync inbox messages, classify them with a local Hugging Face model, and explore spending in a web UI.',
   openGraph: {
-    title: 'Coinmaester — Personal finance from Gmail',
+    title: 'Coinmaester — Personal finance from email',
     description:
-      'Sync Gmail, classify locally with Hugging Face, and explore spending. Open source and self-hosted.',
+      'Sync email, classify locally with Hugging Face, and explore spending. Open source and self-hosted.',
     type: 'website',
   },
   twitter: {
     card: 'summary',
-    title: 'Coinmaester — Personal finance from Gmail',
+    title: 'Coinmaester — Personal finance from email',
     description:
-      'Open-source personal finance tracking from Gmail transaction emails.',
+      'Open-source personal finance tracking from transaction emails.',
   },
 };
 

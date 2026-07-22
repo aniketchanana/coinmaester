@@ -15,7 +15,7 @@ Best regards`;
 const WHATSAPP_BODY = `Hi Aniket, I came across Coinmaester and really like what you've built. I'd like to connect and explore ways to support the project - funding, collaboration, or helping with hosting. Looking forward to hearing from you.`;
 
 /**
- * Opens Gmail compose in the browser with subject/body prefilled.
+ * Opens email compose in the browser with subject/body prefilled.
  * More reliable than mailto: when no desktop mail client is configured.
  */
 export const SPONSOR_MAILTO = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=${encodeURIComponent(SPONSOR_EMAIL)}&su=${encodeURIComponent(SPONSOR_SUBJECT)}&body=${encodeURIComponent(SPONSOR_BODY)}`;
@@ -31,7 +31,7 @@ export const CREATOR = {
   shortName: 'Aniket',
   email: SPONSOR_EMAIL,
   github: 'https://github.com/aniketchanana',
-  site: 'https://aniketchanana.github.io',
+  site: 'https://aniketchanana.com',
   linkedin: 'https://www.linkedin.com/in/aniket-chanana-470471147/',
   whatsappDisplay: '+91-9588195330',
   whatsapp: SPONSOR_WHATSAPP,

@@ -1,11 +1,11 @@
 # Architecture
 
-Coinmaester turns Gmail bank/transaction emails into structured spending data.
+Coinmaester turns bank/transaction emails into structured spending data.
 
 ## Pipeline
 
 ```
-Gmail API
+Email inbox
   → api-backend (OAuth sync / ingest)
   → message headers in Postgres (`gmailMessages`)
   → email body on disk (`EMAIL_STORAGE_DIR`, default `ingested-emails/`)
@@ -31,7 +31,7 @@ In hybrid `docker:prod` mode:
 | App | Path | Role |
 | --- | ---- | ---- |
 | Web | `apps/web` | Dashboard, auth UI, analytics. Next.js 16, React 19, React Query, Tailwind v4 |
-| API | `apps/api-backend` | Google OAuth, Gmail sync, REST for the UI, gRPC for the worker. NestJS 11 |
+| API | `apps/api-backend` | Google OAuth, email sync, REST for the UI, gRPC for the worker. NestJS 11 |
 | Worker | `apps/python-worker` | RabbitMQ consumer, LLM classify/extract. Python 3.14 + uv |
 
 ## Shared packages
