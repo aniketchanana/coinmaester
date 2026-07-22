@@ -2,7 +2,7 @@
 set -e
 
 echo "Waiting for Postgres..."
-until pg_isready -h postgres -U finance -d finance_app >/dev/null 2>&1; do
+until pg_isready -h postgres -U finance -d coinmaester >/dev/null 2>&1; do
   sleep 2
 done
 echo "Postgres is ready."

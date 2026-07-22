@@ -1,3 +1,7 @@
+# Pin the project name so renaming the folder/package does not create
+# orphan empty volumes (Docker Compose defaults project name to the directory).
+name: coinmaester
+
 x-email-volume: &email-volume ./ingested-emails:/app/ingested-emails
 
 services:
@@ -9,11 +13,11 @@ services:
     environment:
       POSTGRES_USER: finance
       POSTGRES_PASSWORD: finance
-      POSTGRES_DB: finance_app
+      POSTGRES_DB: coinmaester
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U finance -d finance_app']
+      test: ['CMD-SHELL', 'pg_isready -U finance -d coinmaester']
       interval: 5s
       timeout: 5s
       retries: 5

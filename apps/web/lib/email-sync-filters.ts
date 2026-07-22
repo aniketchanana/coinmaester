@@ -2,7 +2,7 @@ import { JOB_STATUS } from '@repo/constant/job-status';
 
 import type { GmailMessageStatusFilter } from '../types/gmail-message';
 
-export const EMAIL_SYNC_FILTERS_STORAGE_KEY = 'finance-app:email-sync-filters';
+export const EMAIL_SYNC_FILTERS_STORAGE_KEY = 'coinmaester:email-sync-filters';
 
 const DEFAULT_STATUS_FILTER: GmailMessageStatusFilter = 'ALL';
 

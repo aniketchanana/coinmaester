@@ -1,4 +1,4 @@
-export const INCOGNITO_STORAGE_KEY = 'finance-app:incognito-enabled';
+export const INCOGNITO_STORAGE_KEY = 'coinmaester:incognito-enabled';
 
 export const MASKED_PAYEE_LABEL = '••••••••';
 

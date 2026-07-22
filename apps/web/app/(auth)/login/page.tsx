@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-md animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 fill-mode-both shadow-md duration-500 motion-reduce:animate-none">
       <CardHeader className="space-y-2 text-center">
-        <CardTitle className="text-2xl">Finance App</CardTitle>
+        <CardTitle className="text-2xl">Coinmaester</CardTitle>
         <CardDescription>
           Sign in to automatically track transactions from your email.
         </CardDescription>

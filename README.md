@@ -1,6 +1,6 @@
 <div align="center">
 
-# Finance App
+# Coinmaester
 
 **Personal finance tracking from Gmail transaction emails.**
 

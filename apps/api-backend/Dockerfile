@@ -15,7 +15,7 @@ COPY --from=pruner /app/out/full/ .
 
 ENV NODE_ENV=production
 # Prisma generate reads DATABASE_URL from prisma.config.ts at build time (no DB connection needed).
-ENV DATABASE_URL=postgresql://finance:finance@postgres:5432/finance_app?schema=public
+ENV DATABASE_URL=postgresql://finance:finance@postgres:5432/coinmaester?schema=public
 RUN pnpm turbo build --filter=api-backend
 
 FROM base AS runner

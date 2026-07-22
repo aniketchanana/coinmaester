@@ -8,7 +8,7 @@ import {
 } from '../types/transaction';
 
 export const TRANSACTION_FILTERS_STORAGE_KEY =
-  'finance-app:transaction-filters';
+  'coinmaester:transaction-filters';
 
 export interface TransactionFiltersPreference {
   startDate: string;

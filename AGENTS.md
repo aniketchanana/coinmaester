@@ -1,4 +1,4 @@
-# Finance App — Agent Context
+# Coinmaester — Agent Context
 
 pnpm + Turborepo monorepo for personal finance tracking from Gmail transaction emails.
 

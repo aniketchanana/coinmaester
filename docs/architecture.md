@@ -1,6 +1,6 @@
 # Architecture
 
-Finance App turns Gmail bank/transaction emails into structured spending data.
+Coinmaester turns Gmail bank/transaction emails into structured spending data.
 
 ## Pipeline
 

@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to Finance App. This guide covers how to set up a development environment and how we expect changes to land.
+Thanks for contributing to Coinmaester. This guide covers how to set up a development environment and how we expect changes to land.
 
 ## Getting started
 

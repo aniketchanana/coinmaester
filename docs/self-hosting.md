@@ -9,8 +9,8 @@ Run the product for your own use: web and API in Docker, LLM worker on the host.
 1. **Clone and configure**
 
    ```bash
-   git clone https://github.com/aniketchanana/finance-app.git
-   cd finance-app
+   git clone https://github.com/aniketchanana/coinmaester.git
+   cd coinmaester
    cp .env.example .env
    ```
 
@@ -82,8 +82,8 @@ pnpm docker:down
 
 On pushes to `main`, CI publishes:
 
-- `ghcr.io/aniketchanana/finance-app-web:latest`
-- `ghcr.io/aniketchanana/finance-app-api-backend:latest`
+- `ghcr.io/aniketchanana/coinmaester-web:latest`
+- `ghcr.io/aniketchanana/coinmaester-api-backend:latest`
 
 There is **no** published python-worker image. Full email processing always requires a host worker with model weights available locally.
 

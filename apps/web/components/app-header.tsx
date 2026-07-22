@@ -16,7 +16,7 @@ export function AppHeader({ name = 'User', email, image }: AppHeaderProps) {
       <div className="flex h-16 w-full items-center justify-between gap-4 px-3">
         <div className="flex min-w-0 items-center gap-6">
           <span className="shrink-0 text-lg font-semibold tracking-tight">
-            Finance App
+            Coinmaester
           </span>
           <AppNav />
         </div>

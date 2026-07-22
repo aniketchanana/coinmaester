@@ -1,5 +1,5 @@
 {
-  "name": "finance-app",
+  "name": "coinmaester",
   "private": true,
   "scripts": {
     "build": "turbo run build",

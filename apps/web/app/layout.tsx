@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Finance App',
+  title: 'Coinmaester',
   description: 'AI-powered personal finance tracker',
 };
 
