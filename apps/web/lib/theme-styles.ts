@@ -1,6 +1,10 @@
 export const THEME_STYLE_STORAGE_KEY = 'theme-style';
 
-export const DEFAULT_THEME_STYLE = 'default' as const;
+/** Applied when the user has no stored preference. */
+export const DEFAULT_THEME_STYLE = 'brutalist' as const;
+
+/** Base ShadCN tokens — no `data-style` attribute on `<html>`. */
+const BASE_THEME_STYLE = 'default' as const;
 
 export const THEME_STYLE_IDS = [
   'default',
@@ -33,7 +37,7 @@ export function readStoredThemeStyle(): ThemeStyle {
 export function applyThemeStyle(style: ThemeStyle) {
   const root = document.documentElement;
 
-  if (style === DEFAULT_THEME_STYLE) {
+  if (style === BASE_THEME_STYLE) {
     root.removeAttribute('data-style');
     return;
   }
@@ -49,4 +53,4 @@ export function persistThemeStyle(style: ThemeStyle) {
   }
 }
 
-export const THEME_STYLE_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('${THEME_STYLE_STORAGE_KEY}');var valid=${JSON.stringify(THEME_STYLE_IDS)};if(s&&valid.indexOf(s)!==-1&&s!=='${DEFAULT_THEME_STYLE}'){document.documentElement.setAttribute('data-style',s);}}catch(e){}})();`;
+export const THEME_STYLE_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('${THEME_STYLE_STORAGE_KEY}');var valid=${JSON.stringify(THEME_STYLE_IDS)};var style=(s&&valid.indexOf(s)!==-1)?s:'${DEFAULT_THEME_STYLE}';if(style==='${BASE_THEME_STYLE}'){document.documentElement.removeAttribute('data-style');}else{document.documentElement.setAttribute('data-style',style);}}catch(e){document.documentElement.setAttribute('data-style','${DEFAULT_THEME_STYLE}');}})();`;

@@ -24,12 +24,16 @@ export function ThemeStyleProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [style, setStyleState] =
-    React.useState<ThemeStyle>(DEFAULT_THEME_STYLE);
+  // Start from storage on the client so SSR/hydration does not briefly pin the
+  // wrong style, and so OAuth full-page reloads re-apply the DOM attribute.
+  const [style, setStyleState] = React.useState<ThemeStyle>(() =>
+    typeof window === 'undefined' ? DEFAULT_THEME_STYLE : readStoredThemeStyle(),
+  );
 
-  React.useEffect(() => {
-    // DOM attribute is already applied by the inline init script in layout.
-    setStyleState(readStoredThemeStyle());
+  React.useLayoutEffect(() => {
+    const stored = readStoredThemeStyle();
+    setStyleState(stored);
+    applyThemeStyle(stored);
   }, []);
 
   const setStyle = React.useCallback((next: ThemeStyle) => {

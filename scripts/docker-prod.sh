@@ -28,7 +28,7 @@ docker compose --profile prod up --build -d --force-recreate
 
 echo "[4/4] Waiting for services to become reachable..."
 for i in $(seq 1 30); do
-  if curl -sf http://127.0.0.1:3000/login >/dev/null 2>&1 && \
+  if curl -sf http://127.0.0.1:3000/ >/dev/null 2>&1 && \
      curl -sf http://127.0.0.1:3000/api/health >/dev/null 2>&1 && \
      curl -sf http://127.0.0.1:3001/health >/dev/null 2>&1; then
     echo ""

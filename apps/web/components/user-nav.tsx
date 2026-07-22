@@ -37,7 +37,7 @@ export function UserNav({ name = 'User', email, image }: UserNavProps) {
     // The cookie is issued by the API, so the API must clear it
     // (matching domain/path attributes).
     await apiPost('/auth/logout');
-    router.push('/login');
+    router.push('/');
     router.refresh();
   }
 

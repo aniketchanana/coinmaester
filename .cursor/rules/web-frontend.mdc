@@ -8,8 +8,8 @@ alwaysApply: false
 
 ## App Router
 
-- Route groups: `(auth)/` for public pages, `(app)/` for protected shell (dashboard, transactions, email-sync).
-- Middleware protects `/dashboard`, `/transactions`, `/email-sync` via `access_token` cookie.
+- Public marketing homepage at `/` (auth-aware CTAs). `(app)/` for protected shell (dashboard, transactions, email-sync).
+- Middleware protects `/dashboard`, `/transactions`, `/analytics`, `/email-sync` via `access_token` cookie; unauthenticated users redirect to `/`.
 - Server Components for layout auth (`getCurrentUser()`); Client Components for interactive UI.
 
 ## Data Fetching
@@ -35,4 +35,4 @@ async function createTransaction(formData: FormData) { 'use server'; ... }
 
 ## Auth Flow
 
-Google OAuth → api-backend callback sets httpOnly `access_token` cookie (never pass the JWT in a URL) → redirect to `WEB_URL/transactions` → axios sends credentials on subsequent requests. Logout goes through the API (`POST /auth/logout`) so the cookie is cleared with matching attributes (`COOKIE_DOMAIN` in production).
+Google OAuth (from `/` via `/api/auth/google`) → api-backend callback sets httpOnly `access_token` cookie (never pass the JWT in a URL) → redirect to `WEB_URL/transactions` → axios sends credentials on subsequent requests. Logout goes through the API (`POST /auth/logout`) so the cookie is cleared with matching attributes (`COOKIE_DOMAIN` in production), then returns to `/`.
