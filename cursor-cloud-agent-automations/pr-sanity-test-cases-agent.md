@@ -23,13 +23,12 @@ Treat the PR as **already covered** only if the description contains a dedicated
 - `## Manual test plan`
 - `## QA checklist`
 
-and that section has at least **2** GitHub task items (`- [ ]` / `- [x]`) that are specific to this change (not empty placeholders like “test everything”).
+and that section has GitHub task items (`- [ ]` / `- [x]`) that are specific to this change (not empty placeholders like “test everything”).
 
 If such a section exists and is specific enough:
 
 - Do **not** rewrite the whole description.
 - Optionally improve only if items are vague: append 1–3 sharper missing checks under the same section, without removing author content.
-- Leave a short PR comment: `Sanity test cases already present; no description update needed.` (or briefly note what you appended)
 - Stop.
 
 If missing, empty, or only generic fluff:
@@ -64,6 +63,7 @@ Preserve the entire existing PR body. Append (or insert after Summary if that st
 
 ```markdown
 ## Sanity Test Cases
+
 > Merger checklist: complete every item before merging. Check the box only after you personally verified it.
 
 - [ ] <specific check 1>
@@ -87,12 +87,7 @@ Update the PR description in place (`gh pr edit <number> --body-file …` or equ
 
 # Output / communication
 
-1. Update the PR description as specified.
-2. Post one short PR comment summarizing:
-   - Whether you added or skipped
-   - Count of sanity items
-   - Highest-risk area you want the merger to focus on (1 sentence)
-3. Do not spam follow-up comments on re-runs; if re-triggered and section already good, comment once that it’s already present and exit.
+Update the PR description as specified.
 
 # Quality bar
 
@@ -110,9 +105,9 @@ Think like the person about to merge: what would make you confident this is safe
 
 ## How to wire it in Cursor Automations
 
-| Setting | Value |
-|--------|--------|
-| **Name** | PR Sanity Test Cases |
-| **Trigger** | Pull request opened |
-| **Tools** | GitHub / shell (`gh`) so the agent can read the PR and edit the body |
+| Setting          | Value                                                                     |
+| ---------------- | ------------------------------------------------------------------------- |
+| **Name**         | PR Sanity Test Cases                                                      |
+| **Trigger**      | Pull request opened                                                       |
+| **Tools**        | GitHub / shell (`gh`) so the agent can read the PR and edit the body      |
 | **Instructions** | Paste everything above the wiring table into the Cloud Agent instructions |
