@@ -9,8 +9,10 @@ import { FormattedAmount } from './formatted-amount';
 
 interface AnalyticsKpisProps {
   summary: AnalyticsSummary;
-  /** Period start (yyyy-MM-dd). Avg daily spend = totalDebit / (today − startDate). */
+  /** Period start (yyyy-MM-dd). */
   startDate?: string | null;
+  /** Period end (yyyy-MM-dd). Avg daily = totalDebit / days in range. */
+  endDate?: string | null;
 }
 
 function percentLabel(value: number | null): string {
@@ -21,12 +23,20 @@ function percentLabel(value: number | null): string {
   return `${value.toFixed(1)}%`;
 }
 
-export function AnalyticsKpis({ summary, startDate }: AnalyticsKpisProps) {
+export function AnalyticsKpis({
+  summary,
+  startDate,
+  endDate,
+}: AnalyticsKpisProps) {
   const creditToInvestment =
     summary.totalCredit > 0
       ? (summary.totalInvestment / summary.totalCredit) * 100
       : null;
-  const avgDailySpend = computeAvgDailySpend(summary.totalDebit, startDate);
+  const avgDailySpend = computeAvgDailySpend(
+    summary.totalDebit,
+    startDate,
+    endDate,
+  );
 
   const cards = [
     {
@@ -99,7 +109,7 @@ export function AnalyticsKpisSkeleton() {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="h-[88px] animate-pulse rounded-lg border border-surface bg-muted/40"
+          className="h-22 animate-pulse rounded-lg border border-surface bg-muted/40"
         />
       ))}
     </div>

@@ -24,6 +24,7 @@ export interface ComparePresetSeries {
   color: string;
   summary: AnalyticsSummary;
   startDate?: string | null;
+  endDate?: string | null;
 }
 
 interface AnalyticsCompareBarsProps {

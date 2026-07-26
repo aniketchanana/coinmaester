@@ -121,6 +121,11 @@ function AnalyticsSingleView({ preset }: { preset: PresetFilter }) {
         startDate={
           params.startDate ?? data.trends?.[0]?.date?.slice(0, 10) ?? null
         }
+        endDate={
+          params.endDate ??
+          data.trends?.[data.trends.length - 1]?.date?.slice(0, 10) ??
+          null
+        }
       />
     </div>
   );
@@ -180,6 +185,10 @@ function AnalyticsCompareView({
         summary: data.summary,
         startDate:
           params.startDate ?? data.trends?.[0]?.date?.slice(0, 10) ?? null,
+        endDate:
+          params.endDate ??
+          data.trends?.[data.trends.length - 1]?.date?.slice(0, 10) ??
+          null,
       },
     ];
   });

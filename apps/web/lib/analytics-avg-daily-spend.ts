@@ -1,13 +1,14 @@
 import { differenceInCalendarDays, parseISO, startOfDay } from 'date-fns';
 
 /**
- * Avg daily spend = totalDebit / (localToday − startDate) in calendar days.
- * Day count is at least 1.
+ * Avg daily spend = totalDebit / days in the filter range.
+ * totalDays = max(1, endDate − startDate + 1) inclusive calendar days.
+ * When endDate is missing, startDate is used (single-day range).
  */
 export function computeAvgDailySpend(
   totalDebit: number,
   startDate: string | undefined | null,
-  today: Date = new Date(),
+  endDate?: string | undefined | null,
 ): number {
   if (!startDate?.trim()) {
     return totalDebit;
@@ -18,10 +19,13 @@ export function computeAvgDailySpend(
     return totalDebit;
   }
 
-  const dayCount = Math.max(
-    1,
-    differenceInCalendarDays(startOfDay(today), start),
-  );
+  const endSource = endDate?.trim() ? endDate : startDate;
+  const end = startOfDay(parseISO(endSource.slice(0, 10)));
+  if (Number.isNaN(end.getTime())) {
+    return totalDebit;
+  }
+
+  const dayCount = Math.max(1, differenceInCalendarDays(end, start) + 1);
 
   return totalDebit / dayCount;
 }

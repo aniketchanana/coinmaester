@@ -67,7 +67,11 @@ const ROWS: MetricRow[] = [
     label: 'Avg Daily Spend',
     kind: 'currency',
     getValue: (item) =>
-      computeAvgDailySpend(item.summary.totalDebit, item.startDate),
+      computeAvgDailySpend(
+        item.summary.totalDebit,
+        item.startDate,
+        item.endDate,
+      ),
     higherIsBetter: false,
   },
   {
