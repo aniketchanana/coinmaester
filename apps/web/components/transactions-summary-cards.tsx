@@ -21,10 +21,8 @@ interface TransactionsSummaryCardsProps {
 }
 
 const METRIC_INFO = {
-  credit:
-    'All incoming amounts to your bank for the current filter or view.',
-  debit:
-    'All outgoing amounts from your bank for the current filter or view.',
+  credit: 'All incoming amounts to your bank for the current filter or view.',
+  debit: 'All outgoing amounts from your bank for the current filter or view.',
   investment:
     'Outgoing amounts classified as investments for the current filter or view.',
   'invest-percentage':
@@ -66,7 +64,7 @@ export function TransactionsSummaryCards({
   endDate,
   spentToday,
 }: TransactionsSummaryCardsProps) {
-  const hasDateFilter = Boolean(startDate?.trim());
+  const hasDateRangeFilter = Boolean(startDate?.trim() && endDate?.trim());
 
   const cards = [
     {
@@ -93,7 +91,7 @@ export function TransactionsSummaryCards({
       className: 'text-violet-600 dark:text-violet-400',
       content: <>{Math.round(investPercentage(aggregate))}%</>,
     },
-    ...(hasDateFilter
+    ...(hasDateRangeFilter
       ? [
           {
             key: 'avg-daily' as const,
@@ -101,11 +99,13 @@ export function TransactionsSummaryCards({
             className: 'text-sky-600 dark:text-sky-400',
             content: (
               <FormattedAmount
-                value={computeAvgDailySpend(
-                  aggregate.totalDebit,
-                  startDate,
-                  endDate,
-                )}
+                value={
+                  computeAvgDailySpend(
+                    aggregate.totalDebit,
+                    startDate,
+                    endDate,
+                  ) as number
+                }
               />
             ),
           },
@@ -123,7 +123,7 @@ export function TransactionsSummaryCards({
     <div
       className={cn(
         'grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-3',
-        hasDateFilter ? 'xl:grid-cols-6' : 'xl:grid-cols-5',
+        hasDateRangeFilter ? 'xl:grid-cols-6' : 'xl:grid-cols-5',
       )}
     >
       {cards.map((card, index) => (

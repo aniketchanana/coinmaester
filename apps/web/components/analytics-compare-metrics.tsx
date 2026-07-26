@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/card';
 import { cn } from '@repo/ui/lib/utils';
 
-import { computeAvgDailySpend } from '../lib/analytics-avg-daily-spend';
 import { formatTransactionAmount } from '../lib/currency';
 import type { ComparePresetSeries } from './analytics-compare-bars';
 import { useIncognito } from './incognito-provider';
@@ -66,12 +65,7 @@ const ROWS: MetricRow[] = [
     key: 'avg-daily',
     label: 'Avg Daily Spend',
     kind: 'currency',
-    getValue: (item) =>
-      computeAvgDailySpend(
-        item.summary.totalDebit,
-        item.startDate,
-        item.endDate,
-      ),
+    getValue: (item) => item.summary.avgDailySpend,
     higherIsBetter: false,
   },
   {
