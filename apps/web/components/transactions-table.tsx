@@ -45,13 +45,13 @@ import { TRANSACTION_FILTER_TYPE } from '@repo/constant';
 
 import { useDebouncedValue } from '../hooks/use-debounced-value';
 import { useResizableColumns } from '../hooks/use-resizable-columns';
-import { FormattedAmount } from './formatted-amount';
-import { MaskedPayee } from './masked-payee';
-import {
-  TransactionsSummaryCards,
-  TransactionsSummaryCardsSkeleton,
-} from './transactions-summary-cards';
 import { analyticsKeys } from '../lib/analytics';
+import {
+  EMPTY_STATE_ENTER_CLASS,
+  REVEAL_UP_CLASS,
+  ROW_ENTER_CLASS,
+  staggerDelay,
+} from '../lib/motion';
 import {
   fetchPresetFilters,
   presetFilterKeys,
@@ -78,13 +78,9 @@ import {
   TRANSACTION_SORT_FIELD,
   TRANSACTION_SORT_ORDER,
 } from '../types/transaction';
-import {
-  EMPTY_STATE_ENTER_CLASS,
-  REVEAL_UP_CLASS,
-  ROW_ENTER_CLASS,
-  staggerDelay,
-} from '../lib/motion';
 import { DateRangePicker } from './date-range-picker';
+import { FormattedAmount } from './formatted-amount';
+import { MaskedPayee } from './masked-payee';
 import { PresetFilterEditDialog } from './preset-filter-edit-dialog';
 import { PresetFilterSaveDialog } from './preset-filter-save-dialog';
 import {
@@ -96,6 +92,10 @@ import { TransactionCreateDialog } from './transaction-create-dialog';
 import { TransactionEditDialog } from './transaction-edit-dialog';
 import { TransactionNotesDialog } from './transaction-notes-dialog';
 import { TransactionTypeBadge } from './transaction-type-badge';
+import {
+  TransactionsSummaryCards,
+  TransactionsSummaryCardsSkeleton,
+} from './transactions-summary-cards';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
@@ -446,7 +446,7 @@ export function TransactionsTable() {
 
   return (
     <div className="flex flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-start">
-      <aside className="order-1 w-full min-w-0 shrink-0 lg:order-none lg:max-h-full lg:w-72 lg:overflow-x-hidden lg:overflow-y-auto xl:w-80">
+      <aside className="order-1 w-full min-w-0 shrink-0 lg:order-0 lg:max-h-full lg:w-72 lg:overflow-x-hidden lg:overflow-y-auto xl:w-80">
         <div className="min-w-0 space-y-4">
           <Button className="w-full" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -591,13 +591,16 @@ export function TransactionsTable() {
         </div>
       </aside>
 
-      <div className="order-2 min-w-0 flex-1 space-y-4 lg:order-none lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <div className="order-2 min-w-0 flex-1 space-y-4 lg:order-0 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
         {isLoading && !aggregate ? (
-          <TransactionsSummaryCardsSkeleton />
+          <TransactionsSummaryCardsSkeleton
+            showAvgDaily={Boolean(debouncedFilters.startDate)}
+          />
         ) : aggregate ? (
           <TransactionsSummaryCards
             aggregate={aggregate}
             startDate={debouncedFilters.startDate || null}
+            endDate={debouncedFilters.endDate || null}
             spentToday={spentToday}
           />
         ) : null}
@@ -842,10 +845,7 @@ export function TransactionsTable() {
                     handlePageSizeChange(Number(value) as PageSize)
                   }
                 >
-                  <SelectTrigger
-                    id="pageSize"
-                    className="h-9 w-fit min-w-[5.5rem]"
-                  >
+                  <SelectTrigger id="pageSize" className="h-9 w-fit min-w-22">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

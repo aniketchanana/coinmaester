@@ -52,7 +52,7 @@ interface AnalyticsFilters {
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getAnalytics(
     userId: string,
@@ -103,10 +103,10 @@ export class AnalyticsService {
       this.fetchSummary(userId, filters),
       previousPeriod
         ? this.fetchSummary(userId, {
-            ...filters,
-            rangeStart: previousPeriod.prevStart,
-            rangeEnd: previousPeriod.prevEnd,
-          })
+          ...filters,
+          rangeStart: previousPeriod.prevStart,
+          rangeEnd: previousPeriod.prevEnd,
+        })
         : Promise.resolve(null),
       this.fetchBreakdown(userId, filters, 'payee'),
       this.fetchBreakdown(userId, filters, 'bank'),
@@ -117,7 +117,6 @@ export class AnalyticsService {
       currentSummary,
       rangeStart,
       rangeEnd,
-      trends,
     );
     const comparison =
       previousSummary !== null
@@ -346,7 +345,6 @@ export class AnalyticsService {
     row: SummaryRow,
     start: Date | null,
     end: Date | null,
-    trends: AnalyticsTrendPoint[],
   ): AnalyticsSummary {
     const totalDebit = this.decimalToNumber(row.total_debit);
     const totalCredit = this.decimalToNumber(row.total_credit);
@@ -355,25 +353,19 @@ export class AnalyticsService {
     let dayCount = 1;
     if (start && end) {
       dayCount = Math.max(1, this.inclusiveDayCount(start, end));
-    } else if (trends.length >= 2) {
-      const first = new Date(trends[0]!.date);
-      const last = new Date(trends[trends.length - 1]!.date);
-      dayCount = Math.max(1, this.inclusiveDayCount(first, last));
-    } else if (trends.length === 1) {
-      dayCount = 1;
     }
 
     const netCashflow = totalCredit - totalDebit;
-
-    return {
+    const summary: AnalyticsSummary = {
       totalDebit,
       totalCredit,
       totalInvestment,
       netCashflow,
       estimatedBankBalance: netCashflow - totalInvestment,
       transactionCount: Number(row.transaction_count),
-      avgDailySpend: totalDebit / dayCount,
+      ...(start && end ? { avgDailySpend: totalDebit / dayCount } : {}),
     };
+    return summary;
   }
 
   private toComparison(

@@ -2,15 +2,12 @@
 
 import { cn } from '@repo/ui/lib/utils';
 
-import { computeAvgDailySpend } from '../lib/analytics-avg-daily-spend';
 import { REVEAL_UP_CLASS, staggerDelay } from '../lib/motion';
 import type { AnalyticsSummary } from '../types/analytics';
 import { FormattedAmount } from './formatted-amount';
 
 interface AnalyticsKpisProps {
   summary: AnalyticsSummary;
-  /** Period start (yyyy-MM-dd). Avg daily spend = totalDebit / (today − startDate). */
-  startDate?: string | null;
 }
 
 function percentLabel(value: number | null): string {
@@ -21,12 +18,12 @@ function percentLabel(value: number | null): string {
   return `${value.toFixed(1)}%`;
 }
 
-export function AnalyticsKpis({ summary, startDate }: AnalyticsKpisProps) {
+export function AnalyticsKpis({ summary }: AnalyticsKpisProps) {
   const creditToInvestment =
     summary.totalCredit > 0
       ? (summary.totalInvestment / summary.totalCredit) * 100
       : null;
-  const avgDailySpend = computeAvgDailySpend(summary.totalDebit, startDate);
+  const avgDailySpend = summary.avgDailySpend;
 
   const cards = [
     {
@@ -53,12 +50,16 @@ export function AnalyticsKpis({ summary, startDate }: AnalyticsKpisProps) {
       content: percentLabel(creditToInvestment),
       className: 'text-violet-600 dark:text-violet-400',
     },
-    {
-      key: 'avg',
-      label: 'Avg Daily Spend',
-      content: <FormattedAmount value={avgDailySpend} />,
-      className: 'text-foreground',
-    },
+    ...(avgDailySpend
+      ? [
+          {
+            key: 'avg',
+            label: 'Avg Daily Spend',
+            content: <FormattedAmount value={avgDailySpend} />,
+            className: 'text-foreground',
+          },
+        ]
+      : []),
     {
       key: 'count',
       label: 'Transactions',
@@ -99,7 +100,7 @@ export function AnalyticsKpisSkeleton() {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="h-[88px] animate-pulse rounded-lg border border-surface bg-muted/40"
+          className="h-22 animate-pulse rounded-lg border border-surface bg-muted/40"
         />
       ))}
     </div>

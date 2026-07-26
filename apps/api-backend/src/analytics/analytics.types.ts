@@ -23,7 +23,7 @@ export interface AnalyticsSummary {
   netCashflow: number;
   estimatedBankBalance: number;
   transactionCount: number;
-  avgDailySpend: number;
+  avgDailySpend?: number;
 }
 
 export interface AnalyticsComparison {
