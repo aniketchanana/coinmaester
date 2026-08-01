@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { SyncStatus } from '@repo/database';
 
 import { PrismaService } from '../database/prisma.service';
@@ -18,22 +18,42 @@ export class SyncService {
   ) {}
 
   async createSyncJob(userId: string): Promise<CreateSyncJobResponse> {
-    const job = await this.prisma.client.emailSync.create({
-      data: {
-        userId,
-        status: SyncStatus.IN_PROGRESS,
-      },
-      select: { id: true, status: true },
+    const accounts = await this.prisma.client.account.findMany({
+      where: { userId },
+      select: { id: true },
     });
 
-    void this.gmailIngestionService.processJob(job.id).catch((error) => {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Sync failed for job ${job.id}: ${message}`);
-    });
+    if (accounts.length === 0) {
+      throw new BadRequestException(
+        'No linked accounts found. Please sign in again with Google.',
+      );
+    }
+
+    const jobs = await this.prisma.client.$transaction(
+      accounts.map((account) =>
+        this.prisma.client.emailSync.create({
+          data: {
+            userId,
+            accountId: account.id,
+            status: SyncStatus.IN_PROGRESS,
+          },
+          select: { id: true, status: true },
+        }),
+      ),
+    );
+
+    for (const job of jobs) {
+      void this.gmailIngestionService.processJob(job.id).catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Sync failed for job ${job.id}: ${message}`);
+      });
+    }
 
     return {
-      id: job.id,
-      status: job.status,
+      jobs: jobs.map((job) => ({
+        id: job.id,
+        status: job.status,
+      })),
     };
   }
 

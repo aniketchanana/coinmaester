@@ -86,9 +86,19 @@ export class GmailIngestionService {
       throw new Error(`User not found: ${userId}`);
     }
 
+    const account = await this.prisma.client.account.findFirst({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!account) {
+      throw new Error(`No account found for user: ${userId}`);
+    }
+
     const emailSync = await this.prisma.client.emailSync.create({
       data: {
         userId,
+        accountId: account.id,
         status: JOB_STATUS.COMPLETED as SyncStatus,
       },
     });
@@ -138,19 +148,25 @@ export class GmailIngestionService {
   async processJob(emailSyncId: string): Promise<void> {
     const job = await this.prisma.client.emailSync.findUnique({
       where: { id: emailSyncId },
-      select: { id: true, userId: true, createdAt: true, status: true },
+      select: {
+        id: true,
+        userId: true,
+        accountId: true,
+        createdAt: true,
+        status: true,
+      },
     });
 
     if (!job || job.status !== JOB_STATUS.IN_PROGRESS) {
       return;
     }
 
-    const { userId, createdAt: syncCreatedAt } = job;
+    const { userId, accountId, createdAt: syncCreatedAt } = job;
 
     try {
       const accessToken =
-        await this.authService.getValidGoogleAccessToken(userId);
-      const bounds = await this.resolveSyncBounds(userId, syncCreatedAt);
+        await this.authService.getValidGoogleAccessToken(accountId);
+      const bounds = await this.resolveSyncBounds(accountId, syncCreatedAt);
       const messageIds = await this.listInboxMessageIdsInBounds(
         accessToken,
         bounds.after,
@@ -178,14 +194,14 @@ export class GmailIngestionService {
   }
 
   private async resolveSyncBounds(
-    userId: string,
+    accountId: string,
     syncCreatedAt: Date,
   ): Promise<{ after: Date; before: Date }> {
     const before = syncCreatedAt;
 
     const lastCompleted = await this.prisma.client.emailSync.findFirst({
       where: {
-        userId,
+        accountId,
         status: JOB_STATUS.COMPLETED as SyncStatus,
         createdAt: { lt: before },
       },

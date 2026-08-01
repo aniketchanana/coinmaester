@@ -31,20 +31,36 @@ export class AuthService {
       : null;
 
     const user = await this.prisma.client.user.upsert({
-      where: { googleId: payload.googleId },
+      where: { email: payload.email },
       create: {
-        googleId: payload.googleId,
         email: payload.email,
         name: payload.name,
         emailVerified: payload.emailVerified ?? null,
+      },
+      update: {
+        name: payload.name,
+        emailVerified: payload.emailVerified ?? null,
+      },
+    });
+
+    await this.prisma.client.account.upsert({
+      where: {
+        provider_providerAccountId: {
+          provider: 'google',
+          providerAccountId: payload.googleId,
+        },
+      },
+      create: {
+        userId: user.id,
+        provider: 'google',
+        providerAccountId: payload.googleId,
         accessToken: payload.accessToken,
         refreshToken: encryptedRefreshToken,
         accessTokenExpires,
         scope: payload.scope,
       },
       update: {
-        name: payload.name,
-        emailVerified: payload.emailVerified ?? null,
+        userId: user.id,
         accessToken: payload.accessToken,
         refreshToken: encryptedRefreshToken ?? undefined,
         accessTokenExpires,
@@ -60,17 +76,17 @@ export class AuthService {
     };
   }
 
-  async getDecryptedRefreshToken(userId: string): Promise<string | null> {
-    const user = await this.prisma.client.user.findUnique({
-      where: { id: userId },
+  async getDecryptedRefreshToken(accountId: string): Promise<string | null> {
+    const account = await this.prisma.client.account.findUnique({
+      where: { id: accountId },
       select: { refreshToken: true },
     });
 
-    if (!user?.refreshToken) {
+    if (!account?.refreshToken) {
       return null;
     }
 
-    return decryptAes(user.refreshToken);
+    return decryptAes(account.refreshToken);
   }
 
   private static readonly TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -86,8 +102,8 @@ export class AuthService {
     );
   }
 
-  async refreshAccessToken(userId: string): Promise<string> {
-    const refreshToken = await this.getDecryptedRefreshToken(userId);
+  async refreshAccessToken(accountId: string): Promise<string> {
+    const refreshToken = await this.getDecryptedRefreshToken(accountId);
 
     if (!refreshToken) {
       throw new UnauthorizedException(
@@ -126,8 +142,8 @@ export class AuthService {
       ? encryptAes(data.refresh_token)
       : undefined;
 
-    await this.prisma.client.user.update({
-      where: { id: userId },
+    await this.prisma.client.account.update({
+      where: { id: accountId },
       data: {
         accessToken: data.access_token,
         accessTokenExpires,
@@ -140,27 +156,27 @@ export class AuthService {
     return data.access_token;
   }
 
-  async getValidGoogleAccessToken(userId: string): Promise<string> {
-    const user = await this.prisma.client.user.findUnique({
-      where: { id: userId },
+  async getValidGoogleAccessToken(accountId: string): Promise<string> {
+    const account = await this.prisma.client.account.findUnique({
+      where: { id: accountId },
       select: {
         accessToken: true,
         accessTokenExpires: true,
       },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
+    if (!account) {
+      throw new UnauthorizedException('Account not found');
     }
 
     if (
-      !this.isGoogleAccessTokenExpired(user.accessTokenExpires) &&
-      user.accessToken
+      !this.isGoogleAccessTokenExpired(account.accessTokenExpires) &&
+      account.accessToken
     ) {
-      return user.accessToken;
+      return account.accessToken;
     }
 
-    return this.refreshAccessToken(userId);
+    return this.refreshAccessToken(accountId);
   }
 
   async getUserById(userId: string): Promise<SessionUser> {

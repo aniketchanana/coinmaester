@@ -22,21 +22,15 @@ enum TransactionType {
 /// App user authenticated via Google OAuth.
 model User {
   id        String   @id @default(cuid())
-  googleId  String   @unique // Google `sub` / account id
   email     String   @unique
   name      String?
 
   emailVerified DateTime?
 
-  // OAuth tokens (e.g. for Gmail API later)
-  refreshToken       String?   @db.Text
-  accessToken        String?   @db.Text
-  accessTokenExpires DateTime?
-  scope              String? // space-separated granted scopes
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  accounts       Account[]
   emailSyncs     EmailSync[]
   gmailMessages  GmailMessage[]
   transactions   Transaction[]
@@ -45,16 +39,40 @@ model User {
   @@map("users")
 }
 
+/// OAuth provider account linked to a user (e.g. Google).
+model Account {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider           String    @default("google")
+  providerAccountId  String
+  refreshToken       String?   @db.Text
+  accessToken        String?   @db.Text
+  accessTokenExpires DateTime?
+  scope              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  emailSyncs EmailSync[]
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
 /// On-demand Gmail sync job queue.
 model EmailSync {
-  id        String          @id @default(cuid())
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   status    SyncStatus @default(PENDING)
   userId    String
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId String
+  account   Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
+  @@index([accountId, createdAt(sort: Desc)])
   @@index([status, createdAt])
   @@map("emailSync")
 }
