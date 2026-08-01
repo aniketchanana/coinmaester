@@ -86,19 +86,19 @@ export class GmailIngestionService {
       throw new Error(`User not found: ${userId}`);
     }
 
-    const account = await this.prisma.client.account.findFirst({
+    const gmailAccount = await this.prisma.client.gmailAccount.findFirst({
       where: { userId },
       select: { id: true },
     });
 
-    if (!account) {
-      throw new Error(`No account found for user: ${userId}`);
+    if (!gmailAccount) {
+      throw new Error(`No Gmail account found for user: ${userId}`);
     }
 
     const emailSync = await this.prisma.client.emailSync.create({
       data: {
         userId,
-        accountId: account.id,
+        gmailAccountId: gmailAccount.id,
         status: JOB_STATUS.COMPLETED as SyncStatus,
       },
     });
@@ -151,7 +151,7 @@ export class GmailIngestionService {
       select: {
         id: true,
         userId: true,
-        accountId: true,
+        gmailAccountId: true,
         createdAt: true,
         status: true,
       },
@@ -161,12 +161,15 @@ export class GmailIngestionService {
       return;
     }
 
-    const { userId, accountId, createdAt: syncCreatedAt } = job;
+    const { userId, gmailAccountId, createdAt: syncCreatedAt } = job;
 
     try {
       const accessToken =
-        await this.authService.getValidGoogleAccessToken(accountId);
-      const bounds = await this.resolveSyncBounds(accountId, syncCreatedAt);
+        await this.authService.getValidGoogleAccessToken(gmailAccountId);
+      const bounds = await this.resolveSyncBounds(
+        gmailAccountId,
+        syncCreatedAt,
+      );
       const messageIds = await this.listInboxMessageIdsInBounds(
         accessToken,
         bounds.after,
@@ -194,14 +197,14 @@ export class GmailIngestionService {
   }
 
   private async resolveSyncBounds(
-    accountId: string,
+    gmailAccountId: string,
     syncCreatedAt: Date,
   ): Promise<{ after: Date; before: Date }> {
     const before = syncCreatedAt;
 
     const lastCompleted = await this.prisma.client.emailSync.findFirst({
       where: {
-        accountId,
+        gmailAccountId,
         status: JOB_STATUS.COMPLETED as SyncStatus,
         createdAt: { lt: before },
       },

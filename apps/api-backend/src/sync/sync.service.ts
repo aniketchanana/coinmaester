@@ -18,23 +18,23 @@ export class SyncService {
   ) {}
 
   async createSyncJob(userId: string): Promise<CreateSyncJobResponse> {
-    const accounts = await this.prisma.client.account.findMany({
+    const gmailAccounts = await this.prisma.client.gmailAccount.findMany({
       where: { userId },
       select: { id: true },
     });
 
-    if (accounts.length === 0) {
+    if (gmailAccounts.length === 0) {
       throw new BadRequestException(
-        'No linked accounts found. Please sign in again with Google.',
+        'No linked Gmail accounts found. Please sign in again with Google.',
       );
     }
 
     const jobs = await this.prisma.client.$transaction(
-      accounts.map((account) =>
+      gmailAccounts.map((gmailAccount) =>
         this.prisma.client.emailSync.create({
           data: {
             userId,
-            accountId: account.id,
+            gmailAccountId: gmailAccount.id,
             status: SyncStatus.IN_PROGRESS,
           },
           select: { id: true, status: true },

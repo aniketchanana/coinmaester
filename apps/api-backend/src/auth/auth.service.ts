@@ -43,7 +43,7 @@ export class AuthService {
       },
     });
 
-    await this.prisma.client.account.upsert({
+    await this.prisma.client.gmailAccount.upsert({
       where: {
         provider_providerAccountId: {
           provider: 'google',
@@ -76,17 +76,19 @@ export class AuthService {
     };
   }
 
-  async getDecryptedRefreshToken(accountId: string): Promise<string | null> {
-    const account = await this.prisma.client.account.findUnique({
-      where: { id: accountId },
+  async getDecryptedRefreshToken(
+    gmailAccountId: string,
+  ): Promise<string | null> {
+    const gmailAccount = await this.prisma.client.gmailAccount.findUnique({
+      where: { id: gmailAccountId },
       select: { refreshToken: true },
     });
 
-    if (!account?.refreshToken) {
+    if (!gmailAccount?.refreshToken) {
       return null;
     }
 
-    return decryptAes(account.refreshToken);
+    return decryptAes(gmailAccount.refreshToken);
   }
 
   private static readonly TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -102,8 +104,8 @@ export class AuthService {
     );
   }
 
-  async refreshAccessToken(accountId: string): Promise<string> {
-    const refreshToken = await this.getDecryptedRefreshToken(accountId);
+  async refreshAccessToken(gmailAccountId: string): Promise<string> {
+    const refreshToken = await this.getDecryptedRefreshToken(gmailAccountId);
 
     if (!refreshToken) {
       throw new UnauthorizedException(
@@ -142,8 +144,8 @@ export class AuthService {
       ? encryptAes(data.refresh_token)
       : undefined;
 
-    await this.prisma.client.account.update({
-      where: { id: accountId },
+    await this.prisma.client.gmailAccount.update({
+      where: { id: gmailAccountId },
       data: {
         accessToken: data.access_token,
         accessTokenExpires,
@@ -156,27 +158,27 @@ export class AuthService {
     return data.access_token;
   }
 
-  async getValidGoogleAccessToken(accountId: string): Promise<string> {
-    const account = await this.prisma.client.account.findUnique({
-      where: { id: accountId },
+  async getValidGoogleAccessToken(gmailAccountId: string): Promise<string> {
+    const gmailAccount = await this.prisma.client.gmailAccount.findUnique({
+      where: { id: gmailAccountId },
       select: {
         accessToken: true,
         accessTokenExpires: true,
       },
     });
 
-    if (!account) {
-      throw new UnauthorizedException('Account not found');
+    if (!gmailAccount) {
+      throw new UnauthorizedException('Gmail account not found');
     }
 
     if (
-      !this.isGoogleAccessTokenExpired(account.accessTokenExpires) &&
-      account.accessToken
+      !this.isGoogleAccessTokenExpired(gmailAccount.accessTokenExpires) &&
+      gmailAccount.accessToken
     ) {
-      return account.accessToken;
+      return gmailAccount.accessToken;
     }
 
-    return this.refreshAccessToken(accountId);
+    return this.refreshAccessToken(gmailAccountId);
   }
 
   async getUserById(userId: string): Promise<SessionUser> {
