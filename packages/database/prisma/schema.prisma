@@ -22,21 +22,17 @@ enum TransactionType {
 /// App user authenticated via Google OAuth.
 model User {
   id        String   @id @default(cuid())
-  googleId  String   @unique // Google `sub` / account id
+  /// Google `sub` of the account used to sign in. Stable login identity — email can be reassigned by a Workspace admin, this cannot.
+  googleId  String   @unique
   email     String   @unique
   name      String?
 
   emailVerified DateTime?
 
-  // OAuth tokens (e.g. for Gmail API later)
-  refreshToken       String?   @db.Text
-  accessToken        String?   @db.Text
-  accessTokenExpires DateTime?
-  scope              String? // space-separated granted scopes
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  gmailAccounts  GmailAccount[]
   emailSyncs     EmailSync[]
   gmailMessages  GmailMessage[]
   transactions   Transaction[]
@@ -45,16 +41,40 @@ model User {
   @@map("users")
 }
 
+/// Gmail OAuth account linked to a user.
+model GmailAccount {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider           String    @default("google")
+  providerAccountId  String
+  refreshToken       String?   @db.Text
+  accessToken        String?   @db.Text
+  accessTokenExpires DateTime?
+  scope              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  emailSyncs EmailSync[]
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("gmailAccounts")
+}
+
 /// On-demand Gmail sync job queue.
 model EmailSync {
-  id        String          @id @default(cuid())
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  status    SyncStatus @default(PENDING)
-  userId    String
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String       @id @default(cuid())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  status          SyncStatus   @default(PENDING)
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gmailAccountId  String
+  gmailAccount    GmailAccount @relation(fields: [gmailAccountId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
+  @@index([gmailAccountId, createdAt(sort: Desc)])
   @@index([status, createdAt])
   @@map("emailSync")
 }

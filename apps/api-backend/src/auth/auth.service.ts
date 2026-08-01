@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -30,26 +31,82 @@ export class AuthService {
       ? encryptAes(payload.refreshToken)
       : null;
 
-    const user = await this.prisma.client.user.upsert({
-      where: { googleId: payload.googleId },
-      create: {
-        googleId: payload.googleId,
-        email: payload.email,
-        name: payload.name,
-        emailVerified: payload.emailVerified ?? null,
-        accessToken: payload.accessToken,
-        refreshToken: encryptedRefreshToken,
-        accessTokenExpires,
-        scope: payload.scope,
-      },
-      update: {
-        name: payload.name,
-        emailVerified: payload.emailVerified ?? null,
-        accessToken: payload.accessToken,
-        refreshToken: encryptedRefreshToken ?? undefined,
-        accessTokenExpires,
-        scope: payload.scope,
-      },
+    const user = await this.prisma.transaction(async (tx) => {
+      const existingUser = await tx.user.findUnique({
+        where: { googleId: payload.googleId },
+        select: { id: true },
+      });
+
+      const linkedAccount = await tx.gmailAccount.findUnique({
+        where: {
+          provider_providerAccountId: {
+            provider: 'google',
+            providerAccountId: payload.googleId,
+          },
+        },
+        select: { userId: true },
+      });
+
+      if (linkedAccount && linkedAccount.userId !== existingUser?.id) {
+        throw new ConflictException(
+          'This Google account is already linked to another Coinmaester user.',
+        );
+      }
+
+      const emailOwner = await tx.user.findUnique({
+        where: { email: payload.email },
+        select: { id: true },
+      });
+
+      if (emailOwner && emailOwner.id !== existingUser?.id) {
+        throw new ConflictException(
+          'This email address already belongs to another Coinmaester user. Sign in with the original Google account or contact support to link them.',
+        );
+      }
+
+      const resolvedUser = existingUser
+        ? await tx.user.update({
+            where: { id: existingUser.id },
+            data: {
+              email: payload.email,
+              name: payload.name,
+              emailVerified: payload.emailVerified ?? null,
+            },
+          })
+        : await tx.user.create({
+            data: {
+              googleId: payload.googleId,
+              email: payload.email,
+              name: payload.name,
+              emailVerified: payload.emailVerified ?? null,
+            },
+          });
+
+      await tx.gmailAccount.upsert({
+        where: {
+          provider_providerAccountId: {
+            provider: 'google',
+            providerAccountId: payload.googleId,
+          },
+        },
+        create: {
+          userId: resolvedUser.id,
+          provider: 'google',
+          providerAccountId: payload.googleId,
+          accessToken: payload.accessToken,
+          refreshToken: encryptedRefreshToken,
+          accessTokenExpires,
+          scope: payload.scope,
+        },
+        update: {
+          accessToken: payload.accessToken,
+          refreshToken: encryptedRefreshToken ?? undefined,
+          accessTokenExpires,
+          scope: payload.scope,
+        },
+      });
+
+      return resolvedUser;
     });
 
     const accessToken = await this.signToken(user.id, user.email);
@@ -60,17 +117,19 @@ export class AuthService {
     };
   }
 
-  async getDecryptedRefreshToken(userId: string): Promise<string | null> {
-    const user = await this.prisma.client.user.findUnique({
-      where: { id: userId },
+  async getDecryptedRefreshToken(
+    gmailAccountId: string,
+  ): Promise<string | null> {
+    const gmailAccount = await this.prisma.client.gmailAccount.findUnique({
+      where: { id: gmailAccountId },
       select: { refreshToken: true },
     });
 
-    if (!user?.refreshToken) {
+    if (!gmailAccount?.refreshToken) {
       return null;
     }
 
-    return decryptAes(user.refreshToken);
+    return decryptAes(gmailAccount.refreshToken);
   }
 
   private static readonly TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -86,8 +145,8 @@ export class AuthService {
     );
   }
 
-  async refreshAccessToken(userId: string): Promise<string> {
-    const refreshToken = await this.getDecryptedRefreshToken(userId);
+  async refreshAccessToken(gmailAccountId: string): Promise<string> {
+    const refreshToken = await this.getDecryptedRefreshToken(gmailAccountId);
 
     if (!refreshToken) {
       throw new UnauthorizedException(
@@ -126,8 +185,8 @@ export class AuthService {
       ? encryptAes(data.refresh_token)
       : undefined;
 
-    await this.prisma.client.user.update({
-      where: { id: userId },
+    await this.prisma.client.gmailAccount.update({
+      where: { id: gmailAccountId },
       data: {
         accessToken: data.access_token,
         accessTokenExpires,
@@ -140,27 +199,27 @@ export class AuthService {
     return data.access_token;
   }
 
-  async getValidGoogleAccessToken(userId: string): Promise<string> {
-    const user = await this.prisma.client.user.findUnique({
-      where: { id: userId },
+  async getValidGoogleAccessToken(gmailAccountId: string): Promise<string> {
+    const gmailAccount = await this.prisma.client.gmailAccount.findUnique({
+      where: { id: gmailAccountId },
       select: {
         accessToken: true,
         accessTokenExpires: true,
       },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
+    if (!gmailAccount) {
+      throw new UnauthorizedException('Gmail account not found');
     }
 
     if (
-      !this.isGoogleAccessTokenExpired(user.accessTokenExpires) &&
-      user.accessToken
+      !this.isGoogleAccessTokenExpired(gmailAccount.accessTokenExpires) &&
+      gmailAccount.accessToken
     ) {
-      return user.accessToken;
+      return gmailAccount.accessToken;
     }
 
-    return this.refreshAccessToken(userId);
+    return this.refreshAccessToken(gmailAccountId);
   }
 
   async getUserById(userId: string): Promise<SessionUser> {

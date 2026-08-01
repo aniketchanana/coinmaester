@@ -86,9 +86,19 @@ export class GmailIngestionService {
       throw new Error(`User not found: ${userId}`);
     }
 
+    const gmailAccount = await this.prisma.client.gmailAccount.findFirst({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!gmailAccount) {
+      throw new Error(`No Gmail account found for user: ${userId}`);
+    }
+
     const emailSync = await this.prisma.client.emailSync.create({
       data: {
         userId,
+        gmailAccountId: gmailAccount.id,
         status: JOB_STATUS.COMPLETED as SyncStatus,
       },
     });
@@ -138,19 +148,28 @@ export class GmailIngestionService {
   async processJob(emailSyncId: string): Promise<void> {
     const job = await this.prisma.client.emailSync.findUnique({
       where: { id: emailSyncId },
-      select: { id: true, userId: true, createdAt: true, status: true },
+      select: {
+        id: true,
+        userId: true,
+        gmailAccountId: true,
+        createdAt: true,
+        status: true,
+      },
     });
 
     if (!job || job.status !== JOB_STATUS.IN_PROGRESS) {
       return;
     }
 
-    const { userId, createdAt: syncCreatedAt } = job;
+    const { userId, gmailAccountId, createdAt: syncCreatedAt } = job;
 
     try {
       const accessToken =
-        await this.authService.getValidGoogleAccessToken(userId);
-      const bounds = await this.resolveSyncBounds(userId, syncCreatedAt);
+        await this.authService.getValidGoogleAccessToken(gmailAccountId);
+      const bounds = await this.resolveSyncBounds(
+        gmailAccountId,
+        syncCreatedAt,
+      );
       const messageIds = await this.listInboxMessageIdsInBounds(
         accessToken,
         bounds.after,
@@ -178,14 +197,14 @@ export class GmailIngestionService {
   }
 
   private async resolveSyncBounds(
-    userId: string,
+    gmailAccountId: string,
     syncCreatedAt: Date,
   ): Promise<{ after: Date; before: Date }> {
     const before = syncCreatedAt;
 
     const lastCompleted = await this.prisma.client.emailSync.findFirst({
       where: {
-        userId,
+        gmailAccountId,
         status: JOB_STATUS.COMPLETED as SyncStatus,
         createdAt: { lt: before },
       },

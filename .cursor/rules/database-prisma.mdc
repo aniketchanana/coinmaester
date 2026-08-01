@@ -29,8 +29,9 @@ Migration naming: `YYYYMMDDHHMMSS_description` (e.g. `20260608120000_add_transac
 
 ## Models
 
-- `User` — Google OAuth, token storage
-- `EmailSync` — on-demand Gmail sync jobs (`SyncStatus`)
+- `User` — app user (email identity)
+- `GmailAccount` — Gmail OAuth accounts + tokens (N per user)
+- `EmailSync` — on-demand Gmail sync jobs (`SyncStatus`), keyed by `userId` + `gmailAccountId`
 - `GmailMessage` — ingested message metadata + body path
 - `Transaction` — extracted or manual; soft delete via `isDeleted`
 - `PresetFilter` — named dashboard filter presets per user; soft delete via `isDeleted`; `dateRange` is JSONB `{ startDate?, endDate? }` only

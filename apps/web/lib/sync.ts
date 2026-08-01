@@ -10,8 +10,10 @@ export interface LatestSyncStatusResponse {
 }
 
 export interface CreateSyncJobResponse {
-  id: string;
-  status: JobStatus;
+  jobs: {
+    id: string;
+    status: JobStatus;
+  }[];
 }
 
 export const syncKeys = {
