@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -30,42 +31,82 @@ export class AuthService {
       ? encryptAes(payload.refreshToken)
       : null;
 
-    const user = await this.prisma.client.user.upsert({
-      where: { email: payload.email },
-      create: {
-        email: payload.email,
-        name: payload.name,
-        emailVerified: payload.emailVerified ?? null,
-      },
-      update: {
-        name: payload.name,
-        emailVerified: payload.emailVerified ?? null,
-      },
-    });
+    const user = await this.prisma.transaction(async (tx) => {
+      const existingUser = await tx.user.findUnique({
+        where: { googleId: payload.googleId },
+        select: { id: true },
+      });
 
-    await this.prisma.client.gmailAccount.upsert({
-      where: {
-        provider_providerAccountId: {
+      const linkedAccount = await tx.gmailAccount.findUnique({
+        where: {
+          provider_providerAccountId: {
+            provider: 'google',
+            providerAccountId: payload.googleId,
+          },
+        },
+        select: { userId: true },
+      });
+
+      if (linkedAccount && linkedAccount.userId !== existingUser?.id) {
+        throw new ConflictException(
+          'This Google account is already linked to another Coinmaester user.',
+        );
+      }
+
+      const emailOwner = await tx.user.findUnique({
+        where: { email: payload.email },
+        select: { id: true },
+      });
+
+      if (emailOwner && emailOwner.id !== existingUser?.id) {
+        throw new ConflictException(
+          'This email address already belongs to another Coinmaester user. Sign in with the original Google account or contact support to link them.',
+        );
+      }
+
+      const resolvedUser = existingUser
+        ? await tx.user.update({
+            where: { id: existingUser.id },
+            data: {
+              email: payload.email,
+              name: payload.name,
+              emailVerified: payload.emailVerified ?? null,
+            },
+          })
+        : await tx.user.create({
+            data: {
+              googleId: payload.googleId,
+              email: payload.email,
+              name: payload.name,
+              emailVerified: payload.emailVerified ?? null,
+            },
+          });
+
+      await tx.gmailAccount.upsert({
+        where: {
+          provider_providerAccountId: {
+            provider: 'google',
+            providerAccountId: payload.googleId,
+          },
+        },
+        create: {
+          userId: resolvedUser.id,
           provider: 'google',
           providerAccountId: payload.googleId,
+          accessToken: payload.accessToken,
+          refreshToken: encryptedRefreshToken,
+          accessTokenExpires,
+          scope: payload.scope,
         },
-      },
-      create: {
-        userId: user.id,
-        provider: 'google',
-        providerAccountId: payload.googleId,
-        accessToken: payload.accessToken,
-        refreshToken: encryptedRefreshToken,
-        accessTokenExpires,
-        scope: payload.scope,
-      },
-      update: {
-        userId: user.id,
-        accessToken: payload.accessToken,
-        refreshToken: encryptedRefreshToken ?? undefined,
-        accessTokenExpires,
-        scope: payload.scope,
-      },
+        update: {
+          accessToken: payload.accessToken,
+          refreshToken: encryptedRefreshToken ?? undefined,
+          accessTokenExpires,
+          scope: payload.scope,
+        },
+      });
+
+      return resolvedUser;
     });
 
     const accessToken = await this.signToken(user.id, user.email);

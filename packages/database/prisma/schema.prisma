@@ -22,6 +22,8 @@ enum TransactionType {
 /// App user authenticated via Google OAuth.
 model User {
   id        String   @id @default(cuid())
+  /// Google `sub` of the account used to sign in. Stable login identity — email can be reassigned by a Workspace admin, this cannot.
+  googleId  String   @unique
   email     String   @unique
   name      String?
 
