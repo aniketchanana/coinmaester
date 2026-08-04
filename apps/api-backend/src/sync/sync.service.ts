@@ -1,6 +1,12 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { SyncStatus } from '@repo/database';
 
+import { isAiParsingEnabled } from '../common/ai-parsing';
 import { PrismaService } from '../database/prisma.service';
 import { GmailIngestionService } from './gmail-ingestion.service';
 import type {
@@ -18,6 +24,12 @@ export class SyncService {
   ) {}
 
   async createSyncJob(userId: string): Promise<CreateSyncJobResponse> {
+    if (!isAiParsingEnabled()) {
+      throw new ServiceUnavailableException(
+        'AI email parsing is temporarily disabled. Sync is unavailable.',
+      );
+    }
+
     const gmailAccounts = await this.prisma.client.gmailAccount.findMany({
       where: { userId },
       select: { id: true },

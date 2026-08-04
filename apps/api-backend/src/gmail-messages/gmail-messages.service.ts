@@ -1,7 +1,13 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { JOB_STATUS } from '@repo/constant';
 import type { SyncStatus } from '@repo/database';
 
+import { isAiParsingEnabled } from '../common/ai-parsing';
 import { PrismaService } from '../database/prisma.service';
 import { RabbitMqPublisherService } from '../messaging/rabbitmq-publisher.service';
 import type {
@@ -76,6 +82,12 @@ export class GmailMessagesService {
     userId: string,
     ids: string[],
   ): Promise<RetryGmailMessagesResponse> {
+    if (!isAiParsingEnabled()) {
+      throw new ServiceUnavailableException(
+        'AI email parsing is temporarily disabled. Re-run is unavailable.',
+      );
+    }
+
     if (ids.length === 0) {
       throw new BadRequestException('At least one message id is required');
     }

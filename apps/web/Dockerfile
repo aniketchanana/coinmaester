@@ -18,6 +18,9 @@ ENV API_INTERNAL_URL=$API_INTERNAL_URL
 # Browser calls the API via Next.js rewrites on :3000 (/api → api-backend:3001).
 ARG NEXT_PUBLIC_API_URL=/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Hosted images default to disabled; self-hosted builds can pass true.
+ARG AI_PARSING_ENABLED=false
+ENV AI_PARSING_ENABLED=$AI_PARSING_ENABLED
 ENV NODE_ENV=production
 
 RUN pnpm turbo build --filter=web

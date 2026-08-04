@@ -31,6 +31,7 @@ jobs:
             build_args: |
               API_INTERNAL_URL=http://api-backend:3001
               NEXT_PUBLIC_API_URL=/api
+              AI_PARSING_ENABLED=false
           - service: api-backend
             dockerfile: apps/api-backend/Dockerfile
             image: coinmaester-api-backend
