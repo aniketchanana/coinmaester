@@ -23,6 +23,9 @@ import {
 const POLL_INTERVAL_MS = 10_000;
 const SYNC_IN_PROGRESS_TOOLTIP =
   'A sync is already in progress. Please wait for it to finish.';
+const SYNC_DISABLED_IN_PROD_TOOLTIP =
+  'Sync is temporarily disabled in production.';
+const isProd = process.env.NODE_ENV === 'production';
 
 export function SyncStatus() {
   const queryClient = useQueryClient();
@@ -65,7 +68,7 @@ export function SyncStatus() {
   const syncInProgress = isSyncInProgress(data?.lastSyncStatus);
   const lastSyncFailed = isSyncFailed(data?.lastSyncStatus);
   const isQueueing = syncMutation.isPending;
-  const isDisabled = isLoading ? true : syncInProgress || isQueueing;
+  const isDisabled = isProd || isLoading || syncInProgress || isQueueing;
 
   const formatted = data?.lastSyncedTime
     ? new Intl.DateTimeFormat('en-US', {
@@ -86,27 +89,39 @@ export function SyncStatus() {
     <Button
       className="shrink-0 cursor-pointer"
       disabled={isDisabled}
-      onClick={() => syncMutation.mutate()}
+      onClick={() => {
+        if (isProd) return;
+        syncMutation.mutate();
+      }}
       size="sm"
     >
-      <RefreshCcw className={isDisabled ? 'animate-spin' : undefined} />
+      <RefreshCcw
+        className={
+          !isProd && (syncInProgress || isQueueing) ? 'animate-spin' : undefined
+        }
+      />
       Sync
     </Button>
   );
 
-  const buttonWithTooltip =
-    syncInProgress && !isQueueing ? (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="inline-flex">{syncButton}</span>
-          </TooltipTrigger>
-          <TooltipContent>{SYNC_IN_PROGRESS_TOOLTIP}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    ) : (
-      syncButton
-    );
+  const tooltipContent = isProd
+    ? SYNC_DISABLED_IN_PROD_TOOLTIP
+    : syncInProgress && !isQueueing
+      ? SYNC_IN_PROGRESS_TOOLTIP
+      : null;
+
+  const buttonWithTooltip = tooltipContent ? (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex">{syncButton}</span>
+        </TooltipTrigger>
+        <TooltipContent>{tooltipContent}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  ) : (
+    syncButton
+  );
 
   return (
     <div className="flex shrink-0 items-center gap-3">
