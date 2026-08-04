@@ -13,6 +13,13 @@ const nextConfig = {
   output: 'standalone',
   transpilePackages: ['@repo/ui', '@repo/constant'],
   poweredByHeader: false,
+  // Expose root AI_PARSING_ENABLED to client components (defaults to enabled).
+  env: {
+    NEXT_PUBLIC_AI_PARSING_ENABLED:
+      process.env.NEXT_PUBLIC_AI_PARSING_ENABLED ??
+      process.env.AI_PARSING_ENABLED ??
+      'true',
+  },
   async rewrites() {
     const apiInternal = process.env.API_INTERNAL_URL ?? 'http://localhost:3001';
     return [

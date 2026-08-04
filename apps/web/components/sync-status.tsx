@@ -12,6 +12,7 @@ import { RefreshCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { isAiParsingEnabled } from '../lib/ai-parsing';
 import {
   fetchLatestSyncStatus,
   isSyncFailed,
@@ -23,9 +24,8 @@ import {
 const POLL_INTERVAL_MS = 10_000;
 const SYNC_IN_PROGRESS_TOOLTIP =
   'A sync is already in progress. Please wait for it to finish.';
-const SYNC_DISABLED_IN_PROD_TOOLTIP =
-  'Sync is temporarily disabled in production.';
-const isProd = process.env.NODE_ENV === 'production';
+const SYNC_DISABLED_TOOLTIP =
+  'Sync is temporarily disabled. AI email parsing is not available in this environment.';
 
 export function SyncStatus() {
   const queryClient = useQueryClient();
@@ -68,7 +68,8 @@ export function SyncStatus() {
   const syncInProgress = isSyncInProgress(data?.lastSyncStatus);
   const lastSyncFailed = isSyncFailed(data?.lastSyncStatus);
   const isQueueing = syncMutation.isPending;
-  const isDisabled = isProd || isLoading || syncInProgress || isQueueing;
+  const isDisabled =
+    !isAiParsingEnabled || isLoading || syncInProgress || isQueueing;
 
   const formatted = data?.lastSyncedTime
     ? new Intl.DateTimeFormat('en-US', {
@@ -90,22 +91,24 @@ export function SyncStatus() {
       className="shrink-0 cursor-pointer"
       disabled={isDisabled}
       onClick={() => {
-        if (isProd) return;
+        if (!isAiParsingEnabled) return;
         syncMutation.mutate();
       }}
       size="sm"
     >
       <RefreshCcw
         className={
-          !isProd && (syncInProgress || isQueueing) ? 'animate-spin' : undefined
+          isAiParsingEnabled && (syncInProgress || isQueueing)
+            ? 'animate-spin'
+            : undefined
         }
       />
       Sync
     </Button>
   );
 
-  const tooltipContent = isProd
-    ? SYNC_DISABLED_IN_PROD_TOOLTIP
+  const tooltipContent = !isAiParsingEnabled
+    ? SYNC_DISABLED_TOOLTIP
     : syncInProgress && !isQueueing
       ? SYNC_IN_PROGRESS_TOOLTIP
       : null;
