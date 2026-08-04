@@ -19,13 +19,14 @@ import type {
 @Controller('sync')
 @UseGuards(JwtAuthGuard)
 export class SyncController {
-  constructor(private readonly syncService: SyncService) {}
+  constructor(private readonly syncService: SyncService) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   createSyncJob(
     @CurrentUser() user: JwtPayload,
   ): Promise<CreateSyncJobResponse> {
+    console.log(process.env.AI_PARSING_ENABLED);
     return this.syncService.createSyncJob(user.sub);
   }
 

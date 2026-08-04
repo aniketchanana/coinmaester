@@ -1,3 +1,13 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import dotenv from 'dotenv';
+
+// Monorepo root `.env` (Next only auto-loads apps/web/.env*).
+dotenv.config({
+  path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.env'),
+});
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },
