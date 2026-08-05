@@ -132,13 +132,13 @@ export function AnalyticsCompareMetrics({
   };
 
   return (
-    <Card className="shadow-surface-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Metrics comparison</CardTitle>
+    <Card className="min-w-0 overflow-hidden shadow-surface-sm">
+      <CardHeader className="space-y-0 px-3 pb-2 pt-3 sm:px-6 sm:pt-6">
+        <CardTitle className="text-sm sm:text-base">Metrics comparison</CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="min-w-0 px-0 pb-2 pt-0 sm:px-6 sm:pb-6 sm:pt-0">
         <div className="w-full min-w-0 overflow-x-auto">
-          <table className="w-full min-w-[28rem] text-sm">
+          <table className="w-full min-w-[20rem] text-sm sm:min-w-[28rem]">
             <thead>
               <tr className="border-b border-surface text-left text-muted-foreground">
                 <th className="py-2 pr-3 font-medium sm:pr-4">Metric</th>

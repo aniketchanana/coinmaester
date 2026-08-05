@@ -63,13 +63,12 @@ export function AnalyticsBreakdownPie({ summary }: AnalyticsBreakdownPieProps) {
         ].filter((item) => item.value > 0);
 
   return (
-    <Card className="shadow-surface-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Credit allocation</CardTitle>
-        <p className="text-sm text-muted-foreground">
+    <Card className="min-w-0 overflow-hidden shadow-surface-sm">
+      <CardHeader className="space-y-1 px-3 pb-2 pt-3 sm:px-6 sm:pt-6">
+        <CardTitle className="text-sm sm:text-base">Credit allocation</CardTitle>
+        <p className="text-xs text-muted-foreground sm:text-sm">
           {creditToInvestPercent !== null ? (
             <>
-              {' '}
               Credit → invest:{' '}
               <span className="font-medium text-violet-600 dark:text-violet-400">
                 {creditToInvestPercent.toFixed(1)}%
@@ -78,7 +77,7 @@ export function AnalyticsBreakdownPie({ summary }: AnalyticsBreakdownPieProps) {
           ) : null}
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 px-2 pb-3 sm:px-6 sm:pb-6">
         {data.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
             No credit in this period to allocate.

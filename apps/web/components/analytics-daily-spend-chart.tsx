@@ -38,49 +38,48 @@ export function AnalyticsDailySpendChart({
   }));
 
   return (
-    <Card className="shadow-surface-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">{granularityLabel} spend</CardTitle>
+    <Card className="min-w-0 overflow-hidden shadow-surface-sm">
+      <CardHeader className="space-y-0 px-3 pb-2 pt-3 sm:px-6 sm:pt-6">
+        <CardTitle className="text-sm sm:text-base">
+          {granularityLabel} spend
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 px-2 pb-3 sm:px-6 sm:pb-6">
         {data.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">
+          <p className="py-10 text-center text-sm text-muted-foreground">
             No spend data for this period.
           </p>
         ) : (
-          <div className="h-48 w-full min-w-0 sm:h-64 md:h-72">
+          <div className="h-44 w-full min-w-0 sm:h-64 md:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={data}
-                margin={{ top: 8, right: 4, left: -12, bottom: 20 }}
+                margin={{ top: 8, right: 8, left: 0, bottom: 4 }}
               >
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 10 }}
                   tickLine={false}
-                  axisLine
-                  minTickGap={16}
-                  angle={-35}
-                  textAnchor="end"
-                  height={50}
-                  label={{
-                    value: 'Date',
-                    position: 'insideBottom',
-                    offset: -18,
-                    style: { fontSize: 12 },
-                  }}
+                  axisLine={false}
+                  minTickGap={28}
+                  interval="preserveStartEnd"
                 />
                 <YAxis
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 10 }}
                   tickLine={false}
-                  axisLine
-                  width={64}
-                  label={{
-                    value: 'Amount',
-                    angle: -90,
-                    position: 'insideLeft',
-                    style: { fontSize: 12, textAnchor: 'middle' },
+                  axisLine={false}
+                  width={40}
+                  tickFormatter={(value) => {
+                    const n = Number(value);
+                    if (!Number.isFinite(n)) return '';
+                    if (Math.abs(n) >= 100_000) {
+                      return `${Math.round(n / 1000)}k`;
+                    }
+                    if (Math.abs(n) >= 1000) {
+                      return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
+                    }
+                    return String(n);
                   }}
                 />
                 <Tooltip
@@ -89,22 +88,22 @@ export function AnalyticsDailySpendChart({
                       hidden: isIncognito,
                     })
                   }
-                  labelFormatter={(label) => `Date: ${String(label)}`}
+                  labelFormatter={(label) => String(label)}
                 />
                 <Line
                   type="linear"
                   dataKey="amount"
                   name="Amount"
                   stroke={ANALYTICS_SERIES_COLORS.debit}
-                  strokeWidth={2.5}
+                  strokeWidth={2}
                   dot={{
-                    r: 5,
+                    r: 3,
                     stroke: ANALYTICS_SERIES_COLORS.debit,
-                    strokeWidth: 2,
+                    strokeWidth: 1.5,
                     fill: 'var(--card, #fff)',
                   }}
                   activeDot={{
-                    r: 7,
+                    r: 5,
                     stroke: ANALYTICS_SERIES_COLORS.debit,
                     strokeWidth: 2,
                     fill: 'var(--card, #fff)',

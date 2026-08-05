@@ -75,12 +75,12 @@ export function AnalyticsKpis({ summary }: AnalyticsKpisProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+    <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
       {cards.map((card, index) => (
         <div
           key={card.key}
           className={cn(
-            'rounded-lg border border-surface bg-card p-2.5 shadow-surface-sm backdrop-blur-surface sm:p-3',
+            'min-w-0 rounded-lg border border-surface bg-card p-2.5 shadow-surface-sm backdrop-blur-surface sm:p-3',
             REVEAL_UP_CLASS,
             card.priority === 'secondary' && 'hidden md:block',
           )}
@@ -91,7 +91,7 @@ export function AnalyticsKpis({ summary }: AnalyticsKpisProps) {
           </p>
           <p
             className={cn(
-              'mt-0.5 text-base font-semibold tracking-tight sm:text-lg md:text-xl',
+              'mt-0.5 truncate text-sm font-semibold tracking-tight tabular-nums sm:text-lg md:text-xl',
               card.className,
             )}
           >
@@ -105,7 +105,7 @@ export function AnalyticsKpis({ summary }: AnalyticsKpisProps) {
 
 export function AnalyticsKpisSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+    <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
       {Array.from({ length: 2 }).map((_, index) => (
         <div
           key={`primary-${index}`}

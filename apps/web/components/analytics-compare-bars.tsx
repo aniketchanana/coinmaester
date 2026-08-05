@@ -41,26 +41,37 @@ export function AnalyticsCompareBars({ series }: AnalyticsCompareBarsProps) {
   }));
 
   return (
-    <Card className="shadow-surface-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Totals by preset</CardTitle>
+    <Card className="min-w-0 overflow-hidden shadow-surface-sm">
+      <CardHeader className="space-y-0 px-3 pb-2 pt-3 sm:px-6 sm:pt-6">
+        <CardTitle className="text-sm sm:text-base">Totals by preset</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-56 w-full min-w-0 sm:h-64 md:h-80">
+      <CardContent className="min-w-0 px-2 pb-3 sm:px-6 sm:pb-6">
+        <div className="h-48 w-full min-w-0 sm:h-64 md:h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <BarChart
+              data={data}
+              margin={{ top: 8, right: 4, left: 0, bottom: 0 }}
+            >
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
-                width={56}
+                width={40}
+                tickFormatter={(value) => {
+                  const n = Number(value);
+                  if (!Number.isFinite(n)) return '';
+                  if (Math.abs(n) >= 1000) {
+                    return `${Math.round(n / 1000)}k`;
+                  }
+                  return String(n);
+                }}
               />
               <Tooltip
                 formatter={(value) =>
@@ -69,7 +80,7 @@ export function AnalyticsCompareBars({ series }: AnalyticsCompareBarsProps) {
                   })
                 }
               />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar
                 dataKey="Debit"
                 fill={ANALYTICS_SERIES_COLORS.debit}
