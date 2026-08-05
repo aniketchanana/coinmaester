@@ -48,11 +48,11 @@ export function AnalyticsDailySpendChart({
             No spend data for this period.
           </p>
         ) : (
-          <div className="h-72 w-full">
+          <div className="h-48 w-full min-w-0 sm:h-64 md:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={data}
-                margin={{ top: 8, right: 16, left: 8, bottom: 28 }}
+                margin={{ top: 8, right: 4, left: -12, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis

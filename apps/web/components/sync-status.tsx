@@ -12,6 +12,8 @@ import { RefreshCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { cn } from '@repo/ui/lib/utils';
+
 import { isAiParsingEnabled } from '../lib/ai-parsing';
 import {
   fetchLatestSyncStatus,
@@ -27,7 +29,19 @@ const SYNC_IN_PROGRESS_TOOLTIP =
 const SYNC_DISABLED_TOOLTIP =
   'Sync is temporarily disabled. AI email parsing is not available in this environment.';
 
-export function SyncStatus() {
+type SyncStatusProps = {
+  /** Where to show the “Last synced…” line. Default hides it below md. */
+  statusVisibility?: 'always' | 'md-up' | 'never';
+  className?: string;
+  /** Hide the Sync button (e.g. when only showing status in a sheet). */
+  showButton?: boolean;
+};
+
+export function SyncStatus({
+  statusVisibility = 'md-up',
+  className,
+  showButton = true,
+}: SyncStatusProps) {
   const queryClient = useQueryClient();
   const [pollUntilSettled, setPollUntilSettled] = useState(false);
 
@@ -88,13 +102,14 @@ export function SyncStatus() {
 
   const syncButton = (
     <Button
-      className="shrink-0 cursor-pointer"
+      className="h-9 shrink-0 cursor-pointer gap-1.5 px-2.5 md:px-3"
       disabled={isDisabled}
       onClick={() => {
         if (!isAiParsingEnabled) return;
         syncMutation.mutate();
       }}
       size="sm"
+      aria-label="Sync"
     >
       <RefreshCcw
         className={
@@ -103,32 +118,40 @@ export function SyncStatus() {
             : undefined
         }
       />
-      Sync
+      <span className="hidden sm:inline">Sync</span>
     </Button>
   );
 
+  // Always prefer a useful tooltip: disabled/in-progress first, else last-synced.
   const tooltipContent = !isAiParsingEnabled
     ? SYNC_DISABLED_TOOLTIP
     : syncInProgress && !isQueueing
       ? SYNC_IN_PROGRESS_TOOLTIP
-      : null;
+      : statusLine;
 
-  const buttonWithTooltip = tooltipContent ? (
+  const buttonWithTooltip = showButton ? (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <span className="inline-flex">{syncButton}</span>
         </TooltipTrigger>
-        <TooltipContent>{tooltipContent}</TooltipContent>
+        <TooltipContent className="max-w-xs">{tooltipContent}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  ) : (
-    syncButton
-  );
+  ) : null;
+
+  const statusClassName =
+    statusVisibility === 'always'
+      ? 'max-w-[14rem] text-xs leading-snug text-muted-foreground'
+      : statusVisibility === 'md-up'
+        ? 'hidden max-w-[14rem] text-xs leading-snug text-muted-foreground xl:block'
+        : 'hidden';
 
   return (
-    <div className="flex shrink-0 items-center gap-3">
-      <p className="text-sm text-muted-foreground">{statusLine}</p>
+    <div className={cn('flex shrink-0 items-center gap-2', className)}>
+      {statusVisibility !== 'never' ? (
+        <p className={statusClassName}>{statusLine}</p>
+      ) : null}
       {buttonWithTooltip}
     </div>
   );

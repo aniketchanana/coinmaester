@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Pencil, Plus, StickyNote, Trash2, TrendingUp } from 'lucide-react';
+import { Pencil, Plus, SlidersHorizontal, StickyNote, Trash2, TrendingUp } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
@@ -28,6 +28,13 @@ import {
   SelectValue,
 } from '@repo/ui/select';
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@repo/ui/sheet';
+import {
   Table,
   TableBody,
   TableCell,
@@ -41,7 +48,7 @@ import {
   TooltipTrigger,
 } from '@repo/ui/tooltip';
 
-import { TRANSACTION_FILTER_TYPE } from '@repo/constant';
+import { TRANSACTION_FILTER_TYPE, TRANSACTION_TYPE } from '@repo/constant';
 
 import { useDebouncedValue } from '../hooks/use-debounced-value';
 import { useResizableColumns } from '../hooks/use-resizable-columns';
@@ -275,6 +282,7 @@ export function TransactionsTable() {
   const [openPresetChipId, setOpenPresetChipId] = React.useState<string | null>(
     null,
   );
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
   const { columnWidths, startResize } = useResizableColumns(
     DEFAULT_TRANSACTION_COLUMN_WIDTHS,
     TRANSACTION_TABLE_COLUMN_WIDTHS_STORAGE_KEY,
@@ -444,154 +452,273 @@ export function TransactionsTable() {
     filters.startDate !== '' ||
     filters.endDate !== '';
 
+  const filterPanel = (idPrefix: string) => (
+    <div
+      className={cn(
+        'min-w-0 space-y-3 rounded-lg border border-surface bg-card p-3 shadow-surface-sm backdrop-blur-surface sm:space-y-4 sm:p-4',
+        REVEAL_UP_CLASS,
+      )}
+    >
+      <div className="grid min-w-0 gap-3 sm:gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor={`${idPrefix}-payee`}>Payee</Label>
+          <Input
+            id={`${idPrefix}-payee`}
+            placeholder="Search by payee"
+            value={filters.payee}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              setFilters((current) => ({
+                ...current,
+                payee: event.target.value,
+              }))
+            }
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor={`${idPrefix}-type`}>Type</Label>
+          <Select
+            value={filters.type || TYPE_FILTER_ALL}
+            onValueChange={(value) =>
+              setFilters((current) => ({
+                ...current,
+                type: value === TYPE_FILTER_ALL ? '' : value,
+              }))
+            }
+          >
+            <SelectTrigger id={`${idPrefix}-type`}>
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={TYPE_FILTER_ALL}>All</SelectItem>
+              <SelectItem value={TRANSACTION_FILTER_TYPE.DEBIT}>
+                Debit
+              </SelectItem>
+              <SelectItem value={TRANSACTION_FILTER_TYPE.CREDIT}>
+                Credit
+              </SelectItem>
+              <SelectItem value={TRANSACTION_FILTER_TYPE.INVESTMENT}>
+                Investment
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor={`${idPrefix}-dateRange`}>Date range</Label>
+          <DateRangePicker
+            id={`${idPrefix}-dateRange`}
+            value={{
+              startDate: filters.startDate,
+              endDate: filters.endDate,
+            }}
+            onChange={(dateRange) =>
+              setFilters((current) => ({
+                ...current,
+                startDate: dateRange.startDate,
+                endDate: dateRange.endDate,
+              }))
+            }
+          />
+        </div>
+      </div>
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={clearFilters}
+        disabled={!hasActiveFilters}
+      >
+        Clear
+      </Button>
+      <Button
+        variant="secondary"
+        className="w-full"
+        onClick={() => setSavePresetDialogOpen(true)}
+        disabled={!hasSavableFilters}
+      >
+        Save filter
+      </Button>
+      {presetFilters.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {presetFilters.map((preset) => (
+            <Popover
+              key={preset.id}
+              open={openPresetChipId === preset.id}
+              onOpenChange={(open) =>
+                setOpenPresetChipId(open ? preset.id : null)
+              }
+            >
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="max-w-full cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'max-w-full truncate border font-medium transition-colors',
+                      presetChipColorClass(preset.id),
+                    )}
+                  >
+                    {preset.name}
+                  </Badge>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-40 p-2" align="start">
+                <div className="flex flex-col gap-1">
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start"
+                    onClick={() => {
+                      applyPresetFilter(preset);
+                      setFiltersOpen(false);
+                    }}
+                  >
+                    Apply
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start"
+                    onClick={() => {
+                      setOpenPresetChipId(null);
+                      setEditingPreset(preset);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const renderRowActions = (row: TransactionRow) => (
+    <div className="flex justify-end gap-0.5">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={investmentMutation.isPending}
+            aria-pressed={row.isInvestment}
+            aria-label={
+              row.isInvestment
+                ? 'Unmark as investment'
+                : 'Mark as investment'
+            }
+            className={cn(
+              'size-8 transition-colors',
+              row.isInvestment
+                ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 hover:text-emerald-700'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+            onClick={() => {
+              investmentMutation.mutate({
+                id: row.id,
+                isInvestment: !row.isInvestment,
+              });
+            }}
+          >
+            <TrendingUp
+              className={cn(
+                'h-4 w-4 transition-colors',
+                row.isInvestment
+                  ? 'fill-emerald-600 text-emerald-600'
+                  : 'text-current',
+              )}
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {row.isInvestment ? 'Unmark as investment' : 'Mark as investment'}
+        </TooltipContent>
+      </Tooltip>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-8"
+        aria-label="Add or edit notes"
+        onClick={() => setNotesTransaction(row)}
+      >
+        <StickyNote
+          className={cn(
+            'h-4 w-4',
+            row.notes && 'fill-primary text-primary',
+          )}
+        />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-8"
+        aria-label={`Edit transaction ${row.id}`}
+        onClick={() => setEditingTransaction(row)}
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-8"
+        aria-label={`Delete transaction ${row.id}`}
+        onClick={() => setDeletingTransaction(row)}
+      >
+        <Trash2 className="h-4 w-4 text-destructive" />
+      </Button>
+    </div>
+  );
+
   return (
-    <div className="flex flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-start">
-      <aside className="order-1 w-full min-w-0 shrink-0 lg:order-0 lg:max-h-full lg:w-72 lg:overflow-x-hidden lg:overflow-y-auto xl:w-80">
-        <div className="min-w-0 space-y-4">
+    <div className="flex flex-col gap-3 lg:h-full lg:min-h-0 lg:flex-row lg:items-start">
+      <aside className="order-1 hidden w-full min-w-0 shrink-0 lg:order-0 lg:block lg:max-h-full lg:w-72 lg:overflow-x-hidden lg:overflow-y-auto xl:w-80">
+        <div className="min-w-0 space-y-3">
           <Button className="w-full" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add transaction
           </Button>
-
-          <div
-            className={cn(
-              'min-w-0 space-y-4 rounded-lg border border-surface bg-card p-4 shadow-surface-sm backdrop-blur-surface',
-              REVEAL_UP_CLASS,
-            )}
-          >
-            <div className="grid min-w-0 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="payee">Payee</Label>
-                <Input
-                  id="payee"
-                  placeholder="Search by payee"
-                  value={filters.payee}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    setFilters((current) => ({
-                      ...current,
-                      payee: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="type">Type</Label>
-                <Select
-                  value={filters.type || TYPE_FILTER_ALL}
-                  onValueChange={(value) =>
-                    setFilters((current) => ({
-                      ...current,
-                      type: value === TYPE_FILTER_ALL ? '' : value,
-                    }))
-                  }
-                >
-                  <SelectTrigger id="type">
-                    <SelectValue placeholder="All" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={TYPE_FILTER_ALL}>All</SelectItem>
-                    <SelectItem value={TRANSACTION_FILTER_TYPE.DEBIT}>
-                      Debit
-                    </SelectItem>
-                    <SelectItem value={TRANSACTION_FILTER_TYPE.CREDIT}>
-                      Credit
-                    </SelectItem>
-                    <SelectItem value={TRANSACTION_FILTER_TYPE.INVESTMENT}>
-                      Investment
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="dateRange">Date range</Label>
-                <DateRangePicker
-                  id="dateRange"
-                  value={{
-                    startDate: filters.startDate,
-                    endDate: filters.endDate,
-                  }}
-                  onChange={(dateRange) =>
-                    setFilters((current) => ({
-                      ...current,
-                      startDate: dateRange.startDate,
-                      endDate: dateRange.endDate,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={clearFilters}
-              disabled={!hasActiveFilters}
-            >
-              Clear
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full"
-              onClick={() => setSavePresetDialogOpen(true)}
-              disabled={!hasSavableFilters}
-            >
-              Save filter
-            </Button>
-            {presetFilters.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {presetFilters.map((preset) => (
-                  <Popover
-                    key={preset.id}
-                    open={openPresetChipId === preset.id}
-                    onOpenChange={(open) =>
-                      setOpenPresetChipId(open ? preset.id : null)
-                    }
-                  >
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="max-w-full cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            'max-w-full truncate border font-medium transition-colors',
-                            presetChipColorClass(preset.id),
-                          )}
-                        >
-                          {preset.name}
-                        </Badge>
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-40 p-2" align="start">
-                      <div className="flex flex-col gap-1">
-                        <Button
-                          variant="ghost"
-                          className="h-8 justify-start"
-                          onClick={() => applyPresetFilter(preset)}
-                        >
-                          Apply
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="h-8 justify-start"
-                          onClick={() => {
-                            setOpenPresetChipId(null);
-                            setEditingPreset(preset);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                ))}
-              </div>
-            ) : null}
-          </div>
+          {filterPanel('desktop')}
         </div>
       </aside>
 
-      <div className="order-2 min-w-0 flex-1 space-y-4 lg:order-0 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <div className="order-2 min-w-0 flex-1 space-y-3 lg:order-0 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+        <div className="flex gap-2 lg:hidden">
+          <Button
+            className="min-w-0 flex-1"
+            size="sm"
+            onClick={() => setCreateDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add
+          </Button>
+          <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 gap-1.5"
+                aria-label="Filters"
+              >
+                <SlidersHorizontal className="size-4" />
+                {hasActiveFilters ? (
+                  <Badge variant="secondary" className="h-5 px-1.5">
+                    On
+                  </Badge>
+                ) : null}
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className="w-[min(100%,22rem)] overflow-y-auto p-4"
+            >
+              <SheetHeader className="mb-4 text-left">
+                <SheetTitle>Filters</SheetTitle>
+              </SheetHeader>
+              {filterPanel('mobile')}
+            </SheetContent>
+          </Sheet>
+        </div>
+
         {isLoading && !aggregate ? (
           <TransactionsSummaryCardsSkeleton
             showAvgDaily={Boolean(debouncedFilters.startDate)}
@@ -606,9 +733,90 @@ export function TransactionsTable() {
         ) : null}
 
         <TooltipProvider>
+          <div className="divide-y divide-border overflow-hidden rounded-lg border border-surface bg-card md:hidden">
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-14 animate-pulse bg-muted/40"
+                />
+              ))
+            ) : isError ? (
+              <p className="p-4 text-center text-sm text-destructive">
+                {(error as Error).message || 'Failed to load transactions'}
+              </p>
+            ) : rows.length === 0 ? (
+              <div
+                className={cn(
+                  EMPTY_STATE_ENTER_CLASS,
+                  'px-4 py-10 text-center',
+                )}
+              >
+                <p className="text-sm font-medium text-foreground">
+                  No transactions yet
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  They will show up here once your email sync is connected.
+                </p>
+              </div>
+            ) : (
+              rows.map((row, rowIndex) => {
+                const isToday = isTransactionToday(row.transactionDate);
+                const typeLabel = row.isInvestment
+                  ? 'Investment'
+                  : row.type === TRANSACTION_TYPE.CREDIT
+                    ? 'Credit'
+                    : 'Debit';
+
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    className={cn(
+                      ROW_ENTER_CLASS,
+                      'flex w-full items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/40 active:bg-muted/60',
+                      isToday && 'bg-amber-500/5',
+                    )}
+                    style={staggerDelay(rowIndex)}
+                    onClick={() => setEditingTransaction(row)}
+                    aria-label={`Edit transaction ${row.paymentMadeTo}`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium leading-snug">
+                        <MaskedPayee value={row.paymentMadeTo} />
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        <span
+                          className={cn(
+                            isToday &&
+                              'font-medium text-amber-700 dark:text-amber-400',
+                          )}
+                        >
+                          {formatDate(row.transactionDate)}
+                        </span>
+                        <span aria-hidden> · </span>
+                        <span>{typeLabel}</span>
+                      </p>
+                    </div>
+                    <p
+                      className={cn(
+                        'shrink-0 text-sm font-semibold tabular-nums tracking-tight',
+                        row.type === TRANSACTION_TYPE.CREDIT
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-foreground',
+                      )}
+                    >
+                      <FormattedAmount value={row.transactionValue} />
+                    </p>
+                  </button>
+                );
+              })
+            )}
+          </div>
+
           <Table
             className="table-fixed table-surface-rows"
-            containerClassName="lg:min-h-0 lg:flex-1"
+            containerClassName="hidden md:block lg:min-h-0 lg:flex-1"
           >
             <colgroup>
               {Object.values(TRANSACTION_TABLE_COLUMNS).map((columnId) => (
@@ -744,78 +952,7 @@ export function TransactionsTable() {
                         </Tooltip>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                disabled={investmentMutation.isPending}
-                                aria-pressed={row.isInvestment}
-                                aria-label={
-                                  row.isInvestment
-                                    ? 'Unmark as investment'
-                                    : 'Mark as investment'
-                                }
-                                className={cn(
-                                  'transition-colors',
-                                  row.isInvestment
-                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 hover:text-emerald-700'
-                                    : 'text-muted-foreground hover:text-foreground',
-                                )}
-                                onClick={() => {
-                                  investmentMutation.mutate({
-                                    id: row.id,
-                                    isInvestment: !row.isInvestment,
-                                  });
-                                }}
-                              >
-                                <TrendingUp
-                                  className={cn(
-                                    'h-4 w-4 transition-colors',
-                                    row.isInvestment
-                                      ? 'fill-emerald-600 text-emerald-600'
-                                      : 'text-current',
-                                  )}
-                                />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {row.isInvestment
-                                ? 'Unmark as investment'
-                                : 'Mark as investment'}
-                            </TooltipContent>
-                          </Tooltip>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Add or edit notes"
-                            onClick={() => setNotesTransaction(row)}
-                          >
-                            <StickyNote
-                              className={cn(
-                                'h-4 w-4',
-                                row.notes && 'fill-primary text-primary',
-                              )}
-                            />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={`Edit transaction ${row.id}`}
-                            onClick={() => setEditingTransaction(row)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={`Delete transaction ${row.id}`}
-                            onClick={() => setDeletingTransaction(row)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
+                        {renderRowActions(row)}
                       </TableCell>
                     </TableRow>
                   );
@@ -826,18 +963,23 @@ export function TransactionsTable() {
         </TooltipProvider>
 
         {pagination && pagination.total > 0 ? (
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t pt-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <p className="text-sm text-muted-foreground">
-                Page {pagination.page} of {pagination.totalPages} (
-                {pagination.total} items)
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t pt-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <p className="text-xs text-muted-foreground sm:text-sm">
+                <span className="sm:hidden">
+                  {pagination.page}/{pagination.totalPages}
+                </span>
+                <span className="hidden sm:inline">
+                  Page {pagination.page} of {pagination.totalPages} (
+                  {pagination.total} items)
+                </span>
               </p>
               <div className="flex items-center gap-2">
                 <Label
                   htmlFor="pageSize"
-                  className="whitespace-nowrap text-sm text-muted-foreground"
+                  className="hidden whitespace-nowrap text-sm text-muted-foreground sm:inline"
                 >
-                  Rows per page
+                  Rows
                 </Label>
                 <Select
                   value={String(pageSize)}
@@ -845,7 +987,7 @@ export function TransactionsTable() {
                     handlePageSizeChange(Number(value) as PageSize)
                   }
                 >
-                  <SelectTrigger id="pageSize" className="h-9 w-fit min-w-22">
+                  <SelectTrigger id="pageSize" className="h-8 w-fit min-w-16 sm:h-9 sm:min-w-22">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -858,14 +1000,14 @@ export function TransactionsTable() {
                 </Select>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={pagination.page <= 1}
               >
-                Previous
+                Prev
               </Button>
               <Button
                 variant="outline"
@@ -979,3 +1121,4 @@ export function TransactionsTable() {
     </div>
   );
 }
+

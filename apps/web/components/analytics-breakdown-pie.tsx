@@ -84,7 +84,7 @@ export function AnalyticsBreakdownPie({ summary }: AnalyticsBreakdownPieProps) {
             No credit in this period to allocate.
           </p>
         ) : (
-          <div className="relative h-64 w-full">
+          <div className="relative h-56 w-full min-w-0 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie

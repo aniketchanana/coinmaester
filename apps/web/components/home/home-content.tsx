@@ -117,7 +117,7 @@ export function HomeContent({ user }: HomeContentProps) {
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,hsl(var(--muted))_0%,transparent_55%)]"
         />
-        <div className="mx-auto grid w-full max-w-5xl items-center gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-12">
+        <div className="mx-auto grid w-full max-w-5xl items-center gap-8 px-4 py-8 sm:gap-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-12">
           <div
             className={cn(REVEAL_UP_CLASS, 'duration-500')}
             style={staggerDelay(0)}
@@ -139,15 +139,15 @@ export function HomeContent({ user }: HomeContentProps) {
                 by {CREATOR.shortName}
               </a>
             </p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl sm:leading-[1.1]">
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl sm:leading-[1.1]">
               Coinmaester
             </h1>
-            <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
+            <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:mt-4 sm:text-base sm:text-lg">
               An AI-powered finance tracker for transaction emails. Sync your
               inbox, let a local model classify and extract spending details,
               and explore everything in a simple web UI.
             </p>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-5 flex flex-wrap items-center gap-2 sm:mt-6 sm:gap-3">
               {user ? (
                 <Button asChild size="lg">
                   <Link href="/transactions">Open app</Link>
@@ -210,23 +210,23 @@ export function HomeContent({ user }: HomeContentProps) {
         className="border-t-2 border-border"
         aria-labelledby="how-it-works-heading"
       >
-        <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-14">
           <div
             className={cn(REVEAL_UP_CLASS, 'duration-500')}
             style={staggerDelay(0)}
           >
             <h2
               id="how-it-works-heading"
-              className="text-2xl font-semibold tracking-tight sm:text-3xl"
+              className="text-xl font-semibold tracking-tight sm:text-3xl"
             >
               How it works
             </h2>
-            <p className="mt-2 max-w-2xl text-muted-foreground">
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
               Email in, structured transactions out — local AI does the
               classification on your host, not in Docker.
             </p>
           </div>
-          <ol className="mt-8 grid gap-6 sm:grid-cols-3 sm:gap-5">
+          <ol className="mt-6 grid gap-4 sm:mt-8 sm:grid-cols-3 sm:gap-5">
             {STEPS.map((step, index) => {
               const Icon = step.icon;
               return (
@@ -266,22 +266,22 @@ export function HomeContent({ user }: HomeContentProps) {
         className="border-t-2 border-border bg-muted/40"
         aria-labelledby="why-local-heading"
       >
-        <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-14">
           <div
             className={cn(REVEAL_UP_CLASS, 'duration-500')}
             style={staggerDelay(0)}
           >
             <h2
               id="why-local-heading"
-              className="text-2xl font-semibold tracking-tight sm:text-3xl"
+              className="text-xl font-semibold tracking-tight sm:text-3xl"
             >
               Why local — and not a free online app?
             </h2>
-            <p className="mt-2 max-w-2xl text-muted-foreground">
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
               Self-hosting is the product decision, not a missing feature.
             </p>
           </div>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+          <ul className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4">
             {WHY_LOCAL.map((item, index) => {
               const Icon = item.icon;
               return (
@@ -314,16 +314,16 @@ export function HomeContent({ user }: HomeContentProps) {
         className="border-t-2 border-border"
         aria-labelledby="support-heading"
       >
-        <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-14">
           <div
             className={cn(
               REVEAL_UP_CLASS,
-              'duration-500 border-2 border-border bg-card p-6 shadow-(--shadow-surface) sm:p-8',
+              'duration-500 border-2 border-border bg-card p-4 shadow-(--shadow-surface) sm:p-8',
             )}
             style={staggerDelay(0)}
           >
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-col gap-5 sm:gap-6">
+              <div className="flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-2xl">
                   <p className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
                     <Sparkles className="size-3.5" />
@@ -331,7 +331,7 @@ export function HomeContent({ user }: HomeContentProps) {
                   </p>
                   <h2
                     id="support-heading"
-                    className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl"
+                    className="mt-3 text-xl font-semibold tracking-tight sm:text-3xl"
                   >
                     Support the project
                   </h2>
@@ -448,7 +448,7 @@ export function HomeContent({ user }: HomeContentProps) {
         className="border-t-2 border-border bg-muted/40"
         aria-labelledby="setup-heading"
       >
-        <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-14">
           <div
             className={cn(REVEAL_UP_CLASS, 'duration-500')}
             style={staggerDelay(0)}
@@ -460,11 +460,11 @@ export function HomeContent({ user }: HomeContentProps) {
               <div>
                 <h2
                   id="setup-heading"
-                  className="text-2xl font-semibold tracking-tight sm:text-3xl"
+                  className="text-xl font-semibold tracking-tight sm:text-3xl"
                 >
                   Self-host in minutes
                 </h2>
-                <p className="mt-1 max-w-2xl text-muted-foreground">
+                <p className="mt-1 max-w-2xl text-sm text-muted-foreground sm:text-base">
                   Run web and API in Docker; keep the Hugging Face worker on the
                   host so it can use your CPU (or GPU).
                 </p>
@@ -503,7 +503,7 @@ export function HomeContent({ user }: HomeContentProps) {
         className="border-t-2 border-border"
         aria-labelledby="docs-heading"
       >
-        <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-14">
           <div
             className={cn(REVEAL_UP_CLASS, 'duration-500')}
             style={staggerDelay(0)}
@@ -515,18 +515,18 @@ export function HomeContent({ user }: HomeContentProps) {
               <div>
                 <h2
                   id="docs-heading"
-                  className="text-2xl font-semibold tracking-tight sm:text-3xl"
+                  className="text-xl font-semibold tracking-tight sm:text-3xl"
                 >
                   Docs and links
                 </h2>
-                <p className="mt-1 max-w-2xl text-muted-foreground">
+                <p className="mt-1 max-w-2xl text-sm text-muted-foreground sm:text-base">
                   Everything you need to understand, run, and contribute to the
                   project.
                 </p>
               </div>
             </div>
           </div>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+          <ul className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4">
             {DOC_LINKS.map((link, index) => {
               const Icon = link.icon;
               return (
@@ -562,7 +562,7 @@ export function HomeContent({ user }: HomeContentProps) {
       </section>
 
       <footer className="border-t-2 border-border">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:px-6">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-6 text-sm text-muted-foreground sm:gap-4 sm:px-6 sm:py-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p>
               Built by{' '}

@@ -137,15 +137,15 @@ export function AnalyticsCompareMetrics({
         <CardTitle className="text-base">Metrics comparison</CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="w-full overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="w-full min-w-0 overflow-x-auto">
+          <table className="w-full min-w-[28rem] text-sm">
             <thead>
               <tr className="border-b border-surface text-left text-muted-foreground">
-                <th className="py-2 pr-4 font-medium">Metric</th>
+                <th className="py-2 pr-3 font-medium sm:pr-4">Metric</th>
                 {series.map((item) => (
                   <th
                     key={item.id}
-                    className="px-4 py-2 text-right font-medium"
+                    className="px-2 py-2 text-right font-medium sm:px-4"
                   >
                     <span className="inline-flex items-center gap-1.5">
                       <span

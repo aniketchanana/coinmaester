@@ -63,6 +63,7 @@ Project context for the agent lives in root `AGENTS.md`. Cursor-specific config:
 Scoped rules:
 
 - `web-frontend.mdc` — `apps/web/**`, `packages/ui/**`
+- `responsive-ui.mdc` — `apps/web/**`, `packages/ui/**` (mobile-first layouts, Sheets, compact lists)
 - `api-backend.mdc` — `apps/api-backend/**`
 - `python-worker.mdc` — `apps/python-worker/**`
 - `database-prisma.mdc` — `packages/database/**`

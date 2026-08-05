@@ -1,0 +1,49 @@
+---
+description: Mobile-first responsive UI conventions for web and shared UI
+globs: apps/web/**,packages/ui/**
+alwaysApply: false
+---
+
+# Responsive UI
+
+Every new or changed UI in `apps/web` / `packages/ui` must work on ~375px and ~768px as well as desktop. Do not ship desktop-only layouts.
+
+## Breakpoints (Tailwind)
+
+| Range | Use for |
+| ----- | ------- |
+| default / `<md` | Phone: compact chrome, list/card rows, Sheets for filters/nav |
+| `md` (~768px) | Switch from mobile lists to tables where needed |
+| `lg` (~1024px) | Sidebars, denser multi-column layouts |
+
+Prefer `md` / `lg` over inventing custom breakpoints.
+
+## Patterns
+
+- **Shell**: Below `md`, hamburger + Sheet for nav; keep header to brand + primary actions (e.g. Sync icon, user). Put theme/incognito/secondary status in the Sheet or tooltips — never crowd the top bar with long status text.
+- **Nav labels**: Short, `whitespace-nowrap`. Avoid long titles that wrap into adjacent controls (e.g. use “Email Sync”, not “Email Sync Status”).
+- **Data tables**: Table at `md+`; below `md` use a single compact list/row (primary label + amount/meta). Prefer tap-to-edit over icon action clusters on mobile.
+- **Filters**: Sidebar at `lg+`; below `lg` open filters in a `@repo/ui/sheet`.
+- **KPIs / metrics**: On mobile show 1–2 primary metrics only; hide secondary cards with `hidden md:block` (or equivalent).
+- **Density**: Tighter padding/gaps on small screens (`gap-2`, `p-2`/`p-2.5`, `text-sm`). Hide helper copy and info icons below `md` when they add noise.
+- **Charts**: Shorter heights on small screens (`h-48`/`h-56` → taller at `md+`); parents need `min-w-0` so `ResponsiveContainer` does not overflow.
+
+```tsx
+// ❌ BAD — desktop table/sidebar only; long header status; wrapping nav
+<aside className="w-72">…filters…</aside>
+<p className="text-sm">Last synced: {longTimestamp}</p>
+<Link href="/email-sync">Email Sync Status</Link>
+
+// ✅ GOOD — progressive disclosure
+<aside className="hidden lg:block">…</aside>
+<Sheet>…filters on small screens…</Sheet>
+<SyncStatus statusVisibility="never" /> {/* timestamp in tooltip / sheet */}
+<Link href="/email-sync" className="whitespace-nowrap">Email Sync</Link>
+```
+
+## Checklist before finishing UI work
+
+- [ ] Usable at ~375px without horizontal overflow or colliding header items
+- [ ] Tables/lists and filters follow mobile vs `md`/`lg` patterns above
+- [ ] Secondary metrics/copy hidden on small screens
+- [ ] Shared primitives (`Sheet`, denser `Table`/`Dialog`) reused from `@repo/ui` when needed

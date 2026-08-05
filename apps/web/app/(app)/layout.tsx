@@ -18,7 +18,7 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen bg-muted/30">
       <AppHeader name={user.name ?? undefined} email={user.email} />
-      <main className="w-full px-3 py-3">
+      <main className="w-full px-2 py-2 sm:px-3 sm:py-3">
         <PageTransition>{children}</PageTransition>
       </main>
     </div>

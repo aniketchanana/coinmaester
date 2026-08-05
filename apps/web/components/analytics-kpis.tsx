@@ -28,61 +28,70 @@ export function AnalyticsKpis({ summary }: AnalyticsKpisProps) {
   const cards = [
     {
       key: 'debit',
-      label: 'Total Spend',
+      label: 'Spend',
       content: <FormattedAmount value={summary.totalDebit} />,
       className: 'text-rose-600 dark:text-rose-400',
+      priority: 'primary' as const,
     },
     {
       key: 'credit',
-      label: 'Total Income',
+      label: 'Income',
       content: <FormattedAmount value={summary.totalCredit} />,
       className: 'text-emerald-600 dark:text-emerald-400',
+      priority: 'primary' as const,
     },
     {
       key: 'investment',
       label: 'Investments',
       content: <FormattedAmount value={summary.totalInvestment} />,
       className: 'text-violet-600 dark:text-violet-400',
+      priority: 'secondary' as const,
     },
     {
       key: 'credit-to-investment',
       label: 'Credit → Invest %',
       content: percentLabel(creditToInvestment),
       className: 'text-violet-600 dark:text-violet-400',
+      priority: 'secondary' as const,
     },
     ...(avgDailySpend
       ? [
           {
             key: 'avg',
-            label: 'Avg Daily Spend',
+            label: 'Avg Daily',
             content: <FormattedAmount value={avgDailySpend} />,
             className: 'text-foreground',
+            priority: 'secondary' as const,
           },
         ]
       : []),
     {
       key: 'count',
-      label: 'Transactions',
+      label: 'Txns',
       content: String(summary.transactionCount),
       className: 'text-foreground',
+      priority: 'secondary' as const,
     },
   ];
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
       {cards.map((card, index) => (
         <div
           key={card.key}
           className={cn(
-            'rounded-lg border border-surface bg-card p-4 shadow-surface-sm backdrop-blur-surface',
+            'rounded-lg border border-surface bg-card p-2.5 shadow-surface-sm backdrop-blur-surface sm:p-3',
             REVEAL_UP_CLASS,
+            card.priority === 'secondary' && 'hidden md:block',
           )}
           style={staggerDelay(index)}
         >
-          <p className="text-sm text-muted-foreground">{card.label}</p>
+          <p className="truncate text-xs text-muted-foreground sm:text-sm">
+            {card.label}
+          </p>
           <p
             className={cn(
-              'mt-1 text-2xl font-semibold tracking-tight',
+              'mt-0.5 text-base font-semibold tracking-tight sm:text-lg md:text-xl',
               card.className,
             )}
           >
@@ -96,11 +105,17 @@ export function AnalyticsKpis({ summary }: AnalyticsKpisProps) {
 
 export function AnalyticsKpisSkeleton() {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {Array.from({ length: 6 }).map((_, index) => (
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+      {Array.from({ length: 2 }).map((_, index) => (
         <div
-          key={index}
-          className="h-22 animate-pulse rounded-lg border border-surface bg-muted/40"
+          key={`primary-${index}`}
+          className="h-14 animate-pulse rounded-lg border border-surface bg-muted/40"
+        />
+      ))}
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={`secondary-${index}`}
+          className="hidden h-16 animate-pulse rounded-lg border border-surface bg-muted/40 md:block"
         />
       ))}
     </div>

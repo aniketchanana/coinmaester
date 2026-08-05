@@ -46,7 +46,7 @@ export function AnalyticsCompareBars({ series }: AnalyticsCompareBarsProps) {
         <CardTitle className="text-base">Totals by preset</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-80 w-full">
+        <div className="h-56 w-full min-w-0 sm:h-64 md:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />

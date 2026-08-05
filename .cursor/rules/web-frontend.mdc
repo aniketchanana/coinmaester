@@ -29,9 +29,10 @@ async function createTransaction(formData: FormData) { 'use server'; ... }
 
 ## UI Components
 
-- Import from `@repo/ui/*` subpaths: `@repo/ui/button`, `@repo/ui/dialog`, etc.
+- Import from `@repo/ui/*` subpaths: `@repo/ui/button`, `@repo/ui/dialog`, `@repo/ui/sheet`, etc.
 - Shared components live in `packages/ui/src/components/ui/` (Radix + CVA + `cn()`).
 - Tailwind v4 with CSS variables in `globals.css`; dark mode via `next-themes`.
+- **Responsive UI is required** — follow `.cursor/rules/responsive-ui.mdc` (mobile list/Sheet patterns, compact header, primary-only KPIs on small screens).
 
 ## Auth Flow
 

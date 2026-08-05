@@ -14,6 +14,7 @@
     "./badge": "./src/components/ui/badge.tsx",
     "./tooltip": "./src/components/ui/tooltip.tsx",
     "./dialog": "./src/components/ui/dialog.tsx",
+    "./sheet": "./src/components/ui/sheet.tsx",
     "./input": "./src/components/ui/input.tsx",
     "./textarea": "./src/components/ui/textarea.tsx",
     "./label": "./src/components/ui/label.tsx",

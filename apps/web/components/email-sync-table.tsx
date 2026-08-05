@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { RefreshCcw } from 'lucide-react';
+import { RefreshCcw, SlidersHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { JOB_STATUS, type JobStatus } from '@repo/constant/job-status';
@@ -18,6 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@repo/ui/sheet';
 import {
   Table,
   TableBody,
@@ -179,6 +186,7 @@ export function EmailSyncTable() {
     persistEmailSyncStatusFilter(statusFilter);
   }, [statusFilter]);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
 
   React.useEffect(() => {
     const storedPageSize = readStoredPageSize();
@@ -306,63 +314,189 @@ export function EmailSyncTable() {
 
   const hasActiveFilters = statusFilter !== 'ALL';
 
-  return (
-    <div className="flex flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-start">
-      <aside className="order-1 w-full min-w-0 shrink-0 lg:order-none lg:max-h-full lg:w-72 lg:overflow-x-hidden lg:overflow-y-auto xl:w-80">
-        <div
-          className={cn(
-            'min-w-0 space-y-4 rounded-lg border border-surface bg-card p-4 shadow-surface-sm backdrop-blur-surface',
-            REVEAL_UP_CLASS,
-          )}
+  const filterPanel = (idPrefix: string) => (
+    <div
+      className={cn(
+        'min-w-0 space-y-3 rounded-lg border border-surface bg-card p-3 shadow-surface-sm backdrop-blur-surface sm:space-y-4 sm:p-4',
+        REVEAL_UP_CLASS,
+      )}
+    >
+      <div className="grid gap-2">
+        <Label htmlFor={`${idPrefix}-statusFilter`}>Status</Label>
+        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+          <SelectTrigger id={`${idPrefix}-statusFilter`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={clearFilters}
+        disabled={!hasActiveFilters}
+      >
+        Clear
+      </Button>
+
+      {selectedIds.size > 0 ? (
+        <Button
+          className="w-full animate-in fade-in-0 slide-in-from-top-2 fill-mode-both duration-200 motion-reduce:animate-none"
+          onClick={() => retryMutation.mutate([...selectedIds])}
+          disabled={retryMutation.isPending}
         >
-          <div className="grid gap-2">
-            <Label htmlFor="statusFilter">Status</Label>
-            <Select
-              value={statusFilter}
-              onValueChange={handleStatusFilterChange}
+          <RefreshCcw
+            className={retryMutation.isPending ? 'animate-spin' : undefined}
+          />
+          Re-run selected ({selectedIds.size})
+        </Button>
+      ) : null}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-3 lg:h-full lg:min-h-0 lg:flex-row lg:items-start">
+      <aside className="order-1 hidden w-full min-w-0 shrink-0 lg:order-none lg:block lg:max-h-full lg:w-72 lg:overflow-x-hidden lg:overflow-y-auto xl:w-80">
+        {filterPanel('desktop')}
+      </aside>
+
+      <div className="order-2 min-w-0 flex-1 space-y-3 lg:order-none lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+        <div className="flex flex-wrap items-center gap-2 lg:hidden">
+          <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 gap-1.5"
+                aria-label="Filters"
+              >
+                <SlidersHorizontal className="size-4" />
+                {hasActiveFilters ? (
+                  <Badge variant="secondary" className="h-5 px-1.5">
+                    On
+                  </Badge>
+                ) : null}
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className="w-[min(100%,22rem)] overflow-y-auto p-4"
             >
-              <SelectTrigger id="statusFilter">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={clearFilters}
-            disabled={!hasActiveFilters}
-          >
-            Clear
-          </Button>
-
+              <SheetHeader className="mb-4 text-left">
+                <SheetTitle>Filters</SheetTitle>
+              </SheetHeader>
+              {filterPanel('mobile')}
+            </SheetContent>
+          </Sheet>
           {selectedIds.size > 0 ? (
             <Button
-              className="w-full animate-in fade-in-0 slide-in-from-top-2 fill-mode-both duration-200 motion-reduce:animate-none"
+              size="sm"
+              className="min-w-0 flex-1 gap-1.5"
               onClick={() => retryMutation.mutate([...selectedIds])}
               disabled={retryMutation.isPending}
             >
               <RefreshCcw
-                className={retryMutation.isPending ? 'animate-spin' : undefined}
+                className={
+                  retryMutation.isPending ? 'animate-spin' : undefined
+                }
               />
-              Re-run selected ({selectedIds.size})
+              Re-run ({selectedIds.size})
             </Button>
           ) : null}
         </div>
-      </aside>
 
-      <div className="order-2 min-w-0 flex-1 space-y-4 lg:order-none lg:flex lg:h-full lg:min-h-0 lg:flex-col">
         <TooltipProvider>
+          <div className="space-y-1.5 md:hidden">
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-14 animate-pulse rounded-lg border border-surface bg-muted/40"
+                />
+              ))
+            ) : isError ? (
+              <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-center text-sm text-destructive">
+                {(error as Error).message ||
+                  'Failed to load email sync status'}
+              </p>
+            ) : rows.length === 0 ? (
+              <div
+                className={cn(
+                  EMPTY_STATE_ENTER_CLASS,
+                  'rounded-lg border border-dashed border-surface px-4 py-8 text-center',
+                )}
+              >
+                <p className="text-sm font-medium text-foreground">
+                  No emails found
+                </p>
+              </div>
+            ) : (
+              rows.map((row, rowIndex) => {
+                const rerunnable = canRerun(row.status);
+                const isSelected = rerunnable && selectedIds.has(row.id);
+
+                return (
+                  <div
+                    key={row.id}
+                    className={cn(
+                      ROW_ENTER_CLASS,
+                      'flex items-center gap-2 rounded-lg border border-surface bg-card px-2.5 py-2',
+                    )}
+                    style={staggerDelay(rowIndex)}
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      disabled={!rerunnable}
+                      aria-label={`Select email ${row.id}`}
+                      onCheckedChange={(checked) =>
+                        toggleRowSelection(row, checked === true)
+                      }
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        <MaskedSensitiveText value={row.subject || '—'} />
+                      </p>
+                      <div className="mt-0.5 flex items-center gap-1.5">
+                        <Badge
+                          variant={statusBadgeVariant(row.status)}
+                          className={cn(
+                            'px-1.5 py-0 text-[10px]',
+                            row.status === JOB_STATUS.IN_PROGRESS &&
+                              'animate-pulse motion-reduce:animate-none',
+                          )}
+                        >
+                          {formatStatusLabel(row.status)}
+                        </Badge>
+                      </div>
+                    </div>
+                    {rerunnable ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 shrink-0"
+                        disabled={retryMutation.isPending}
+                        aria-label="Re-run"
+                        onClick={() => retryMutation.mutate([row.id])}
+                      >
+                        <RefreshCcw className="size-3.5" />
+                      </Button>
+                    ) : null}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
           <Table
             className="table-fixed table-surface-rows"
-            containerClassName="lg:min-h-0 lg:flex-1"
+            containerClassName="hidden md:block lg:min-h-0 lg:flex-1"
           >
             <TableHeader className="table-sticky-header">
               <TableRow className="hover:bg-transparent">
@@ -495,18 +629,23 @@ export function EmailSyncTable() {
         </TooltipProvider>
 
         {pagination && pagination.total > 0 ? (
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t pt-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <p className="text-sm text-muted-foreground">
-                Page {pagination.page} of {pagination.totalPages} (
-                {pagination.total} items)
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t pt-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <p className="text-xs text-muted-foreground sm:text-sm">
+                <span className="sm:hidden">
+                  {pagination.page}/{pagination.totalPages}
+                </span>
+                <span className="hidden sm:inline">
+                  Page {pagination.page} of {pagination.totalPages} (
+                  {pagination.total} items)
+                </span>
               </p>
               <div className="flex items-center gap-2">
                 <Label
-                  htmlFor="pageSize"
-                  className="whitespace-nowrap text-sm text-muted-foreground"
+                  htmlFor="emailSyncPageSize"
+                  className="hidden whitespace-nowrap text-sm text-muted-foreground sm:inline"
                 >
-                  Rows per page
+                  Rows
                 </Label>
                 <Select
                   value={String(pageSize)}
@@ -515,8 +654,8 @@ export function EmailSyncTable() {
                   }
                 >
                   <SelectTrigger
-                    id="pageSize"
-                    className="h-9 w-fit min-w-[5.5rem]"
+                    id="emailSyncPageSize"
+                    className="h-8 w-fit min-w-16 sm:h-9 sm:min-w-[5.5rem]"
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -530,14 +669,14 @@ export function EmailSyncTable() {
                 </Select>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={pagination.page <= 1}
               >
-                Previous
+                Prev
               </Button>
               <Button
                 variant="outline"
@@ -558,3 +697,4 @@ export function EmailSyncTable() {
     </div>
   );
 }
+

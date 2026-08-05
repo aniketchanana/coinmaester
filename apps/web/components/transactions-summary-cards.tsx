@@ -45,7 +45,7 @@ function MetricInfoIcon({ description }: { description: string }) {
       <TooltipTrigger asChild>
         <button
           type="button"
-          className="inline-flex shrink-0 rounded-sm text-muted-foreground/70 transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="hidden shrink-0 rounded-sm text-muted-foreground/70 transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:inline-flex"
           aria-label="How this metric is calculated"
         >
           <Info className="h-3.5 w-3.5" />
@@ -68,34 +68,46 @@ export function TransactionsSummaryCards({
 
   const cards = [
     {
-      key: 'credit' as const,
-      label: 'Credit',
-      className: 'text-emerald-600 dark:text-emerald-500',
-      content: <FormattedAmount value={aggregate.totalCredit} />,
-    },
-    {
       key: 'debit' as const,
       label: 'Debit',
       className: 'text-amber-600 dark:text-amber-500',
       content: <FormattedAmount value={aggregate.totalDebit} />,
+      /** Always show — primary mobile metric */
+      priority: 'primary' as const,
+    },
+    {
+      key: 'spent-today' as const,
+      label: 'Today',
+      className: 'text-rose-600 dark:text-rose-400',
+      content: <FormattedAmount value={spentToday} />,
+      priority: 'primary' as const,
+    },
+    {
+      key: 'credit' as const,
+      label: 'Credit',
+      className: 'text-emerald-600 dark:text-emerald-500',
+      content: <FormattedAmount value={aggregate.totalCredit} />,
+      priority: 'secondary' as const,
     },
     {
       key: 'investment' as const,
       label: 'Investment',
       className: 'text-violet-600 dark:text-violet-400',
       content: <FormattedAmount value={aggregate.totalInvestment} />,
+      priority: 'secondary' as const,
     },
     {
       key: 'invest-percentage' as const,
-      label: 'Invest Percentage',
+      label: 'Invest %',
       className: 'text-violet-600 dark:text-violet-400',
       content: <>{Math.round(investPercentage(aggregate))}%</>,
+      priority: 'secondary' as const,
     },
     ...(hasDateRangeFilter
       ? [
           {
             key: 'avg-daily' as const,
-            label: 'Daily Average Spent',
+            label: 'Avg / day',
             className: 'text-sky-600 dark:text-sky-400',
             content: (
               <FormattedAmount
@@ -108,21 +120,16 @@ export function TransactionsSummaryCards({
                 }
               />
             ),
+            priority: 'secondary' as const,
           },
         ]
       : []),
-    {
-      key: 'spent-today' as const,
-      label: 'Spent Today',
-      className: 'text-rose-600 dark:text-rose-400',
-      content: <FormattedAmount value={spentToday} />,
-    },
   ];
 
   return (
     <div
       className={cn(
-        'grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-3',
+        'grid shrink-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3',
         hasDateRangeFilter ? 'xl:grid-cols-6' : 'xl:grid-cols-5',
       )}
     >
@@ -130,18 +137,21 @@ export function TransactionsSummaryCards({
         <div
           key={card.key}
           className={cn(
-            'rounded-lg border border-surface bg-card p-4 shadow-surface-sm backdrop-blur-surface',
+            'rounded-lg border border-surface bg-card p-2.5 shadow-surface-sm backdrop-blur-surface sm:p-3',
             REVEAL_UP_CLASS,
+            card.priority === 'secondary' && 'hidden md:block',
           )}
           style={staggerDelay(index)}
         >
-          <div className="flex items-center gap-1.5">
-            <p className="text-sm text-muted-foreground">{card.label}</p>
+          <div className="flex items-center gap-1">
+            <p className="truncate text-xs text-muted-foreground sm:text-sm">
+              {card.label}
+            </p>
             <MetricInfoIcon description={METRIC_INFO[card.key]} />
           </div>
           <p
             className={cn(
-              'mt-1 text-2xl font-semibold tracking-tight',
+              'mt-0.5 text-base font-semibold tracking-tight sm:text-lg md:text-xl',
               card.className,
             )}
           >
@@ -153,12 +163,11 @@ export function TransactionsSummaryCards({
   );
 }
 
-const BASE_SKELETON_KEYS = [
+const MOBILE_SKELETON_KEYS = ['debit', 'spent-today'] as const;
+const DESKTOP_EXTRA_KEYS = [
   'credit',
-  'debit',
   'investment',
   'invest-percentage',
-  'spent-today',
 ] as const;
 
 interface TransactionsSummaryCardsSkeletonProps {
@@ -169,30 +178,37 @@ interface TransactionsSummaryCardsSkeletonProps {
 export function TransactionsSummaryCardsSkeleton({
   showAvgDaily = false,
 }: TransactionsSummaryCardsSkeletonProps) {
-  const keys = showAvgDaily
-    ? [
-        ...BASE_SKELETON_KEYS.slice(0, 4),
-        'avg-daily',
-        ...BASE_SKELETON_KEYS.slice(4),
-      ]
-    : [...BASE_SKELETON_KEYS];
-
   return (
     <div
       className={cn(
-        'grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-3',
+        'grid shrink-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3',
         showAvgDaily ? 'xl:grid-cols-6' : 'xl:grid-cols-5',
       )}
     >
-      {keys.map((key) => (
+      {MOBILE_SKELETON_KEYS.map((key) => (
         <div
           key={key}
-          className="rounded-lg border border-surface bg-card p-4 shadow-surface-sm"
+          className="rounded-lg border border-surface bg-card p-2.5 shadow-surface-sm sm:p-3"
         >
-          <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-          <div className="mt-3 h-8 w-32 animate-pulse rounded bg-muted" />
+          <div className="h-3.5 w-16 animate-pulse rounded bg-muted" />
+          <div className="mt-2 h-5 w-20 animate-pulse rounded bg-muted sm:h-6 sm:w-24" />
         </div>
       ))}
+      {DESKTOP_EXTRA_KEYS.map((key) => (
+        <div
+          key={key}
+          className="hidden rounded-lg border border-surface bg-card p-2.5 shadow-surface-sm md:block sm:p-3"
+        >
+          <div className="h-3.5 w-20 animate-pulse rounded bg-muted" />
+          <div className="mt-2 h-6 w-24 animate-pulse rounded bg-muted" />
+        </div>
+      ))}
+      {showAvgDaily ? (
+        <div className="hidden rounded-lg border border-surface bg-card p-2.5 shadow-surface-sm md:block sm:p-3">
+          <div className="h-3.5 w-20 animate-pulse rounded bg-muted" />
+          <div className="mt-2 h-6 w-24 animate-pulse rounded bg-muted" />
+        </div>
+      ) : null}
     </div>
   );
 }

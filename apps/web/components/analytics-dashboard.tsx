@@ -79,11 +79,11 @@ function AnalyticsSingleView({ preset }: { preset: PresetFilter }) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="h-80 animate-pulse rounded-lg border border-surface bg-muted/40" />
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="h-80 animate-pulse rounded-lg border border-surface bg-muted/40" />
-          <div className="h-80 animate-pulse rounded-lg border border-surface bg-muted/40" />
+      <div className="space-y-3 sm:space-y-4">
+        <div className="h-56 animate-pulse rounded-lg border border-surface bg-muted/40 sm:h-64 md:h-80" />
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
+          <div className="h-56 animate-pulse rounded-lg border border-surface bg-muted/40 sm:h-64 md:h-80" />
+          <div className="h-56 animate-pulse rounded-lg border border-surface bg-muted/40 sm:h-64 md:h-80" />
         </div>
         <AnalyticsKpisSkeleton />
       </div>
@@ -103,13 +103,15 @@ function AnalyticsSingleView({ preset }: { preset: PresetFilter }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <AnalyticsDailySpendChart
         trends={data.trends ?? []}
         granularityLabel={granularityLabel}
       />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <AnalyticsBreakdownPie summary={data.summary} />
+      <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-2">
+        <div className="min-w-0 max-md:hidden">
+          <AnalyticsBreakdownPie summary={data.summary} />
+        </div>
         <AnalyticsTopTransactions
           startDate={params.startDate}
           endDate={params.endDate}
@@ -144,9 +146,9 @@ function AnalyticsCompareView({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <AnalyticsKpisSkeleton />
-        <div className="h-80 animate-pulse rounded-lg border border-surface bg-muted/40" />
+        <div className="h-56 animate-pulse rounded-lg border border-surface bg-muted/40 sm:h-64 md:h-80" />
       </div>
     );
   }
@@ -192,7 +194,7 @@ function AnalyticsCompareView({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <AnalyticsCompareMetrics series={series} />
       <AnalyticsCompareBars series={series} />
     </div>
@@ -274,7 +276,7 @@ export function AnalyticsDashboard() {
   const hasNoPresets = !presetsLoading && presets.length === 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <AnalyticsPresetBar
         presets={presets}
         selectedIds={selectedIds}
@@ -282,16 +284,16 @@ export function AnalyticsDashboard() {
         onCreateClick={() => setCreateOpen(true)}
       />
 
-      <div className="border-t pt-4">
+      <div className="border-t pt-3 sm:pt-4">
         {hasNoPresets ? (
           <AnalyticsEmptyPresets onCreateClick={() => setCreateOpen(true)} />
         ) : (
           <>
-            <div className="mb-4">
+            <div className="mb-3 sm:mb-4">
               <h2 className="text-base font-semibold tracking-tight">
-                {isCompare ? 'Compare presets' : 'Overview'}
+                {isCompare ? 'Compare' : 'Overview'}
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="hidden text-sm text-muted-foreground sm:block">
                 {isCompare
                   ? `Comparing ${selectedPresets.length} presets side by side.`
                   : singlePreset

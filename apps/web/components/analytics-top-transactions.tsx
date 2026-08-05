@@ -71,13 +71,16 @@ export function AnalyticsTopTransactions({
   return (
     <Card className="shadow-surface-sm">
       <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 pb-2">
-        <CardTitle className="text-base">Top 5 Transactions</CardTitle>
+        <CardTitle className="text-base">
+          <span className="sm:hidden">Top 5</span>
+          <span className="hidden sm:inline">Top 5 Transactions</span>
+        </CardTitle>
         <Select
           value={type}
           onValueChange={(value) => setType(value as TransactionFilterType)}
         >
           <SelectTrigger
-            className="h-8 w-[140px]"
+            className="h-8 w-[110px] sm:w-[140px]"
             aria-label="Top transaction type"
           >
             <SelectValue placeholder="Type" />

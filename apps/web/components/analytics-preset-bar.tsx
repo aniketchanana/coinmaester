@@ -43,9 +43,9 @@ export function AnalyticsPresetBar({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-base font-semibold tracking-tight">Presets</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="hidden text-sm text-muted-foreground sm:block">
             Select one preset for a focused view, or multiple to compare. At
             least one preset must stay selected.
           </p>
@@ -55,7 +55,7 @@ export function AnalyticsPresetBar({
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5">
-                  Select filters
+                  Select
                   <ChevronsUpDown className="size-3.5 opacity-60" />
                 </Button>
               </PopoverTrigger>
@@ -120,7 +120,8 @@ export function AnalyticsPresetBar({
           ) : null}
           <Button size="sm" className="gap-1.5" onClick={onCreateClick}>
             <Plus className="size-3.5" />
-            Create preset
+            <span className="sm:hidden">New</span>
+            <span className="hidden sm:inline">Create preset</span>
           </Button>
         </div>
       </div>
