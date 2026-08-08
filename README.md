@@ -117,6 +117,9 @@ Install these before running the app:
 
 ## Use it yourself (self-host)
 
+> [!IMPORTANT]
+> To self-host with the full AI email pipeline enabled, check out the [`self-hosting`](https://github.com/aniketchanana/coinmaester/tree/self-hosting) branch (`git checkout self-hosting`). `main` stays clean/stable with the pipeline gated off.
+
 Run web + API in Docker; run the LLM worker on the host.
 
 ```bash
