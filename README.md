@@ -117,14 +117,18 @@ Install these before running the app:
 
 ## Use it yourself (self-host)
 
+> [!IMPORTANT]
+> Self-hosting lives on the **`self-hosting`** branch, which enables the full AI email pipeline (`AI_PARSING_ENABLED=true`). `main` is the clean/stable branch and keeps that pipeline gated off. Check out the branch before you start.
+
 Run web + API in Docker; run the LLM worker on the host.
 
 ```bash
-cp .env.example .env   # set Google OAuth + secrets
-pnpm docker:prod       # Postgres, RabbitMQ, api-backend, web
+git checkout self-hosting   # full AI email pipeline enabled
+cp .env.example .env        # set Google OAuth + secrets
+pnpm docker:prod            # Postgres, RabbitMQ, api-backend, web
 pnpm install
 cd apps/python-worker && uv sync && cd ../..
-pnpm worker            # required for email classification
+pnpm worker                 # required for email classification
 ```
 
 Full steps, OAuth URIs, and ports: [Self-hosting](docs/self-hosting.md)

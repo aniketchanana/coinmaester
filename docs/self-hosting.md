@@ -2,6 +2,8 @@
 
 Run the product for your own use: web and API in Docker, LLM worker on the host.
 
+> **Branch:** Self-hosting runs from the **`self-hosting`** branch, which ships with the AI email pipeline enabled (`AI_PARSING_ENABLED=true`). `main` stays clean/stable with that pipeline gated off, so make sure you're on `self-hosting` before building images.
+
 > **Note:** The Python worker is not containerized. The Hugging Face model needs reliable host CPU access. Compose starts Postgres, RabbitMQ, `api-backend`, and `web` only.
 
 ## Quick start
@@ -11,6 +13,7 @@ Run the product for your own use: web and API in Docker, LLM worker on the host.
    ```bash
    git clone https://github.com/aniketchanana/coinmaester.git
    cd coinmaester
+   git checkout self-hosting   # full AI email pipeline enabled
    cp .env.example .env
    ```
 

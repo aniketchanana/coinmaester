@@ -95,7 +95,7 @@ export function TransactionsSummaryCards({
       ? [
           {
             key: 'avg-daily' as const,
-            label: 'Daily Average Spent',
+            label: 'Daily Avg Spent',
             className: 'text-sky-600 dark:text-sky-400',
             content: (
               <FormattedAmount
