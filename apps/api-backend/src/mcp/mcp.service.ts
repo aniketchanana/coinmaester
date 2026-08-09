@@ -48,7 +48,8 @@ export class McpService {
       {
         title: 'Sync Gmail & Trigger AI Transaction Parsing',
         description:
-          'Trigger Gmail fetch for the authenticated user and queue new emails for AI transaction parsing.',
+          'Trigger Gmail fetch for the authenticated user and queue new emails for AI transaction parsing. ' +
+          'After starting sync, poll get_job_status_summary until hasActiveWork is false before reading transactions.',
       },
       async () => {
         try {
@@ -65,7 +66,7 @@ export class McpService {
                   `Started Gmail sync for ${result.jobs.length} linked account(s). ` +
                   `Job(s): ${jobSummary}. ` +
                   'Emails are being fetched and queued for AI transaction parsing in the background. ' +
-                  'Call get_financial_transaction_list shortly to see newly extracted transactions.',
+                  'Poll get_job_status_summary until hasActiveWork is false, then call get_financial_transaction_list.',
               },
             ],
             structuredContent: {
@@ -84,6 +85,72 @@ export class McpService {
               {
                 type: 'text',
                 text: `Failed to sync Gmail: ${message}`,
+              },
+            ],
+          };
+        }
+      },
+    );
+
+    server.registerTool(
+      'get_job_status_summary',
+      {
+        title: 'Get Sync & Parsing Job Status Summary',
+        description:
+          'Return counts of Gmail sync and AI email-parsing jobs by status (pending, in progress, completed, failed). ' +
+          'Use this to poll after sync_gmail_for_transactions: keep calling until hasActiveWork is false, ' +
+          'then proceed to get_financial_transaction_list or other next steps.',
+      },
+      async () => {
+        try {
+          const summary =
+            await this.syncService.getJobStatusSummary(userId);
+          const { messages } = summary;
+          const activeHint = summary.hasActiveWork
+            ? 'Work is still in progress — poll again shortly.'
+            : 'No active work — safe to proceed to the next step.';
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text:
+                  `Active Gmail sync jobs: ${summary.activeSyncJobs}. ` +
+                  `Last sync status: ${summary.lastSyncStatus ?? 'none'}. ` +
+                  `Email parsing — pending: ${messages.pending}, ` +
+                  `in progress: ${messages.inProgress}, ` +
+                  `failed: ${messages.failed}, ` +
+                  `completed: ${messages.completed} ` +
+                  `(total: ${messages.total}). ` +
+                  `hasActiveWork: ${summary.hasActiveWork}. ${activeHint}`,
+              },
+            ],
+            structuredContent: {
+              activeSyncJobs: summary.activeSyncJobs,
+              lastSyncStatus: summary.lastSyncStatus,
+              lastSyncedTime: summary.lastSyncedTime,
+              messages: {
+                pending: messages.pending,
+                inProgress: messages.inProgress,
+                completed: messages.completed,
+                failed: messages.failed,
+                total: messages.total,
+              },
+              hasActiveWork: summary.hasActiveWork,
+            },
+          };
+        } catch (error) {
+          const message =
+            error instanceof HttpException
+              ? error.message
+              : 'Unexpected error while fetching job status summary';
+
+          return {
+            isError: true,
+            content: [
+              {
+                type: 'text',
+                text: `Failed to fetch job status summary: ${message}`,
               },
             ],
           };
