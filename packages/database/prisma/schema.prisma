@@ -38,6 +38,8 @@ model User {
   transactions   Transaction[]
   presetFilters  PresetFilter[]
 
+  mcpApiKeys McpApiKey[]
+
   @@map("users")
 }
 
@@ -140,4 +142,24 @@ model PresetFilter {
 
   @@index([userId, isDeleted])
   @@map("presetFilters")
+}
+
+model McpApiKey {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Human label the user assigns eg "Gemini"
+  name String
+  // Non-secret leading chars (e.g. cmk_live_abcd12d) for display in UI
+  prefix String
+  // HMAC-SHA256 of the full key. the plaintext key is never shared
+  keyHash String @unique
+  lastUsedAt DateTime?
+  // set when revoked null = active (soft delete style)
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("mcpApiKeys")
 }

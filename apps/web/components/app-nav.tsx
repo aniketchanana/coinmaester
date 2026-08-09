@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/transactions', label: 'Transactions' },
   { href: '/analytics', label: 'Analytics' },
   { href: '/email-sync', label: 'Email Sync Status' },
+  { href: '/mcp', label: 'MCP' },
 ] as const;
 
 type IndicatorStyle = {

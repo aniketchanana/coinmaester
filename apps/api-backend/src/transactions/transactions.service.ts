@@ -55,7 +55,7 @@ export class TransactionsService {
     query: ListTransactionsQuery,
   ): Promise<ListTransactionsResponse> {
     const page = Math.max(1, query.page);
-    const limit = Math.min(100, Math.max(1, query.limit));
+    const limit = Math.min(1000, Math.max(1, query.limit));
     const where = this.buildWhereClause(userId, {
       startDate: query.startDate,
       endDate: query.endDate,
