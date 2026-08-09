@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import { TooltipProvider } from '@repo/ui/tooltip';
 
 import { IncognitoProvider } from './incognito-provider';
+import { CurrencyProvider } from './currency-provider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -24,7 +25,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <IncognitoProvider>
-        <TooltipProvider>{children}</TooltipProvider>
+        <CurrencyProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </CurrencyProvider>
       </IncognitoProvider>
       <Toaster
         richColors

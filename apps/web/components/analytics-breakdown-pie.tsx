@@ -11,10 +11,9 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/card';
 
+import { useIncognitoFormatters } from '../hooks/use-incognito-formatters';
 import { ANALYTICS_SERIES_COLORS } from '../lib/analytics-chart-colors';
-import { formatTransactionAmount } from '../lib/currency';
 import type { AnalyticsSummary } from '../types/analytics';
-import { useIncognito } from './incognito-provider';
 
 const REMAINING_COLOR = '#64748b'; // slate-500
 
@@ -30,7 +29,7 @@ interface PieSlice {
 }
 
 export function AnalyticsBreakdownPie({ summary }: AnalyticsBreakdownPieProps) {
-  const { isIncognito } = useIncognito();
+  const { formatAmount } = useIncognitoFormatters();
   const credit = summary.totalCredit;
   const debit = summary.totalDebit;
   const investment = summary.totalInvestment;
@@ -104,9 +103,7 @@ export function AnalyticsBreakdownPie({ summary }: AnalyticsBreakdownPieProps) {
                 </Pie>
                 <Tooltip
                   formatter={(value, name, item) => {
-                    const amount = formatTransactionAmount(Number(value ?? 0), {
-                      hidden: isIncognito,
-                    });
+                    const amount = formatAmount(Number(value ?? 0));
                     const percent = (item?.payload as PieSlice | undefined)
                       ?.percentOfCredit;
                     const percentLabel =
@@ -122,7 +119,7 @@ export function AnalyticsBreakdownPie({ summary }: AnalyticsBreakdownPieProps) {
             <div className="pointer-events-none absolute left-1/2 top-[42%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
               <p className="text-xs text-muted-foreground">Credit</p>
               <p className="text-sm font-semibold tabular-nums">
-                {formatTransactionAmount(credit, { hidden: isIncognito })}
+                {formatAmount(credit)}
               </p>
             </div>
           </div>

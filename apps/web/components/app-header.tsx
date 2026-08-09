@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { AppNav } from './app-nav';
+import { CurrencySelect } from './currency-select';
 import { IncognitoToggle } from './incognito-toggle';
 import { SyncStatus } from './sync-status';
 import { ThemeToggle } from './theme-toggle';
@@ -28,6 +29,7 @@ export function AppHeader({ name = 'User', email, image }: AppHeaderProps) {
         <div className="flex shrink-0 items-center gap-2">
           <SyncStatus />
           <ThemeToggle />
+          <CurrencySelect />
           <IncognitoToggle />
           <UserNav name={name} email={email} image={image} />
         </div>

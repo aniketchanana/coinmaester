@@ -1,5 +1,12 @@
 export { JOB_STATUS, type JobStatus } from './job-status.js';
-export { TRANSACTION_CURRENCY, TRANSACTION_LOCALE } from './currency.js';
+export {
+  CURRENCY_OPTIONS,
+  DEFAULT_CURRENCY,
+  TRANSACTION_CURRENCY,
+  TRANSACTION_LOCALE,
+  isCurrencyType,
+  type CurrencyType,
+} from './currency.js';
 export {
   TRANSACTION_FILTER_TYPE,
   TRANSACTION_TYPE,

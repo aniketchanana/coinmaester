@@ -12,6 +12,7 @@ import {
 import type { Prisma, TransactionType } from '@repo/database';
 
 import { PrismaService } from '../database/prisma.service';
+import { PreferencesService } from '../preferences/preferences.service';
 import type {
   CreateTransactionBody,
   ListTransactionsResponse,
@@ -48,14 +49,17 @@ interface ListTransactionsQuery {
 
 @Injectable()
 export class TransactionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly preferencesService: PreferencesService,
+  ) {}
 
   async listTransactions(
     userId: string,
     query: ListTransactionsQuery,
   ): Promise<ListTransactionsResponse> {
     const page = Math.max(1, query.page);
-    const limit = Math.min(100, Math.max(1, query.limit));
+    const limit = Math.min(1000, Math.max(1, query.limit));
     const where = this.buildWhereClause(userId, {
       startDate: query.startDate,
       endDate: query.endDate,
@@ -69,24 +73,26 @@ export class TransactionsService {
       isInvestment: false,
     };
 
-    const [rows, total, aggregates, investmentAggregate] = await Promise.all([
-      this.prisma.client.transaction.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      this.prisma.client.transaction.count({ where }),
-      this.prisma.client.transaction.groupBy({
-        by: ['type'],
-        where: nonInvestmentWhere,
-        _sum: { transactionValue: true },
-      }),
-      this.prisma.client.transaction.aggregate({
-        where: { ...where, isInvestment: true },
-        _sum: { transactionValue: true },
-      }),
-    ]);
+    const [rows, total, aggregates, investmentAggregate, currencyType] =
+      await Promise.all([
+        this.prisma.client.transaction.findMany({
+          where,
+          orderBy,
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        this.prisma.client.transaction.count({ where }),
+        this.prisma.client.transaction.groupBy({
+          by: ['type'],
+          where: nonInvestmentWhere,
+          _sum: { transactionValue: true },
+        }),
+        this.prisma.client.transaction.aggregate({
+          where: { ...where, isInvestment: true },
+          _sum: { transactionValue: true },
+        }),
+        this.preferencesService.getCurrencyType(userId),
+      ]);
 
     const totalDebit = this.sumForType(aggregates, TRANSACTION_TYPE.DEBIT);
     const totalCredit = this.sumForType(aggregates, TRANSACTION_TYPE.CREDIT);
@@ -106,6 +112,7 @@ export class TransactionsService {
         totalCredit,
         totalInvestment,
       },
+      currencyType,
     };
   }
 
@@ -252,13 +259,13 @@ export class TransactionsService {
       where.transactionDate = {};
 
       if (filters.startDate) {
-        const parsed = this.parseTransactionDate(filters.startDate);
-        where.transactionDate.gte = this.startOfDay(parsed);
+        where.transactionDate.gte = this.parseTransactionDate(
+          filters.startDate,
+        );
       }
 
       if (filters.endDate) {
-        const parsed = this.parseTransactionDate(filters.endDate);
-        where.transactionDate.lte = this.endOfDay(parsed);
+        where.transactionDate.lte = this.parseTransactionDate(filters.endDate);
       }
     }
 
@@ -357,17 +364,5 @@ export class TransactionsService {
     }
 
     return parsed;
-  }
-
-  private startOfDay(date: Date): Date {
-    const result = new Date(date);
-    result.setUTCHours(0, 0, 0, 0);
-    return result;
-  }
-
-  private endOfDay(date: Date): Date {
-    const result = new Date(date);
-    result.setUTCHours(23, 59, 59, 999);
-    return result;
   }
 }

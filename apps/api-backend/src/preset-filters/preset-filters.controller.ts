@@ -24,7 +24,7 @@ import type {
 @Controller('preset-filters')
 @UseGuards(JwtAuthGuard)
 export class PresetFiltersController {
-  constructor(private readonly presetFiltersService: PresetFiltersService) {}
+  constructor(private readonly presetFiltersService: PresetFiltersService) { }
 
   @Get()
   listPresetFilters(

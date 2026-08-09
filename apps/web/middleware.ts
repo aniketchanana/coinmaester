@@ -11,7 +11,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/transactions') ||
     pathname.startsWith('/analytics') ||
-    pathname.startsWith('/email-sync');
+    pathname.startsWith('/email-sync') ||
+    pathname.startsWith('/mcp');
 
   if (isProtectedRoute && !token) {
     return NextResponse.redirect(new URL('/', request.url));
@@ -26,5 +27,6 @@ export const config = {
     '/transactions/:path*',
     '/analytics/:path*',
     '/email-sync/:path*',
+    '/mcp/:path*',
   ],
 };

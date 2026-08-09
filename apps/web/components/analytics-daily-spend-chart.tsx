@@ -13,9 +13,8 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/card';
 
-import { useIncognito } from './incognito-provider';
+import { useIncognitoFormatters } from '../hooks/use-incognito-formatters';
 import { ANALYTICS_SERIES_COLORS } from '../lib/analytics-chart-colors';
-import { formatTransactionAmount } from '../lib/currency';
 import type { AnalyticsTrendPoint } from '../types/analytics';
 
 interface AnalyticsDailySpendChartProps {
@@ -27,7 +26,7 @@ export function AnalyticsDailySpendChart({
   trends,
   granularityLabel = 'Day by day',
 }: AnalyticsDailySpendChartProps) {
-  const { isIncognito } = useIncognito();
+  const { formatAmount } = useIncognitoFormatters();
   const isMonthly = granularityLabel.toLowerCase().includes('month');
   const data = trends.map((point) => ({
     date: format(
@@ -84,11 +83,7 @@ export function AnalyticsDailySpendChart({
                   }}
                 />
                 <Tooltip
-                  formatter={(value) =>
-                    formatTransactionAmount(Number(value ?? 0), {
-                      hidden: isIncognito,
-                    })
-                  }
+                  formatter={(value) => formatAmount(Number(value ?? 0))}
                   labelFormatter={(label) => `Date: ${String(label)}`}
                 />
                 <Line

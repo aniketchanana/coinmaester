@@ -3,9 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/card';
 import { cn } from '@repo/ui/lib/utils';
 
-import { formatTransactionAmount } from '../lib/currency';
+import { useIncognitoFormatters } from '../hooks/use-incognito-formatters';
 import type { ComparePresetSeries } from './analytics-compare-bars';
-import { useIncognito } from './incognito-provider';
 
 interface AnalyticsCompareMetricsProps {
   series: ComparePresetSeries[];
@@ -79,7 +78,7 @@ const ROWS: MetricRow[] = [
 export function AnalyticsCompareMetrics({
   series,
 }: AnalyticsCompareMetricsProps) {
-  const { isIncognito } = useIncognito();
+  const { formatAmount } = useIncognitoFormatters();
   const showDelta = series.length === 2;
 
   const formatValue = (kind: MetricKind, value: number | null): string => {
@@ -88,7 +87,7 @@ export function AnalyticsCompareMetrics({
     }
 
     if (kind === 'currency') {
-      return formatTransactionAmount(value, { hidden: isIncognito });
+      return formatAmount(value);
     }
 
     if (kind === 'percent') {
@@ -121,7 +120,7 @@ export function AnalyticsCompareMetrics({
     const magnitude = Math.abs(diff);
     let body: string;
     if (kind === 'currency') {
-      body = formatTransactionAmount(magnitude, { hidden: isIncognito });
+      body = formatAmount(magnitude);
     } else if (kind === 'percent') {
       body = `${magnitude.toFixed(1)}pp`;
     } else {

@@ -1,4 +1,4 @@
-import type { TransactionType } from '@repo/constant';
+import type { CurrencyType, TransactionType } from '@repo/constant';
 
 export interface TransactionDto {
   id: string;
@@ -30,6 +30,7 @@ export interface ListTransactionsResponse {
   data: TransactionDto[];
   pagination: TransactionsPagination;
   aggregate: TransactionsAggregate;
+  currencyType: CurrencyType;
 }
 
 export interface CreateTransactionBody {

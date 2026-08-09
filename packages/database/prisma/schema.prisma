@@ -37,6 +37,9 @@ model User {
   gmailMessages  GmailMessage[]
   transactions   Transaction[]
   presetFilters  PresetFilter[]
+  preference     UserPreference?
+
+  mcpApiKeys McpApiKey[]
 
   @@map("users")
 }
@@ -140,4 +143,37 @@ model PresetFilter {
 
   @@index([userId, isDeleted])
   @@map("presetFilters")
+}
+
+model McpApiKey {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Human label the user assigns eg "Gemini"
+  name String
+  // Non-secret leading chars (e.g. cmk_live_abcd12d) for display in UI
+  prefix String
+  // HMAC-SHA256 of the full key. the plaintext key is never shared
+  keyHash String @unique
+  lastUsedAt DateTime?
+  // set when revoked null = active (soft delete style)
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("mcpApiKeys")
+}
+
+/// Per-user app preferences (currency, and future settings).
+model UserPreference {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Strict shape: { name: string, symbol: string }
+  currencyType Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("userPreferences")
 }
