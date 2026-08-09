@@ -11,6 +11,8 @@ import { PrismaService } from '../database/prisma.service';
 import { GmailIngestionService } from './gmail-ingestion.service';
 import type {
   CreateSyncJobResponse,
+  JobStatusCounts,
+  JobStatusSummaryResponse,
   LatestSyncStatusResponse,
 } from './sync.types';
 
@@ -89,6 +91,65 @@ export class SyncService {
     return {
       lastSyncStatus: latestJob?.status ?? null,
       lastSyncedTime: latestCompleted?.createdAt.toISOString() ?? null,
+    };
+  }
+
+  async getJobStatusSummary(
+    userId: string,
+  ): Promise<JobStatusSummaryResponse> {
+    const [latest, activeSyncJobs, messageGroups] = await Promise.all([
+      this.getLatestSyncStatus(userId),
+      this.prisma.client.emailSync.count({
+        where: {
+          userId,
+          status: {
+            in: [SyncStatus.PENDING, SyncStatus.IN_PROGRESS],
+          },
+        },
+      }),
+      this.prisma.client.gmailMessage.groupBy({
+        by: ['status'],
+        where: { userId },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const messages: JobStatusCounts = {
+      pending: 0,
+      inProgress: 0,
+      completed: 0,
+      failed: 0,
+      total: 0,
+    };
+
+    for (const group of messageGroups) {
+      const count = group._count._all;
+      messages.total += count;
+      switch (group.status) {
+        case SyncStatus.PENDING:
+          messages.pending = count;
+          break;
+        case SyncStatus.IN_PROGRESS:
+          messages.inProgress = count;
+          break;
+        case SyncStatus.COMPLETED:
+          messages.completed = count;
+          break;
+        case SyncStatus.FAILED:
+          messages.failed = count;
+          break;
+      }
+    }
+
+    return {
+      activeSyncJobs,
+      lastSyncStatus: latest.lastSyncStatus,
+      lastSyncedTime: latest.lastSyncedTime,
+      messages,
+      hasActiveWork:
+        activeSyncJobs > 0 ||
+        messages.pending > 0 ||
+        messages.inProgress > 0,
     };
   }
 }
