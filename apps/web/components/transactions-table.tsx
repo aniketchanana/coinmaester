@@ -209,18 +209,12 @@ function formatDate(isoDate: string): string {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    timeZone: 'UTC',
   }).format(new Date(isoDate));
 }
 
 function isTransactionToday(isoDate: string): boolean {
-  const date = new Date(isoDate);
-  const today = new Date();
-
-  return (
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate()
-  );
+  return isoDate.slice(0, 10) === new Date().toISOString().slice(0, 10);
 }
 
 export function TransactionsTable() {

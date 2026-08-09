@@ -178,10 +178,10 @@ export class McpService {
           transactionDate: z
             .string()
             .refine((value) => !Number.isNaN(Date.parse(value)), {
-              message: 'Must be an ISO 8601 date-time string.',
+              message: 'Must be a valid date string (YYYY-MM-DD).',
             })
             .describe(
-              'When the transaction occurred, ISO 8601 (e.g. 2025-08-09T14:30:00Z).',
+              'Calendar date of the transaction as YYYY-MM-DD (e.g. 2025-08-09). Time is ignored if present.',
             ),
           notes: z
             .string()
