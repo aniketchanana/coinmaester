@@ -252,13 +252,13 @@ export class TransactionsService {
       where.transactionDate = {};
 
       if (filters.startDate) {
-        const parsed = this.parseTransactionDate(filters.startDate);
-        where.transactionDate.gte = this.startOfDay(parsed);
+        where.transactionDate.gte = this.parseTransactionDate(
+          filters.startDate,
+        );
       }
 
       if (filters.endDate) {
-        const parsed = this.parseTransactionDate(filters.endDate);
-        where.transactionDate.lte = this.endOfDay(parsed);
+        where.transactionDate.lte = this.parseTransactionDate(filters.endDate);
       }
     }
 
@@ -357,17 +357,5 @@ export class TransactionsService {
     }
 
     return parsed;
-  }
-
-  private startOfDay(date: Date): Date {
-    const result = new Date(date);
-    result.setUTCHours(0, 0, 0, 0);
-    return result;
-  }
-
-  private endOfDay(date: Date): Date {
-    const result = new Date(date);
-    result.setUTCHours(23, 59, 59, 999);
-    return result;
   }
 }
