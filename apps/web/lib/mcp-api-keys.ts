@@ -42,6 +42,6 @@ export function revokeMcpApiKey(id: string): Promise<void> {
 }
 
 export function getMcpServerUrl(): string {
-  const base = process.env.NEXT_PUBLIC_API_URL ?? '';
+  const base = process.env.API_INTERNAL_URL ?? '';
   return `${base.replace(/\/$/, '')}/mcp`;
 }

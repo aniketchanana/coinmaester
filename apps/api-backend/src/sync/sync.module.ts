@@ -13,5 +13,6 @@ import { SyncService } from './sync.service';
   imports: [DatabaseModule, AuthModule, StorageModule, MessagingModule],
   controllers: [SyncController],
   providers: [SyncService, GmailIngestionService, SyncCleanupCron],
+  exports: [SyncService],
 })
 export class SyncModule {}

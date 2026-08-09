@@ -7,6 +7,7 @@ import {
   TRANSACTION_TYPE,
 } from '@repo/constant';
 import { z } from 'zod';
+import { SyncService } from '../sync/sync.service';
 import {
   TRANSACTION_SORT_FIELD,
   TRANSACTION_SORT_ORDER,
@@ -15,7 +16,10 @@ import {
 
 @Injectable()
 export class McpService {
-  constructor(private readonly transactionsService: TransactionsService) {}
+  constructor(
+    private readonly transactionsService: TransactionsService,
+    private readonly syncService: SyncService,
+  ) {}
 
   createServer(userId: string): McpServer {
     const server = new McpServer({
@@ -36,6 +40,54 @@ export class McpService {
             { type: 'text', text: `pong (authenticated user: ${userId})` },
           ],
         };
+      },
+    );
+
+    server.registerTool(
+      'sync_gmail_for_transactions',
+      {
+        title: 'Sync Gmail & Trigger AI Transaction Parsing',
+        description:
+          'Trigger Gmail fetch for the authenticated user and queue new emails for AI transaction parsing.',
+      },
+      async () => {
+        try {
+          const result = await this.syncService.createSyncJob(userId);
+          const jobSummary = result.jobs
+            .map((job) => `${job.id} (${job.status})`)
+            .join(', ');
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text:
+                  `Started Gmail sync for ${result.jobs.length} linked account(s). ` +
+                  `Job(s): ${jobSummary}. ` +
+                  'Emails are being fetched and queued for AI transaction parsing in the background. ' +
+                  'Call get_financial_transaction_list shortly to see newly extracted transactions.',
+              },
+            ],
+            structuredContent: {
+              jobs: result.jobs,
+            },
+          };
+        } catch (error) {
+          const message =
+            error instanceof HttpException
+              ? error.message
+              : 'Unexpected error while starting Gmail sync';
+
+          return {
+            isError: true,
+            content: [
+              {
+                type: 'text',
+                text: `Failed to sync Gmail: ${message}`,
+              },
+            ],
+          };
+        }
       },
     );
 
