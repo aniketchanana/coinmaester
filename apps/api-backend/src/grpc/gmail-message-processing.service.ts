@@ -250,6 +250,7 @@ export class GmailMessageProcessingService {
       return null;
     }
 
+    parsed.setUTCHours(0, 0, 0, 0);
     return parsed;
   }
 }

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TRANSACTION_FILTER_TYPE, type TransactionFilterType } from '@repo/constant';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/card';
 import {
@@ -139,7 +139,7 @@ export function AnalyticsTopTransactions({
                       />
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-muted-foreground">
-                      {format(new Date(row.transactionDate), 'dd MMM yyyy')}
+                      {format(parseISO(row.transactionDate), 'dd MMM yyyy')}
                     </TableCell>
                     <TableCell className="text-right font-semibold tabular-nums">
                       <FormattedAmount value={row.transactionValue} />

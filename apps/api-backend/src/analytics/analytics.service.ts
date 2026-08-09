@@ -65,7 +65,7 @@ export class AnalyticsService {
       ? this.startOfDay(this.parseDate(query.startDate!, 'startDate'))
       : null;
     const rangeEnd = hasEnd
-      ? this.endOfDay(this.parseDate(query.endDate!, 'endDate'))
+      ? this.startOfDay(this.parseDate(query.endDate!, 'endDate'))
       : null;
 
     if (rangeStart && rangeEnd && rangeStart > rangeEnd) {
@@ -337,7 +337,7 @@ export class AnalyticsService {
       transactionValue: row.transactionValue.toNumber(),
       type: row.type,
       isInvestment: row.isInvestment,
-      transactionDate: row.transactionDate.toISOString(),
+      transactionDate: row.transactionDate.toISOString().slice(0, 10),
     }));
   }
 
@@ -494,7 +494,7 @@ export class AnalyticsService {
   ): { prevStart: Date; prevEnd: Date } {
     const dayMs = 24 * 60 * 60 * 1000;
     const lengthDays = this.inclusiveDayCount(start, end);
-    const prevEnd = this.endOfDay(new Date(start.getTime() - dayMs));
+    const prevEnd = this.startOfDay(new Date(start.getTime() - dayMs));
     const prevStart = this.startOfDay(
       new Date(prevEnd.getTime() - (lengthDays - 1) * dayMs),
     );
@@ -559,12 +559,6 @@ export class AnalyticsService {
   private startOfDay(date: Date): Date {
     const result = new Date(date);
     result.setUTCHours(0, 0, 0, 0);
-    return result;
-  }
-
-  private endOfDay(date: Date): Date {
-    const result = new Date(date);
-    result.setUTCHours(23, 59, 59, 999);
     return result;
   }
 }

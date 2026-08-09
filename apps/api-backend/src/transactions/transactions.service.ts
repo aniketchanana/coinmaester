@@ -334,7 +334,7 @@ export class TransactionsService {
       bankName: row.bankName,
       transactionValue: row.transactionValue.toNumber(),
       type: row.type,
-      transactionDate: row.transactionDate.toISOString(),
+      transactionDate: row.transactionDate.toISOString().slice(0, 10),
       paymentMadeTo: row.paymentMadeTo,
       notes: row.notes ?? null,
       isInvestment: row.isInvestment,
@@ -363,6 +363,7 @@ export class TransactionsService {
       throw new BadRequestException(`Invalid transaction date: ${value}`);
     }
 
+    parsed.setUTCHours(0, 0, 0, 0);
     return parsed;
   }
 }

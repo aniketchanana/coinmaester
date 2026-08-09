@@ -113,7 +113,7 @@ model Transaction {
   bankName         String
   transactionValue Decimal         @db.Decimal(14, 2)
   type             TransactionType
-  transactionDate  DateTime
+  transactionDate  DateTime        @db.Date
   paymentMadeTo    String
   notes            String?         @db.VarChar(1000)
   isInvestment     Boolean         @default(false)
