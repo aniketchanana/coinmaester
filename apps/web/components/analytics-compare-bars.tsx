@@ -13,9 +13,8 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/card';
 
-import { useIncognito } from './incognito-provider';
+import { useIncognitoFormatters } from '../hooks/use-incognito-formatters';
 import { ANALYTICS_SERIES_COLORS } from '../lib/analytics-chart-colors';
-import { formatTransactionAmount } from '../lib/currency';
 import type { AnalyticsSummary } from '../types/analytics';
 
 export interface ComparePresetSeries {
@@ -32,7 +31,7 @@ interface AnalyticsCompareBarsProps {
 }
 
 export function AnalyticsCompareBars({ series }: AnalyticsCompareBarsProps) {
-  const { isIncognito } = useIncognito();
+  const { formatAmount } = useIncognitoFormatters();
   const data = series.map((item) => ({
     name: item.name,
     Debit: item.summary.totalDebit,
@@ -63,11 +62,7 @@ export function AnalyticsCompareBars({ series }: AnalyticsCompareBarsProps) {
                 width={56}
               />
               <Tooltip
-                formatter={(value) =>
-                  formatTransactionAmount(Number(value ?? 0), {
-                    hidden: isIncognito,
-                  })
-                }
+                formatter={(value) => formatAmount(Number(value ?? 0))}
               />
               <Legend />
               <Bar

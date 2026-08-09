@@ -37,6 +37,7 @@ model User {
   gmailMessages  GmailMessage[]
   transactions   Transaction[]
   presetFilters  PresetFilter[]
+  preference     UserPreference?
 
   mcpApiKeys McpApiKey[]
 
@@ -162,4 +163,17 @@ model McpApiKey {
 
   @@index([userId])
   @@map("mcpApiKeys")
+}
+
+/// Per-user app preferences (currency, and future settings).
+model UserPreference {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Strict shape: { name: string, symbol: string }
+  currencyType Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("userPreferences")
 }

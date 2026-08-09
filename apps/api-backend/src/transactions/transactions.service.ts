@@ -12,6 +12,7 @@ import {
 import type { Prisma, TransactionType } from '@repo/database';
 
 import { PrismaService } from '../database/prisma.service';
+import { PreferencesService } from '../preferences/preferences.service';
 import type {
   CreateTransactionBody,
   ListTransactionsResponse,
@@ -48,7 +49,10 @@ interface ListTransactionsQuery {
 
 @Injectable()
 export class TransactionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly preferencesService: PreferencesService,
+  ) {}
 
   async listTransactions(
     userId: string,
@@ -69,24 +73,26 @@ export class TransactionsService {
       isInvestment: false,
     };
 
-    const [rows, total, aggregates, investmentAggregate] = await Promise.all([
-      this.prisma.client.transaction.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      this.prisma.client.transaction.count({ where }),
-      this.prisma.client.transaction.groupBy({
-        by: ['type'],
-        where: nonInvestmentWhere,
-        _sum: { transactionValue: true },
-      }),
-      this.prisma.client.transaction.aggregate({
-        where: { ...where, isInvestment: true },
-        _sum: { transactionValue: true },
-      }),
-    ]);
+    const [rows, total, aggregates, investmentAggregate, currencyType] =
+      await Promise.all([
+        this.prisma.client.transaction.findMany({
+          where,
+          orderBy,
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        this.prisma.client.transaction.count({ where }),
+        this.prisma.client.transaction.groupBy({
+          by: ['type'],
+          where: nonInvestmentWhere,
+          _sum: { transactionValue: true },
+        }),
+        this.prisma.client.transaction.aggregate({
+          where: { ...where, isInvestment: true },
+          _sum: { transactionValue: true },
+        }),
+        this.preferencesService.getCurrencyType(userId),
+      ]);
 
     const totalDebit = this.sumForType(aggregates, TRANSACTION_TYPE.DEBIT);
     const totalCredit = this.sumForType(aggregates, TRANSACTION_TYPE.CREDIT);
@@ -106,6 +112,7 @@ export class TransactionsService {
         totalCredit,
         totalInvestment,
       },
+      currencyType,
     };
   }
 

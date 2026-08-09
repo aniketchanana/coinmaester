@@ -1,4 +1,4 @@
-import type { TransactionType } from '@repo/constant';
+import type { CurrencyType, TransactionType } from '@repo/constant';
 
 export const TRANSACTION_SORT_FIELD = {
   TRANSACTION_DATE: 'transactionDate',
@@ -46,6 +46,7 @@ export interface ListTransactionsResponse {
   data: TransactionRow[];
   pagination: TransactionsPagination;
   aggregate: TransactionsAggregate;
+  currencyType: CurrencyType;
 }
 
 export interface CreateTransactionPayload {

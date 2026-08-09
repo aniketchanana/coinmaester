@@ -1,23 +1,28 @@
-import { TRANSACTION_CURRENCY, TRANSACTION_LOCALE } from '@repo/constant';
+import {
+  DEFAULT_CURRENCY,
+  TRANSACTION_LOCALE,
+  type CurrencyType,
+} from '@repo/constant';
 
-const amountFormatter = new Intl.NumberFormat(TRANSACTION_LOCALE, {
-  style: 'currency',
-  currency: TRANSACTION_CURRENCY,
+const numberFormatter = new Intl.NumberFormat(TRANSACTION_LOCALE, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
-
-export const MASKED_TRANSACTION_AMOUNT = '₹ ••••••';
 
 interface FormatTransactionAmountOptions {
   hidden?: boolean;
+  currency?: CurrencyType;
 }
 
 export function formatTransactionAmount(
   value: number,
   options?: FormatTransactionAmountOptions,
 ): string {
+  const currency = options?.currency ?? DEFAULT_CURRENCY;
+
   if (options?.hidden) {
-    return MASKED_TRANSACTION_AMOUNT;
+    return `${currency.symbol} ••••••`;
   }
 
-  return amountFormatter.format(value);
+  return `${currency.symbol}${numberFormatter.format(value)}`;
 }

@@ -121,13 +121,16 @@ export class McpService {
                   `(page ${transactions.pagination.page} of ${transactions.pagination.totalPages}). ` +
                   `Totals — debit: ${transactions.aggregate.totalDebit}, ` +
                   `credit: ${transactions.aggregate.totalCredit}, ` +
-                  `investment: ${transactions.aggregate.totalInvestment}.`,
+                  `investment: ${transactions.aggregate.totalInvestment}.` +
+                  `Currency symbol: ${transactions.currencyType.symbol}.` +
+                  `Currency name: ${transactions.currencyType.name}.`,
               },
             ],
             structuredContent: {
               data: transactions.data,
               pagination: transactions.pagination,
               aggregate: transactions.aggregate,
+              currencyType: transactions.currencyType,
             },
           };
         } catch (error) {
