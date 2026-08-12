@@ -9,5 +9,5 @@ export const getResourceUrl = (): URL => {
 };
 
 export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60; // 1 hour
-export const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
+export const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30000; // 30000 days
 export const AUTHORIZATION_CODE_TTL_SECONDS = 60; // 1 minute
