@@ -5,7 +5,10 @@ export const getIssuerUrl = (): URL => {
 };
 
 export const getResourceUrl = (): URL => {
-  return new URL('/mcp', getIssuerUrl());
+  // The MCP protocol endpoint is exposed at `/api/mcp` on the web origin
+  // (proxied to api-backend's `/mcp`). `/mcp` itself is the dashboard page,
+  // so the resource must live under the `/api` proxy prefix.
+  return new URL('/api/mcp', getIssuerUrl());
 };
 
 export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60; // 1 hour

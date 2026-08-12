@@ -42,11 +42,12 @@ export function revokeMcpApiKey(id: string): Promise<void> {
 }
 
 export function getMcpServerUrl(): string {
-  // The MCP endpoint is served on this same web origin (Next.js proxies `/mcp`
-  // and the OAuth routes to api-backend). Using the current origin keeps the
-  // OAuth issuer, session cookie, and connector URL all on one domain.
+  // The MCP endpoint is served on this same web origin at `/api/mcp`, which
+  // Next.js proxies to api-backend's `/mcp`. (`/mcp` itself is the dashboard
+  // page.) Keeping it on this origin means the OAuth issuer, session cookie,
+  // and connector URL all live on one domain.
   if (typeof window !== 'undefined') {
-    return `${window.location.origin}/mcp`;
+    return `${window.location.origin}/api/mcp`;
   }
-  return `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/mcp`;
+  return `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/mcp`;
 }
