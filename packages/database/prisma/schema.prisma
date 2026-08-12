@@ -40,7 +40,8 @@ model User {
   preference     UserPreference?
 
   mcpApiKeys McpApiKey[]
-
+  oauthAuthorizationCodes OAuthAuthorizationCode[]
+  oauthRefreshTokens      OAuthRefreshToken[]
   @@map("users")
 }
 
@@ -176,4 +177,62 @@ model UserPreference {
   updatedAt    DateTime @updatedAt
 
   @@map("userPreferences")
+}
+
+model OAuthClient {
+  id String @id @default(cuid())
+  clientId String @unique
+
+  clientSecretHash String?
+  clientName String?
+
+  redirectUris Json
+  grantTypes String[]
+  scope String?
+  tokenEndpointAuthMethod String @default("none")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorizationCodes OAuthAuthorizationCode[]
+  refreshTokens OAuthRefreshToken[]
+
+  @@map("oauthClients")
+}
+
+model OAuthAuthorizationCode {
+  id String @id @default(cuid())
+  code String @unique
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId String
+  client OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  redirectUri String
+
+  codeChallenge String
+  codeChallengeMethod String @default("S256")
+  scope String?
+
+  resource String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("oauthAuthorizationCodes")
+}
+
+model OAuthRefreshToken {
+  id String @id @default(cuid())
+  tokenHash String @unique
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId String
+  client    OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  scope     String?
+  resource  String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime    @default(now())
+
+  @@index([userId])
+  @@map("oauthRefreshTokens")
 }

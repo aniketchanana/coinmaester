@@ -25,7 +25,8 @@
     "GRPC_BIND_HOST",
     "HF_MODEL_ID",
     "HF_DEVICE",
-    "HF_MAX_NEW_TOKENS"
+    "HF_MAX_NEW_TOKENS",
+    "OAUTH_ISSUER_URL"
   ],
   "tasks": {
     "build": {

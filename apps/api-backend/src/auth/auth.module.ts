@@ -33,6 +33,8 @@ function requireAuthSecret(): string {
   ],
   controllers: [AuthController],
   providers: [AuthService, GoogleStrategy, JwtAuthGuard],
-  exports: [AuthService, JwtAuthGuard],
+  // Re-export JwtModule so downstream modules (e.g. MCP OAuth) can inject
+  // JwtService to sign/verify OAuth access tokens with the same secret.
+  exports: [AuthService, JwtAuthGuard, JwtModule],
 })
 export class AuthModule {}
