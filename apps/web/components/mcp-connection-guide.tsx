@@ -73,14 +73,26 @@ function InlineCopy({ value }: { value: string }) {
   );
 }
 
+type McpClient = {
+  id: string;
+  label: string;
+  file: string;
+  code: string;
+  description?: string;
+  steps?: string[];
+};
+
 export function McpConnectionGuide() {
   const serverUrl = getMcpServerUrl();
 
-  const clients = [
+  const clients: McpClient[] = [
     {
       id: 'cursor',
       label: 'Cursor',
       file: '~/.cursor/mcp.json',
+      description:
+        'Uses an API key from above. Create one, then paste it in place of ' +
+        `${KEY_PLACEHOLDER}.`,
       code: `{
   "mcpServers": {
     "coinmaester": {
@@ -96,6 +108,9 @@ export function McpConnectionGuide() {
       id: 'claude',
       label: 'Claude Desktop',
       file: 'claude_desktop_config.json',
+      description:
+        'Uses an API key from above. Create one, then paste it in place of ' +
+        `${KEY_PLACEHOLDER}.`,
       code: `{
   "mcpServers": {
     "coinmaester": {
@@ -112,21 +127,23 @@ export function McpConnectionGuide() {
 }`,
     },
     {
-      id: 'gemini',
-      label: 'Gemini',
-      file: '~/.gemini/settings.json',
-      code: `{
-  "mcpServers": {
-    "coinmaester": {
-      "httpUrl": "${serverUrl}",
-      "headers": {
-        "Authorization": "Bearer ${KEY_PLACEHOLDER}"
-      }
-    }
-  }
-}`,
+      id: 'oauth',
+      label: 'Connected App (OAuth)',
+      file: 'MCP Server URL — paste into the app',
+      description:
+        'For apps that connect over OAuth (e.g. Gemini, or ChatGPT / Claude ' +
+        'connectors). No API key and no config file — the app registers ' +
+        'itself, then you sign in with Google and approve access. Just paste ' +
+        'the URL below where the app asks for a custom MCP server:',
+      steps: [
+        'Open your app’s connector settings and choose “Add custom app” / “Add MCP server” (in Gemini: Settings → Apps → Add custom app).',
+        'Paste the MCP server URL below and continue.',
+        'A browser window opens on Coinmaester — sign in with Google (if you aren’t already) and approve access to your data.',
+        'You’re connected. The app can now read your transactions on your behalf; revoke anytime by removing the connector.',
+      ],
+      code: serverUrl,
     },
-  ] as const;
+  ];
 
   return (
     <div className="flex flex-col gap-4">
@@ -138,7 +155,8 @@ export function McpConnectionGuide() {
           <InlineCopy value={serverUrl} />
         </div>
         <Badge variant="outline">Streamable HTTP</Badge>
-        <Badge variant="outline">Bearer auth</Badge>
+        <Badge variant="outline">API key</Badge>
+        <Badge variant="outline">OAuth 2.1</Badge>
       </div>
 
       <Tabs defaultValue="cursor" className="w-full gap-3">
@@ -150,7 +168,23 @@ export function McpConnectionGuide() {
           ))}
         </TabsList>
         {clients.map((client) => (
-          <TabsContent key={client.id} value={client.id}>
+          <TabsContent
+            key={client.id}
+            value={client.id}
+            className="flex flex-col gap-3"
+          >
+            {client.description ? (
+              <p className="text-sm text-muted-foreground">
+                {client.description}
+              </p>
+            ) : null}
+            {client.steps ? (
+              <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+                {client.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+            ) : null}
             <CodeBlock label={client.file} code={client.code} />
           </TabsContent>
         ))}

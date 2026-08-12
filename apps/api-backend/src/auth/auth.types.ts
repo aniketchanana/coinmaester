@@ -1,4 +1,5 @@
 export const ACCESS_TOKEN_COOKIE = 'access_token';
+export const OAUTH_RETURN_TO_COOKIE = 'oauth_return_to';
 
 export type SessionUser = {
   id: string;

@@ -4,12 +4,15 @@ import './load-env';
 
 import { join } from 'node:path';
 
+import { mcpAuthRouter } from '@modelcontextprotocol/sdk/server/auth/router.js';
 import { NestFactory } from '@nestjs/core';
 import { Transport, type MicroserviceOptions } from '@nestjs/microservices';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
+import { getIssuerUrl, getResourceUrl } from './mcp/oauth/oauth.config';
+import { OAuthProvider } from './mcp/oauth/oauth.provider';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,6 +25,22 @@ async function bootstrap() {
     origin: process.env.WEB_URL ?? 'http://localhost:3000',
     credentials: true,
   });
+
+  // Mount the MCP OAuth 2.1 authorization server at the application root.
+  // This serves the discovery documents (/.well-known/*), dynamic client
+  // registration (/register), and the /authorize, /token, /revoke endpoints,
+  // all backed by our OAuthProvider. Clients like Gemini use these to obtain
+  // a bearer token before calling /mcp.
+  const oauthProvider = app.get(OAuthProvider);
+  app.use(
+    mcpAuthRouter({
+      provider: oauthProvider,
+      issuerUrl: getIssuerUrl(),
+      resourceServerUrl: getResourceUrl(),
+      scopesSupported: ['mcp'],
+      resourceName: 'Coinmaester MCP',
+    }),
+  );
 
   // The gRPC service has no authentication, so it must never be exposed
   // publicly. Default to loopback; override via GRPC_BIND_HOST only for

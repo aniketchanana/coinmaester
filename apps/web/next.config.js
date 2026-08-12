@@ -37,6 +37,21 @@ const nextConfig = {
         source: '/api/:path*',
         destination: `${apiInternal}/:path*`,
       },
+      // MCP OAuth 2.1 lives on api-backend but must be same-origin with the
+      // web app so the `access_token` session cookie is readable during the
+      // `/authorize` consent step. These proxy the SDK's fixed root paths
+      // (issuer = this web domain). The `/mcp` protocol endpoint itself is
+      // reached via the `/api/*` rewrite above (`/api/mcp` -> api-backend
+      // `/mcp`), because `/mcp` is taken by the dashboard page.
+      {
+        source: '/.well-known/:path*',
+        destination: `${apiInternal}/.well-known/:path*`,
+      },
+      { source: '/authorize', destination: `${apiInternal}/authorize` },
+      { source: '/token', destination: `${apiInternal}/token` },
+      { source: '/register', destination: `${apiInternal}/register` },
+      { source: '/revoke', destination: `${apiInternal}/revoke` },
+      { source: '/auth/google', destination: `${apiInternal}/auth/google` },
     ];
   },
   async headers() {
