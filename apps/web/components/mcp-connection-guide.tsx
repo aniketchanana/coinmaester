@@ -129,15 +129,17 @@ export function McpConnectionGuide() {
     {
       id: 'oauth',
       label: 'Connected App (OAuth)',
-      file: 'MCP Server URL',
+      file: 'MCP Server URL — paste into the app',
       description:
         'For apps that connect over OAuth (e.g. Gemini, or ChatGPT / Claude ' +
-        'connectors). No API key needed — you sign in with Google and approve ' +
-        'access. Add this as a custom MCP connector:',
+        'connectors). No API key and no config file — the app registers ' +
+        'itself, then you sign in with Google and approve access. Just paste ' +
+        'the URL below where the app asks for a custom MCP server:',
       steps: [
-        'In your app, open connector / custom app settings and choose “Add custom app” (or “Add MCP server”).',
+        'Open your app’s connector settings and choose “Add custom app” / “Add MCP server” (in Gemini: Settings → Apps → Add custom app).',
         'Paste the MCP server URL below and continue.',
-        'When the app opens a browser, sign in with Google and approve access to your Coinmaester data.',
+        'A browser window opens on Coinmaester — sign in with Google (if you aren’t already) and approve access to your data.',
+        'You’re connected. The app can now read your transactions on your behalf; revoke anytime by removing the connector.',
       ],
       code: serverUrl,
     },
