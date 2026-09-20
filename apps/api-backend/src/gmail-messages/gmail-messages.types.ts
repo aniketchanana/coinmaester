@@ -22,6 +22,16 @@ export interface ListGmailMessagesResponse {
   pagination: GmailMessagesPagination;
 }
 
+export interface GetEmailBodyResponse {
+  gmailMessageId: string;
+  from: string;
+  subject: string;
+  receivedAt: string;
+  /** Raw stored body. Render it isolated — it is untrusted third-party markup. */
+  body: string;
+  isHtml: boolean;
+}
+
 export interface RetryGmailMessagesBody {
   ids: string[];
 }

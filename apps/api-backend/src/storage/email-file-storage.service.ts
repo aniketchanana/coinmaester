@@ -39,13 +39,22 @@ export class EmailFileStorageService implements OnModuleInit {
     return this.relativePathForId(postgresId);
   }
 
-  async readBody(relativePath: string): Promise<string> {
-    const normalized = path.normalize(relativePath);
-    if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
+  async readBody(storedPath: string): Promise<string> {
+    return readFile(this.resolveStoredPath(storedPath), 'utf8');
+  }
+
+  /**
+   * Bodies are written flat as `<storageRoot>/<postgresId>.txt`, so resolving by
+   * file name keeps absolute and relative `EMAIL_STORAGE_DIR` values working and
+   * makes traversal outside the storage root impossible.
+   */
+  private resolveStoredPath(storedPath: string): string {
+    const fileName = path.basename(storedPath.trim());
+
+    if (!fileName || fileName === '.' || fileName === '..') {
       throw new Error('Invalid email body path');
     }
 
-    const filePath = path.join(REPO_ROOT, normalized);
-    return readFile(filePath, 'utf8');
+    return path.join(this.storageRoot, fileName);
   }
 }

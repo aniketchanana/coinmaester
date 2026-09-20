@@ -18,6 +18,8 @@ export type TransactionSortOrder =
 
 export interface TransactionRow {
   id: string;
+  /** Null for manually created transactions that have no source email. */
+  gmailMessageId: string | null;
   bankName: string;
   transactionValue: number;
   type: TransactionType;

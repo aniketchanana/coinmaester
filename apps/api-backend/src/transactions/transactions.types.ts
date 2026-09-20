@@ -2,6 +2,8 @@ import type { CurrencyType, TransactionType } from '@repo/constant';
 
 export interface TransactionDto {
   id: string;
+  /** Null for manually created transactions that have no source email. */
+  gmailMessageId: string | null;
   bankName: string;
   transactionValue: number;
   type: TransactionType;

@@ -2,7 +2,14 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Pencil, Plus, StickyNote, Trash2, TrendingUp } from 'lucide-react';
+import {
+  Mail,
+  Pencil,
+  Plus,
+  StickyNote,
+  Trash2,
+  TrendingUp,
+} from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
@@ -90,6 +97,7 @@ import {
 import { TableSkeleton } from './table-skeleton';
 import { TransactionCreateDialog } from './transaction-create-dialog';
 import { TransactionEditDialog } from './transaction-edit-dialog';
+import { TransactionEmailDialog } from './transaction-email-dialog';
 import { TransactionNotesDialog } from './transaction-notes-dialog';
 import { TransactionTypeBadge } from './transaction-type-badge';
 import {
@@ -123,7 +131,7 @@ const DEFAULT_TRANSACTION_COLUMN_WIDTHS: Record<
   type: 130,
   date: 130,
   payee: 220,
-  actions: 160,
+  actions: 200,
 };
 
 const TRANSACTION_TABLE_COLUMN_WIDTHS_STORAGE_KEY =
@@ -260,6 +268,8 @@ export function TransactionsTable() {
   const [deletingTransaction, setDeletingTransaction] =
     React.useState<TransactionRow | null>(null);
   const [notesTransaction, setNotesTransaction] =
+    React.useState<TransactionRow | null>(null);
+  const [emailTransaction, setEmailTransaction] =
     React.useState<TransactionRow | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [savePresetDialogOpen, setSavePresetDialogOpen] = React.useState(false);
@@ -780,6 +790,26 @@ export function TransactionsTable() {
                                 : 'Mark as investment'}
                             </TooltipContent>
                           </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={row.gmailMessageId === null}
+                                  aria-label={`View source email for transaction ${row.id}`}
+                                  onClick={() => setEmailTransaction(row)}
+                                >
+                                  <Mail className="h-4 w-4" />
+                                </Button>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {row.gmailMessageId === null
+                                ? 'No source email'
+                                : 'View source email'}
+                            </TooltipContent>
+                          </Tooltip>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -910,6 +940,16 @@ export function TransactionsTable() {
         onDelete={(transaction) => {
           setEditingTransaction(null);
           setDeletingTransaction(transaction);
+        }}
+      />
+
+      <TransactionEmailDialog
+        transaction={emailTransaction}
+        open={emailTransaction !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEmailTransaction(null);
+          }
         }}
       />
 
