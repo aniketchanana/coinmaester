@@ -23,13 +23,10 @@ export interface ListGmailMessagesResponse {
 }
 
 export interface GetEmailBodyResponse {
-  gmailMessageId: string;
+  html: string;
   from: string;
   subject: string;
   receivedAt: string;
-  /** Raw stored body. Render it isolated — it is untrusted third-party markup. */
-  body: string;
-  isHtml: boolean;
 }
 
 export interface RetryGmailMessagesBody {
