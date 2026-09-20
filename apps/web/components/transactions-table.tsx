@@ -2,14 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import {
-  Mail,
-  Pencil,
-  Plus,
-  StickyNote,
-  Trash2,
-  TrendingUp,
-} from 'lucide-react';
+import { Mail, Pencil, Plus, Trash2, TrendingUp } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
@@ -86,6 +79,7 @@ import {
   TRANSACTION_SORT_ORDER,
 } from '../types/transaction';
 import { DateRangePicker } from './date-range-picker';
+import { EmailBodyDialog } from './email-body-dialog';
 import { FormattedAmount } from './formatted-amount';
 import { MaskedPayee } from './masked-payee';
 import { PresetFilterEditDialog } from './preset-filter-edit-dialog';
@@ -95,10 +89,7 @@ import {
   ResizableTableHead,
 } from './resizable-table-head';
 import { TableSkeleton } from './table-skeleton';
-import { TransactionCreateDialog } from './transaction-create-dialog';
-import { TransactionEditDialog } from './transaction-edit-dialog';
-import { TransactionEmailDialog } from './transaction-email-dialog';
-import { TransactionNotesDialog } from './transaction-notes-dialog';
+import { TransactionFormDialog } from './transaction-form-dialog';
 import { TransactionTypeBadge } from './transaction-type-badge';
 import {
   TransactionsSummaryCards,
@@ -131,7 +122,7 @@ const DEFAULT_TRANSACTION_COLUMN_WIDTHS: Record<
   type: 130,
   date: 130,
   payee: 220,
-  actions: 200,
+  actions: 168,
 };
 
 const TRANSACTION_TABLE_COLUMN_WIDTHS_STORAGE_KEY =
@@ -266,8 +257,6 @@ export function TransactionsTable() {
   const [editingTransaction, setEditingTransaction] =
     React.useState<TransactionRow | null>(null);
   const [deletingTransaction, setDeletingTransaction] =
-    React.useState<TransactionRow | null>(null);
-  const [notesTransaction, setNotesTransaction] =
     React.useState<TransactionRow | null>(null);
   const [emailTransaction, setEmailTransaction] =
     React.useState<TransactionRow | null>(null);
@@ -813,32 +802,25 @@ export function TransactionsTable() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            aria-label="Add or edit notes"
-                            onClick={() => setNotesTransaction(row)}
-                          >
-                            <StickyNote
-                              className={cn(
-                                'h-4 w-4',
-                                row.notes && 'fill-primary text-primary',
-                              )}
-                            />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
                             aria-label={`Edit transaction ${row.id}`}
                             onClick={() => setEditingTransaction(row)}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={`Delete transaction ${row.id}`}
-                            onClick={() => setDeletingTransaction(row)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Delete transaction ${row.id}`}
+                                className="text-red-700 hover:bg-red-600/15 hover:text-red-800 dark:text-red-500 dark:hover:bg-red-500/20 dark:hover:text-red-400"
+                                onClick={() => setDeletingTransaction(row)}
+                              >
+                                <Trash2 className="h-4 w-4 fill-current" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete</TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -908,7 +890,8 @@ export function TransactionsTable() {
         ) : null}
       </div>
 
-      <TransactionCreateDialog
+      <TransactionFormDialog
+        mode="create"
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
@@ -929,7 +912,8 @@ export function TransactionsTable() {
         preset={editingPreset}
       />
 
-      <TransactionEditDialog
+      <TransactionFormDialog
+        mode="edit"
         transaction={editingTransaction}
         open={editingTransaction !== null}
         onOpenChange={(open) => {
@@ -943,22 +927,12 @@ export function TransactionsTable() {
         }}
       />
 
-      <TransactionEmailDialog
-        transaction={emailTransaction}
+      <EmailBodyDialog
+        gmailMessageId={emailTransaction?.gmailMessageId ?? null}
         open={emailTransaction !== null}
         onOpenChange={(open) => {
           if (!open) {
             setEmailTransaction(null);
-          }
-        }}
-      />
-
-      <TransactionNotesDialog
-        transaction={notesTransaction}
-        open={notesTransaction !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setNotesTransaction(null);
           }
         }}
       />

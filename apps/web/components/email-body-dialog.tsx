@@ -14,7 +14,6 @@ import {
 import { ApiError } from '../lib/api-client';
 import { emailBodyKeys, fetchEmailBody } from '../lib/email-body';
 import type { EmailBody } from '../types/email-body';
-import type { TransactionRow } from '../types/transaction';
 
 /**
  * Email markup is untrusted third-party content. `default-src 'none'` keeps the
@@ -94,19 +93,17 @@ function formatReceivedAt(isoDate: string): string {
   }).format(new Date(isoDate));
 }
 
-interface TransactionEmailDialogProps {
-  transaction: TransactionRow | null;
+interface EmailBodyDialogProps {
+  gmailMessageId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function TransactionEmailDialog({
-  transaction,
+export function EmailBodyDialog({
+  gmailMessageId,
   open,
   onOpenChange,
-}: TransactionEmailDialogProps) {
-  const gmailMessageId = transaction?.gmailMessageId ?? null;
-
+}: EmailBodyDialogProps) {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: emailBodyKeys.detail(gmailMessageId ?? ''),
     queryFn: () => fetchEmailBody(gmailMessageId!),
@@ -122,20 +119,20 @@ export function TransactionEmailDialog({
 
   const errorMessage =
     error instanceof ApiError && error.status === 404
-      ? 'The source email is no longer stored for this transaction.'
+      ? 'This email is no longer stored on disk.'
       : ((error as Error | null)?.message ?? 'Failed to load the email');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="truncate">
+      <DialogContent className="max-w-3xl overflow-hidden">
+        <DialogHeader className="min-w-0 pr-8">
+          <DialogTitle className="text-left leading-snug wrap-break-word">
             {data?.subject || 'Source email'}
           </DialogTitle>
-          <DialogDescription className="truncate">
+          <DialogDescription className="text-left wrap-break-word">
             {data
               ? `${data.from} · ${formatReceivedAt(data.receivedAt)}`
-              : 'The email this transaction was extracted from.'}
+              : 'The original email stored during sync.'}
           </DialogDescription>
         </DialogHeader>
 
