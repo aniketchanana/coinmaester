@@ -2,6 +2,9 @@
 # orphan empty volumes (Docker Compose defaults project name to the directory).
 name: coinmaester
 
+include:
+  - path: docker/langfuse/docker-compose.yml
+
 x-email-volume: &email-volume ./ingested-emails:/app/ingested-emails
 
 services:

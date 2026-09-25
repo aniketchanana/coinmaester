@@ -4,7 +4,7 @@ import logging
 import threading
 from typing import Any
 
-from llm_inference.base import LlmProvider
+from llm_inference.base import LlmCompletion, LlmProvider
 from llm_inference.errors import LlmError
 
 logger = logging.getLogger(__name__)
@@ -70,6 +70,11 @@ def _ensure_pipeline(model_id: str, device: str) -> tuple[Any, str]:
         return generator, resolved
 
 
+def _token_count(tokenizer: Any, text: str) -> int:
+    encoded = tokenizer.encode(text, add_special_tokens=False)
+    return len(encoded)
+
+
 class HuggingFaceProvider(LlmProvider):
     """In-process Hugging Face transformers provider with process-wide model cache."""
 
@@ -91,7 +96,7 @@ class HuggingFaceProvider(LlmProvider):
         *,
         max_tokens: int = 1024,
         temperature: float = 0.0,
-    ) -> str:
+    ) -> LlmCompletion:
         generator, _device = _ensure_pipeline(self._model_id, self._device)
 
         messages = [
@@ -133,7 +138,12 @@ class HuggingFaceProvider(LlmProvider):
             continuation = outputs[0]["generated_text"]
             if not isinstance(continuation, str):
                 raise LlmError("Hugging Face pipeline returned an invalid response")
-            return ("{" + continuation).strip()
+            return LlmCompletion(
+                text=("{" + continuation).strip(),
+                model=self._model_id,
+                input_tokens=_token_count(generator.tokenizer, prompt),
+                output_tokens=_token_count(generator.tokenizer, continuation),
+            )
         except LlmError:
             raise
         except Exception as error:

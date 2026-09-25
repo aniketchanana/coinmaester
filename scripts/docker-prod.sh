@@ -23,8 +23,8 @@ if grep -q 'GOOGLE_CLIENT_ID=""' .env 2>/dev/null || \
 fi
 
 echo "[2/4] Building production images (this may take a few minutes)..."
-echo "[3/4] Starting containers (Postgres, RabbitMQ, api-backend, web)..."
-docker compose --profile prod up --build -d --force-recreate
+echo "[3/4] Starting containers (Postgres, RabbitMQ, Langfuse, api-backend, web)..."
+bash scripts/docker-compose.sh --profile prod up --build -d --force-recreate
 
 echo "[4/4] Waiting for services to become reachable..."
 for i in $(seq 1 30); do
@@ -39,6 +39,7 @@ for i in $(seq 1 30); do
     echo "  API (direct): http://localhost:3001"
     echo "  gRPC:         localhost:50051"
     echo "  RabbitMQ UI:  http://localhost:15672  (finance / finance)"
+    echo "  Langfuse:     http://localhost:3100"
     echo ""
     echo "  Google OAuth redirect URI must include:"
     echo "    http://localhost:3000/api/auth/google/callback"
@@ -55,7 +56,7 @@ for i in $(seq 1 30); do
     echo "   and shared ./ingested-emails with the API container.)"
     echo "============================================================"
     echo ""
-    echo "  Logs: docker compose --profile prod logs -f"
+    echo "  Logs: bash scripts/docker-compose.sh --profile prod logs -f"
     exit 0
   fi
   sleep 2
@@ -63,7 +64,7 @@ done
 
 echo ""
 echo "Containers started but http://localhost:3000 is not responding yet."
-echo "Check logs: docker compose --profile prod logs -f"
+echo "Check logs: bash scripts/docker-compose.sh --profile prod logs -f"
 echo ""
 echo "Remember: start the python worker on the host with: pnpm worker"
 exit 1

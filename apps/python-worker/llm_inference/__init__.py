@@ -1,8 +1,9 @@
-from llm_inference.base import LlmProvider
+from llm_inference.base import LlmCompletion, LlmProvider
 from llm_inference.errors import LlmError
 from llm_inference.factory import LlmProviderConfig, create_provider
 
 __all__ = [
+    "LlmCompletion",
     "LlmError",
     "LlmProvider",
     "LlmProviderConfig",

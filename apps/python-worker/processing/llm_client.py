@@ -3,7 +3,8 @@ import logging
 from pydantic import ValidationError
 
 from config import settings
-from llm_inference import LlmProvider, LlmProviderConfig, create_provider
+from llm_inference import LlmCompletion, LlmProvider, LlmProviderConfig, create_provider
+from observability import start_observation
 from processing.models import (
     ExtractedTransaction,
     LlmClassificationResponse,
@@ -57,13 +58,43 @@ class TransactionLlmClient:
             )
         )
 
+    def _generate(self, *, name: str, system: str, user: str) -> LlmCompletion:
+        with start_observation(
+            as_type="generation",
+            name=name,
+            model=settings.hf_model_id,
+            input={"system": system, "user": user},
+            model_parameters={
+                "temperature": 0,
+                "max_tokens": settings.hf_max_new_tokens,
+            },
+        ) as generation:
+            try:
+                result = self._provider.generate(
+                    system,
+                    user,
+                    max_tokens=settings.hf_max_new_tokens,
+                    temperature=0,
+                )
+            except Exception as error:
+                generation.update(level="ERROR", status_message=str(error))
+                raise
+            generation.update(
+                model=result.model,
+                output=result.text,
+                usage_details={
+                    "input": result.input_tokens,
+                    "output": result.output_tokens,
+                },
+            )
+            return result
+
     def classify_is_transaction_email(self, header: str) -> str:
-        text = self._provider.generate(
-            CLASSIFY_SYSTEM_PROMPT,
-            header,
-            max_tokens=settings.hf_max_new_tokens,
-            temperature=0,
-        ).strip()
+        text = self._generate(
+            name="classify-email",
+            system=CLASSIFY_SYSTEM_PROMPT,
+            user=header,
+        ).text.strip()
         logger.debug("LLM classification payload: %s", text)
         return text
 
@@ -87,12 +118,11 @@ class TransactionLlmClient:
             len(cleaned_body),
         )
 
-        raw_text = self._provider.generate(
-            JSON_DATA_SYSTEM_PROMPT,
-            build_user_prompt(header, cleaned_body),
-            max_tokens=settings.hf_max_new_tokens,
-            temperature=0,
-        ).strip()
+        raw_text = self._generate(
+            name="extract-transaction",
+            system=JSON_DATA_SYSTEM_PROMPT,
+            user=build_user_prompt(header, cleaned_body),
+        ).text.strip()
         logger.debug("LLM extraction payload: %s", raw_text)
 
         if not raw_text:

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
+from config import settings
 from llm_inference import LlmError
+from observability import start_observation
 
 from processing.email_reader import EmailBodyReader
 from processing.llm_client import TransactionLlmClient
@@ -26,6 +28,29 @@ class MessageProcessor:
         self._llm_client = TransactionLlmClient()
 
     def process(self, claim: ClaimedMessage) -> ProcessingResult:
+        with start_observation(
+            as_type="span",
+            name="process-email",
+            metadata={
+                "gmailMessageId": claim.id,
+                "model": settings.hf_model_id,
+            },
+        ) as span:
+            result = self._process_email(claim)
+            if result.failure_reason:
+                span.update(
+                    level="ERROR",
+                    status_message=result.failure_reason,
+                    output={"failureReason": result.failure_reason},
+                )
+            else:
+                is_transaction = bool(
+                    result.transaction and result.transaction.is_transaction_email
+                )
+                span.update(output={"isTransaction": is_transaction})
+            return result
+
+    def _process_email(self, claim: ClaimedMessage) -> ProcessingResult:
         if not claim.email_body:
             return ProcessingResult(
                 failure_reason="Email body path is missing on claimed message"
