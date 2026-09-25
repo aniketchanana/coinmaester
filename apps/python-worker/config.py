@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     )
     hf_device: str = Field(default="auto", alias="HF_DEVICE")
     hf_max_new_tokens: int = Field(default=1024, alias="HF_MAX_NEW_TOKENS")
+    langfuse_public_key: str = Field(default="", alias="LANGFUSE_PUBLIC_KEY")
+    langfuse_secret_key: str = Field(default="", alias="LANGFUSE_SECRET_KEY")
+    langfuse_base_url: str = Field(
+        default="http://localhost:3100",
+        alias="LANGFUSE_BASE_URL",
+    )
 
 
 settings = Settings()

@@ -26,6 +26,9 @@
     "HF_MODEL_ID",
     "HF_DEVICE",
     "HF_MAX_NEW_TOKENS",
+    "LANGFUSE_PUBLIC_KEY",
+    "LANGFUSE_SECRET_KEY",
+    "LANGFUSE_BASE_URL",
     "OAUTH_ISSUER_URL"
   ],
   "tasks": {

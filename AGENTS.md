@@ -31,7 +31,7 @@ The Python worker **never** writes to Postgres directly. All persistence goes th
 ## Dev Workflow
 
 ```bash
-pnpm docker:dev         # Postgres 16 + RabbitMQ
+pnpm docker:dev         # Postgres 16 + RabbitMQ + local Langfuse (UI :3100)
 cp .env.example .env    # configure Google OAuth + secrets
 pnpm db:migrate
 pnpm dev                # all apps concurrently (includes worker)

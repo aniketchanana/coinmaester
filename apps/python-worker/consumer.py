@@ -10,6 +10,7 @@ from pika.spec import Basic, BasicProperties
 from config import settings
 from grpc_client import GmailMessageGrpcClient
 from models import GmailMessageQueuePayload
+from observability import flush_langfuse
 from processing import ClaimedMessage, MessageProcessor
 
 logger = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ class GmailMessageConsumer:
         if self._channel.is_open:
             self._channel.stop_consuming()
         self._executor.shutdown(wait=True)
+        flush_langfuse()
         if self._connection.is_open:
             self._connection.close()
         self._grpc_client.close()
