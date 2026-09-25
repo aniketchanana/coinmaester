@@ -1,10 +1,10 @@
 """Convert raw email bodies into plain English text before they reach the LLM.
 
-The api-backend stores the Gmail ``text/plain`` part when present, but falls back
-to the raw ``text/html`` part otherwise (see ``gmail-ingestion.service.ts``).
-Marketing-heavy bank emails are therefore frequently full HTML documents bloated
-with inline CSS, tracking links, and base64 image blobs. Feeding that verbatim to
-the model wastes the context window and can overflow it for larger emails.
+The api-backend stores the Gmail ``text/html`` part when present, and falls back
+to ``text/plain`` otherwise (see ``gmail-ingestion.service.ts``). Marketing-heavy
+bank emails are therefore frequently full HTML documents bloated with inline CSS,
+tracking links, and base64 image blobs. Feeding that verbatim to the model wastes
+the context window and can overflow it for larger emails.
 
 This module strips the markup/noise and returns readable text — the full message
 is preserved (never truncated mid-email), while staying dependency-free (stdlib

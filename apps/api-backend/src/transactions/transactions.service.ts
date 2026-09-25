@@ -319,6 +319,7 @@ export class TransactionsService {
 
   private toDto(row: {
     id: string;
+    gmailMessageId: string | null;
     bankName: string;
     transactionValue: Prisma.Decimal;
     type: TransactionType;
@@ -331,6 +332,7 @@ export class TransactionsService {
   }): TransactionDto {
     return {
       id: row.id,
+      gmailMessageId: row.gmailMessageId,
       bankName: row.bankName,
       transactionValue: row.transactionValue.toNumber(),
       type: row.type,

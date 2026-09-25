@@ -1,8 +1,8 @@
 'use client';
 
-import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { RefreshCcw } from 'lucide-react';
+import { Mail, RefreshCcw } from 'lucide-react';
+import * as React from 'react';
 import { toast } from 'sonner';
 
 import { JOB_STATUS, type JobStatus } from '@repo/constant/job-status';
@@ -34,12 +34,6 @@ import {
 } from '@repo/ui/tooltip';
 
 import {
-  EMPTY_STATE_ENTER_CLASS,
-  REVEAL_UP_CLASS,
-  ROW_ENTER_CLASS,
-  staggerDelay,
-} from '../lib/motion';
-import {
   persistEmailSyncStatusFilter,
   readStoredEmailSyncStatusFilter,
 } from '../lib/email-sync-filters';
@@ -48,12 +42,19 @@ import {
   gmailMessageKeys,
   retryGmailMessages,
 } from '../lib/gmail-messages';
-import { MaskedSensitiveText } from './masked-sensitive-text';
-import { TableSkeleton } from './table-skeleton';
+import {
+  EMPTY_STATE_ENTER_CLASS,
+  REVEAL_UP_CLASS,
+  ROW_ENTER_CLASS,
+  staggerDelay,
+} from '../lib/motion';
 import type {
   GmailMessageRow,
   GmailMessageStatusFilter,
 } from '../types/gmail-message';
+import { EmailBodyDialog } from './email-body-dialog';
+import { MaskedSensitiveText } from './masked-sensitive-text';
+import { TableSkeleton } from './table-skeleton';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
@@ -179,6 +180,9 @@ export function EmailSyncTable() {
     persistEmailSyncStatusFilter(statusFilter);
   }, [statusFilter]);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [viewingEmailId, setViewingEmailId] = React.useState<string | null>(
+    null,
+  );
 
   React.useEffect(() => {
     const storedPageSize = readStoredPageSize();
@@ -343,6 +347,11 @@ export function EmailSyncTable() {
             Clear
           </Button>
 
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="h-3 w-3 shrink-0 rounded-sm bg-emerald-500/40" />
+            Row highlighted when a transaction was extracted
+          </div>
+
           {selectedIds.size > 0 ? (
             <Button
               className="w-full animate-in fade-in-0 slide-in-from-top-2 fill-mode-both duration-200 motion-reduce:animate-none"
@@ -386,7 +395,7 @@ export function EmailSyncTable() {
                 <TableHead>Subject</TableHead>
                 <TableHead>Received</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-[120px] text-right">Actions</TableHead>
+                <TableHead className="w-[160px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody key={`${page}-${pageSize}-${statusFilter}`}>
@@ -424,7 +433,10 @@ export function EmailSyncTable() {
                   return (
                     <TableRow
                       key={row.id}
-                      className={ROW_ENTER_CLASS}
+                      className={cn(
+                        ROW_ENTER_CLASS,
+                        row.hasTransaction && 'bg-emerald-500/25!',
+                      )}
                       style={staggerDelay(rowIndex)}
                     >
                       <TableCell>
@@ -477,14 +489,29 @@ export function EmailSyncTable() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={!rerunnable || retryMutation.isPending}
-                          onClick={() => retryMutation.mutate([row.id])}
-                        >
-                          Re-run
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`View email ${row.id}`}
+                                onClick={() => setViewingEmailId(row.id)}
+                              >
+                                <Mail className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>View email</TooltipContent>
+                          </Tooltip>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={!rerunnable || retryMutation.isPending}
+                            onClick={() => retryMutation.mutate([row.id])}
+                          >
+                            Re-run
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -555,6 +582,16 @@ export function EmailSyncTable() {
           </div>
         ) : null}
       </div>
+
+      <EmailBodyDialog
+        gmailMessageId={viewingEmailId}
+        open={viewingEmailId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewingEmailId(null);
+          }
+        }}
+      />
     </div>
   );
 }

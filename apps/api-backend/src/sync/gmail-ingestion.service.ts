@@ -387,13 +387,12 @@ export class GmailIngestionService {
   }
 
   private extractEmailBody(payload: GmailApiPayload): string {
-    const plain = this.findBodyByMimeType(payload, 'text/plain');
-    if (plain) {
-      return plain;
+    const html = this.findBodyByMimeType(payload, 'text/html');
+    if (html) {
+      return html;
     }
 
-    const html = this.findBodyByMimeType(payload, 'text/html');
-    return html ?? '';
+    return this.findBodyByMimeType(payload, 'text/plain') ?? '';
   }
 
   private findBodyByMimeType(

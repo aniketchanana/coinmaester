@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   Logger,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { JOB_STATUS } from '@repo/constant';
@@ -10,7 +11,10 @@ import type { SyncStatus } from '@repo/database';
 import { isAiParsingEnabled } from '../common/ai-parsing';
 import { PrismaService } from '../database/prisma.service';
 import { RabbitMqPublisherService } from '../messaging/rabbitmq-publisher.service';
+import { EmailFileStorageService } from '../storage/email-file-storage.service';
+import { toRenderableHtml } from './email-body-html';
 import type {
+  GetEmailBodyResponse,
   GmailMessageDto,
   ListGmailMessagesResponse,
   RetryGmailMessagesResponse,
@@ -31,7 +35,52 @@ export class GmailMessagesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly rabbitMqPublisher: RabbitMqPublisherService,
+    private readonly emailFileStorage: EmailFileStorageService,
   ) {}
+
+  async getEmailBody(
+    userId: string,
+    gmailMessageId: string,
+  ): Promise<GetEmailBodyResponse> {
+    const message = await this.prisma.client.gmailMessage.findFirst({
+      where: { id: gmailMessageId, userId },
+      select: {
+        id: true,
+        header: true,
+        internalDate: true,
+        emailBody: true,
+      },
+    });
+
+    if (!message?.emailBody) {
+      throw new NotFoundException(
+        `No stored email found for Gmail message ${gmailMessageId}`,
+      );
+    }
+
+    let body: string;
+    try {
+      body = await this.emailFileStorage.readBody(message.emailBody);
+    } catch (error) {
+      this.logger.warn(
+        `Unable to read email body "${message.emailBody}" for Gmail message ${gmailMessageId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      throw new NotFoundException(
+        `No stored email found for Gmail message ${gmailMessageId}`,
+      );
+    }
+
+    const { from, subject } = this.parseHeader(message.header);
+
+    return {
+      html: toRenderableHtml(body),
+      from,
+      subject,
+      receivedAt: message.internalDate.toISOString(),
+    };
+  }
 
   async listGmailMessages(
     userId: string,

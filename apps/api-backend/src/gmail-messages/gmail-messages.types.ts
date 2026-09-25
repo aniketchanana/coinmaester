@@ -22,6 +22,13 @@ export interface ListGmailMessagesResponse {
   pagination: GmailMessagesPagination;
 }
 
+export interface GetEmailBodyResponse {
+  html: string;
+  from: string;
+  subject: string;
+  receivedAt: string;
+}
+
 export interface RetryGmailMessagesBody {
   ids: string[];
 }
